@@ -8,4 +8,4 @@ logs/
 __pychache__/
 *.py[cod]
 
-data/gym_data.json
+.vscode/

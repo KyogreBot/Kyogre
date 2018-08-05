@@ -61,30 +61,38 @@ class Pokemon():
 
     __slots__ = ('name', 'id', 'types', 'bot', 'guild', 'pkmn_list',
                  'pb_raid', 'weather', 'moveset', 'form', 'shiny', 'alolan', 'legendary', 'mythical')
+    
+    _legendary_list = [144, 145, 146, 150, 243, 244, 245, 377, 378, 379, 380, 381, 382, 383, 384]
+    _mythical_list = [151, 251]
+    _shiny_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 25, 26, 90, 91, 126, 129, 130, 138, 139,
+            140, 141, 142, 144, 147, 148, 149, 172, 175, 176, 179, 180, 181, 198,
+            202, 240, 246, 247, 248, 249, 250, 261, 262, 296, 297, 302, 303,
+            304, 305, 306, 307, 308, 311, 312, 315, 320, 321, 333, 334, 353, 354, 355,
+            356, 359, 360, 361, 362, 370, 382]
+    _alolan_list = [19, 20, 26, 27, 28, 37, 38, 50, 51, 52, 53, 74, 75, 76, 88, 89, 103, 105]
+    _form_list = [
+        'normal', 'sunny', 'rainy', 'snowy', 'sunglasses',
+        'ash', 'party', 'witch', 'santa', 'summer',
+        'defense', 'normal', 'attack', 'speed'
+    ]
+
+    _unown_form_list = [' ' + c for c in ascii_lowercase + '!?']
+    _form_dict = {
+        7: ['sunglasses'],
+        8: ['sunglasses'],
+        9: ['sunglasses'],
+        25:  ['ash', 'party', 'witch', 'santa', 'summer'],
+        26:  ['ash', 'party', 'witch', 'santa', 'summer'],
+        172:  ['ash', 'party', 'witch', 'santa', 'summer'],
+        201: _unown_form_list,
+        351: ['normal', 'rainy', 'snowy', 'sunny'],
+        386: ['defense', 'normal', 'attack', 'speed']			
+    }
 
     def __init__(self, bot, pkmn, guild=None, **attribs):
         self.bot = bot
         self.guild = guild
         self.pkmn_list = bot.pkmn_info['pokemon_list']
-        lgnd_list = [144, 145, 146, 150, 243, 244, 245, 377, 378, 379, 380, 381, 382, 383, 384]
-        mythical_list = [151, 251]
-        shiny_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 25, 26, 90, 91, 126, 129, 130, 138, 139,
-            140, 141, 142, 144, 147, 148, 149, 172, 175, 176, 179, 180, 181, 198,
-            202, 240, 246, 247, 248, 249, 250, 261, 262, 296, 297, 302, 303,
-            304, 305, 306, 307, 308, 311, 312, 315, 320, 321, 333, 334, 353, 354, 355,
-            356, 359, 360, 361, 362, 370, 382]
-        alolan_list = [19, 20, 27, 28, 37, 38, 52, 53, 88, 89, 103]
-        form_dict = {
-			7: ['sunglasses'],
-			8: ['sunglasses'],
-			9: ['sunglasses'],
-			25:  ['ash', 'party', 'witch', 'santa', 'summer'],
-			26:  ['ash', 'party', 'witch', 'santa', 'summer'],
-			172:  ['ash', 'party', 'witch', 'santa', 'summer'],
-			201: [c for c in ascii_lowercase].extend(['!', '?']),
-            351: ['normal', 'rainy', 'snowy', 'sunny'],
-            386: ['defense', 'normal', 'attack', 'speed']			
-		}
         if pkmn.isdigit():
             try:
                 pkmn = self.pkmn_list[int(pkmn)-1]
@@ -94,29 +102,32 @@ class Pokemon():
         if pkmn not in self.pkmn_list:
             raise PokemonNotFound(pkmn)
         self.id = self.pkmn_list.index(pkmn)+1
-        self.types = self._get_type()
         self.pb_raid = None
         self.weather = attribs.get('weather', None)
         self.moveset = attribs.get('moveset', [])
         self.form = attribs.get('form', '')
-        if self.form not in form_dict.get(self.id, []):
+        if self.form not in Pokemon._form_dict.get(self.id, []):
             self.form = None
         self.shiny = attribs.get('shiny', False)
-        if self.id not in shiny_list:
+        if self.id not in Pokemon._shiny_list:
             self.shiny = False
         self.alolan = attribs.get('alolan', False)
-        if self.id not in alolan_list:
+        if self.id not in Pokemon._alolan_list:
             self.alolan = False
-        if self.id in lgnd_list:
+        if self.id in Pokemon._legendary_list:
             self.legendary = True
-        elif self.id in mythical_list:
+        elif self.id in Pokemon._mythical_list:
             self.mythical = True
         else:
             self.legendary = False
             self.mythical = False
+        self.types = self._get_type()
 
 
     def __str__(self):
+        return self.get_name()  
+
+    def get_name(self):
         name = self.name.title()
         if self.form:
             name = name + f" {self.form.title()}"
@@ -223,19 +234,17 @@ class Pokemon():
     @property
     def is_raid(self):
         """:class:`bool` : Indicates if the pokemon can show in Raids"""
-        return self.id in utils.get_raidlist(self.bot)
+        return self.get_name().lower() in utils.get_raidlist(self.bot)
 
     @property
     def is_exraid(self):
         """:class:`bool` : Indicates if the pokemon can show in Raids"""
-        if not self.is_raid:
-            return False
-        return self.id in self.bot.raid_info['raid_eggs']['EX']['pokemon']
+        return self.get_name().lower() in self.bot.raid_info['raid_eggs']['EX']['pokemon']
 
     @property
     def raid_level(self):
         """:class:`int` or :obj:`None` : Returns raid egg level"""
-        return utils.get_level(self.bot, self.id)
+        return utils.get_level(self.bot, self.get_name())
 
     # def max_raid_cp(self, weather_boost=False):
     #     """:class:`int` or :obj:`None` : Returns max CP on capture after raid
@@ -264,7 +273,7 @@ class Pokemon():
         """
         types_eff = {}
         for t, v in self.type_effects.items():
-            if round(v, 3) > 1:
+            if round(v, 3) >= 1:
                 types_eff[t] = v
         return types_eff
 
@@ -275,13 +284,18 @@ class Pokemon():
         """
         types_eff = {}
         for t, v in self.type_effects.items():
-            if round(v, 3) < 1:
+            if round(v, 3) <= -1:
                 types_eff[t] = v
         return types_eff
 
     def _get_type(self):
         """:class:`list` : Returns the Pokemon's types"""
-        return self.bot.type_list[self.id-1]
+        types = None
+        if self.alolan:
+            types = self.bot.type_list[self.id-1].get('alolan', None)
+        if not types:
+            types = self.bot.type_list[self.id-1].get('default', None) 
+        return types
 
     @property
     def type_effects(self):
@@ -290,10 +304,10 @@ class Pokemon():
         """
         type_eff = {}
         for _type in self.types:
-            for atk_type in self.bot.type_chart[_type]:
+            for atk_type in self.bot.defense_chart[_type]:
                 if atk_type not in type_eff:
                     type_eff[atk_type] = 1
-                type_eff[atk_type] *= self.bot.type_chart[_type][atk_type]
+                type_eff[atk_type] *= utils.get_effectiveness(self.bot.defense_chart[_type][atk_type])
         return type_eff
 
     @property
@@ -356,12 +370,8 @@ class Pokemon():
             argument = argument.replace('alolan', '').strip()
         else:
             alolan = False
-        form_list = [
-			'normal', 'sunny', 'rainy', 'snowy', 'sunglasses',
-			'ash', 'party', 'witch', 'santa', 'summer',
-			'defense', 'normal', 'attack', 'speed'
-		]
-        form_list.extend([' ' + c for c in ascii_lowercase])
+        form_list = Pokemon._form_list
+        form_list.extend(Pokemon._unown_form_list)
         f = next((x for x in form_list if x in argument.lower()), None)
         if f:
             form = f.strip()
@@ -394,7 +404,7 @@ class Pokemon():
         return result
 
     @classmethod
-    def get_pokemon(cls, ctx, argument):
+    def get_pokemon(cls, bot, argument, guild=None):
         argument = argument.lower()
         if 'shiny' in argument.lower():
             shiny = True
@@ -406,31 +416,32 @@ class Pokemon():
             argument = argument.replace('alolan', '').strip()
         else:
             alolan = False
-        form_list = [
-			'normal', 'sunny', 'rainy', 'snowy', 'sunglasses',
-			'ash', 'party', 'witch', 'santa', 'summer',
-			'defense', 'normal', 'attack', 'speed'
-		]
-        form_list.extend([' ' + c for c in ascii_lowercase])
+        form_list = Pokemon._form_list
+        form_list.extend(Pokemon._unown_form_list)
         f = next((x for x in form_list if x in argument.lower()), None)
         if f:
             form = f.strip()
             argument = argument.replace(f, '').strip()
         else:
             form = None
+
+        arg_split = argument.split()
+        if len(arg_split) > 1:
+            argument = arg_split[0]
+
         if argument.isdigit():
             try:
-                match = ctx.bot.pkmn_info['pokemon_list'][int(argument)-1]
+                match = bot.pkmn_info['pokemon_list'][int(argument)-1]
             except IndexError:
                 return None
         else:
-            pkmn_list = ctx.bot.pkmn_info['pokemon_list']
+            pkmn_list = bot.pkmn_info['pokemon_list']
             match = utils.get_match(pkmn_list, argument)[0]
 
         if not match:
             return None
 
-        return cls(ctx.bot, str(match), ctx.guild, shiny=shiny, alolan=alolan, form=form)
+        return cls(bot, str(match), guild, shiny=shiny, alolan=alolan, form=form)
 
 
 def setup(bot):

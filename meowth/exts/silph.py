@@ -140,7 +140,7 @@ class SilphCard:
 
     @property
     def checkin_count(self):
-        if not self._badges:
+        if not self._badges or not isinstance(self._checkins, list):
             return 0
         return len(self._checkins)
 
@@ -289,7 +289,6 @@ class Silph:
     async def get_silph_card(self, silph_user):
         return await SilphCard.get_trainer_card(silph_user)
 
-    @commands.command()
     async def silphcard(self, ctx, silph_user: str = None):
         """Displays a user's Silph Road Trainer Card."""
         guild_data = ctx.bot.guild_dict[ctx.guild.id]

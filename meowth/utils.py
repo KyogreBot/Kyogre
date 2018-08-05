@@ -6,13 +6,25 @@ from fuzzywuzzy import process
 import discord
 import asyncio
 
-def get_match(word_list: list, word: str, score_cutoff: int = 60):
+from meowth.exts import pokemon
+
+Pokemon = pokemon.Pokemon
+
+def get_match(word_list: list, word: str, score_cutoff: int = 60, isPartial: bool = False, limit: int = 1):
     """Uses fuzzywuzzy to see if word is close to entries in word_list
 
     Returns a tuple of (MATCH, SCORE)
     """
-    result = process.extractOne(
-        word, word_list, scorer=fuzz.ratio, score_cutoff=score_cutoff)
+    result = None
+    scorer = fuzz.ratio
+    if isPartial:
+        scorer = fuzz.partial_ratio
+    if limit == 1:
+        result = process.extractOne(word, word_list, 
+            scorer=scorer, score_cutoff=score_cutoff)  
+    else:
+        result = process.extractBests(word, word_list, 
+            scorer=scorer, score_cutoff=score_cutoff, limit=limit)
     if not result:
         return (None, None)
     return result
@@ -210,19 +222,23 @@ def get_raidlist(bot):
     raidlist = []
     for level in bot.raid_info['raid_eggs']:
         for pokemon in bot.raid_info['raid_eggs'][level]['pokemon']:
-            raidlist.append(pokemon)
-            raidlist.append(get_name(pokemon).lower())
+            mon = Pokemon.get_pokemon(bot, pokemon)
+            raidlist.append(mon.get_name().lower())
     return raidlist
 
 def get_level(bot, pkmn):
-    if str(pkmn).isdigit():
-        pkmn_number = pkmn
-    else:
-        pkmn_number = get_number(bot, pkmn)
-    for level in bot.raid_info['raid_eggs']:
-        for level, pkmn_list in bot.raid_info['raid_eggs'].items():
-            if pkmn_number in pkmn_list["pokemon"]:
-                return level
+    for level, pkmn_list in bot.raid_info['raid_eggs'].items():
+        if pkmn.lower() in pkmn_list["pokemon"]:
+            return level
+
+def get_effectiveness(type_eff):
+        if type_eff == 1:
+            return 1.4
+        if type_eff == -1:
+            return 0.714
+        if type_eff == -2:
+            return 0.51
+        return 1
 
 async def ask(bot, message, user_list=None, timeout=60, *, react_list=['✅', '❎']):
     if user_list and type(user_list) != __builtins__.list:

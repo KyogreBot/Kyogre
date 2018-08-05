@@ -5,8 +5,8 @@ from discord.ext import commands
 from meowth import utils
 from meowth import checks
 
-class DataHandler:
-    """Data Loading and Saving Test Cog."""
+class RaidDataHandler:
+    """Raid Data Loading and Saving Test Cog."""
 
     def __init__(self, bot):
         self.bot = bot
@@ -182,4 +182,4 @@ class DataHandler:
         await ctx.message.add_reaction('\u2705')
 
 def setup(bot):
-    bot.add_cog(DataHandler(bot))
+    bot.add_cog(RaidDataHandler(bot))
