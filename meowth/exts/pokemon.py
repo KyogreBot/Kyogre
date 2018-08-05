@@ -73,20 +73,20 @@ class Pokemon():
     _form_list = [
         'normal', 'sunny', 'rainy', 'snowy', 'sunglasses',
         'ash', 'party', 'witch', 'santa', 'summer',
-        'defense', 'normal', 'attack', 'speed'
+        'defense', 'attack', 'speed'
     ]
 
-    _unown_form_list = [' ' + c for c in ascii_lowercase + '!?']
     _form_dict = {
-        7: ['sunglasses'],
-        8: ['sunglasses'],
-        9: ['sunglasses'],
-        25:  ['ash', 'party', 'witch', 'santa', 'summer'],
-        26:  ['ash', 'party', 'witch', 'santa', 'summer'],
-        172:  ['ash', 'party', 'witch', 'santa', 'summer'],
-        201: _unown_form_list,
-        351: ['normal', 'rainy', 'snowy', 'sunny'],
-        386: ['defense', 'normal', 'attack', 'speed']			
+        'squirtle': ['sunglasses'],
+        'wartortle': ['sunglasses'],
+        'blastoise': ['sunglasses'],
+        'pikachu':  ['ash', 'party', 'witch', 'santa', 'summer'],
+        'raichu':  ['ash', 'party', 'witch', 'santa', 'summer'],
+        'pichu':  ['ash', 'party', 'witch', 'santa', 'summer'],
+        'unown': list(ascii_lowercase + '!?'),
+        'spinda': [str(n) for n in range(1, 9)],
+        'castform': ['normal', 'rainy', 'snowy', 'sunny'],
+        'deoxys': ['defense', 'normal', 'attack', 'speed']			
     }
 
     def __init__(self, bot, pkmn, guild=None, **attribs):
@@ -96,31 +96,24 @@ class Pokemon():
         if pkmn.isdigit():
             try:
                 pkmn = self.pkmn_list[int(pkmn)-1]
+                self.id = pkmn
             except IndexError:
                 pass
+        else:
+            self.id = self.pkmn_list.index(pkmn)+1
         self.name = pkmn
         if pkmn not in self.pkmn_list:
             raise PokemonNotFound(pkmn)
-        self.id = self.pkmn_list.index(pkmn)+1
         self.pb_raid = None
         self.weather = attribs.get('weather', None)
         self.moveset = attribs.get('moveset', [])
         self.form = attribs.get('form', '')
-        if self.form not in Pokemon._form_dict.get(self.id, []):
+        if self.form not in Pokemon._form_dict.get(self.name, []):
             self.form = None
-        self.shiny = attribs.get('shiny', False)
-        if self.id not in Pokemon._shiny_list:
-            self.shiny = False
-        self.alolan = attribs.get('alolan', False)
-        if self.id not in Pokemon._alolan_list:
-            self.alolan = False
-        if self.id in Pokemon._legendary_list:
-            self.legendary = True
-        elif self.id in Pokemon._mythical_list:
-            self.mythical = True
-        else:
-            self.legendary = False
-            self.mythical = False
+        self.shiny = attribs.get('shiny', False) and self.id in Pokemon._shiny_list
+        self.alolan = attribs.get('alolan', False) and self.id in Pokemon._alolan_list
+        self.legendary = self.id in Pokemon._legendary_list
+        self.mythical = self.id in Pokemon._mythical_list
         self.types = self._get_type()
 
 
@@ -371,7 +364,6 @@ class Pokemon():
         else:
             alolan = False
         form_list = Pokemon._form_list
-        form_list.extend(Pokemon._unown_form_list)
         f = next((x for x in form_list if x in argument.lower()), None)
         if f:
             form = f.strip()
@@ -406,28 +398,29 @@ class Pokemon():
     @classmethod
     def get_pokemon(cls, bot, argument, guild=None):
         argument = argument.lower()
-        if 'shiny' in argument.lower():
+        if 'shiny' in argument:
             shiny = True
             argument = argument.replace('shiny', '').strip()
         else:
             shiny = False
-        if 'alolan' in argument.lower():
+        if 'alolan' in argument:
             alolan = True
             argument = argument.replace('alolan', '').strip()
         else:
             alolan = False
-        form_list = Pokemon._form_list
-        form_list.extend(Pokemon._unown_form_list)
-        f = next((x for x in form_list if x in argument.lower()), None)
-        if f:
-            form = f.strip()
-            argument = argument.replace(f, '').strip()
-        else:
-            form = None
+
+        form = None
+        detected_forms = []
+        form_check = None
+        candidates = [f for f in Pokemon._form_list if f in argument]
+        for c in candidates:
+            detected_forms.append(c)
+            argument = argument.replace(c, '').strip()
 
         arg_split = argument.split()
         if len(arg_split) > 1:
             argument = arg_split[0]
+            form_check = arg_split[1]
 
         if argument.isdigit():
             try:
@@ -440,6 +433,13 @@ class Pokemon():
 
         if not match:
             return None
+
+        form_list = Pokemon._form_dict.get(match, [])
+        if form_check and form_check in form_list:
+            detected_forms.append(form_check)
+        forms = [d for d in detected_forms if d in form_list]
+        if forms:
+            form = ' '.join(forms)
 
         return cls(bot, str(match), guild, shiny=shiny, alolan=alolan, form=form)
 
