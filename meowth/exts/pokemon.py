@@ -43,8 +43,8 @@ class Pokemon():
 
     Attributes
     -----------
-    name: :class:`str`
-        Lowercase string representing the name of the Pokemon
+    species: :class:`str`
+        Lowercase string representing the species of the Pokemon (formless)
     id: :class:`int`
         Pokemon ID number
     types: :class:`list` of :class:`str`
@@ -59,7 +59,7 @@ class Pokemon():
         Current instance of Eevee
     """
 
-    __slots__ = ('name', 'id', 'types', 'bot', 'guild', 'pkmn_list',
+    __slots__ = ('species', 'id', 'types', 'bot', 'guild', 'pkmn_list',
                  'pb_raid', 'weather', 'moveset', 'form', 'shiny', 'alolan', 'legendary', 'mythical')
     
     _legendary_list = [144, 145, 146, 150, 243, 244, 245, 377, 378, 379, 380, 381, 382, 383, 384]
@@ -75,7 +75,10 @@ class Pokemon():
         'ash', 'party', 'witch', 'santa', 'summer',
         'defense', 'attack', 'speed'
     ]
-
+    _stat_forms = [
+        'sunny', 'rainy', 'snowy', 'defense', 'attack', 'speed'
+    ]
+    _prefix_forms = _form_list
     _form_dict = {
         'squirtle': ['sunglasses'],
         'wartortle': ['sunglasses'],
@@ -101,14 +104,14 @@ class Pokemon():
                 pass
         else:
             self.id = self.pkmn_list.index(pkmn)+1
-        self.name = pkmn
+        self.species = pkmn
         if pkmn not in self.pkmn_list:
             raise PokemonNotFound(pkmn)
         self.pb_raid = None
         self.weather = attribs.get('weather', None)
         self.moveset = attribs.get('moveset', [])
         self.form = attribs.get('form', '')
-        if self.form not in Pokemon._form_dict.get(self.name, []):
+        if self.form not in Pokemon._form_dict.get(self.species, []):
             self.form = None
         self.shiny = attribs.get('shiny', False) and self.id in Pokemon._shiny_list
         self.alolan = attribs.get('alolan', False) and self.id in Pokemon._alolan_list
@@ -116,18 +119,33 @@ class Pokemon():
         self.mythical = self.id in Pokemon._mythical_list
         self.types = self._get_type()
 
-
     def __str__(self):
-        return self.get_name()  
+        return self.name
 
-    def get_name(self):
-        name = self.name.title()
-        if self.form:
-            name = name + f" {self.form.title()}"
+    @property
+    def name(self):
+        name = self.species.title()
+        if self.form and self.form in Pokemon._stat_forms:
+            if self.form in Pokemon._prefix_forms:
+                name = self.form.title() + name
+            else:
+                name = name + self.form.title()
         if self.alolan:
-            name = 'Alolan ' + name
+            name = f'Alolan {name}' 
+        return name
+    
+    @property
+    def full_name(self):
+        name = self.species.title()
+        if self.form:
+            if self.form in Pokemon._prefix_forms:
+                name = self.form.title() + name
+            else:
+                name = name + self.form.title()
+        if self.alolan:
+            name = f'Alolan {name}' 
         if self.shiny:
-            name = 'Shiny ' + name
+            name = f'Shiny {name}'
         return name
 
     async def get_pb_raid(self, weather=None, userid=None, moveset=None):
@@ -227,17 +245,17 @@ class Pokemon():
     @property
     def is_raid(self):
         """:class:`bool` : Indicates if the pokemon can show in Raids"""
-        return self.get_name().lower() in utils.get_raidlist(self.bot)
+        return self.name.lower() in utils.get_raidlist(self.bot)
 
     @property
     def is_exraid(self):
         """:class:`bool` : Indicates if the pokemon can show in Raids"""
-        return self.get_name().lower() in self.bot.raid_info['raid_eggs']['EX']['pokemon']
+        return self.name.lower() in self.bot.raid_info['raid_eggs']['EX']['pokemon']
 
     @property
     def raid_level(self):
         """:class:`int` or :obj:`None` : Returns raid egg level"""
-        return utils.get_level(self.bot, self.get_name())
+        return utils.get_level(self.bot, self.name)
 
     # def max_raid_cp(self, weather_boost=False):
     #     """:class:`int` or :obj:`None` : Returns max CP on capture after raid
