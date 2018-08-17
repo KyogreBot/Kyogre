@@ -203,21 +203,6 @@ async def get_raid_help(prefix, avatar, user=None):
         return helpembed
     await user.send(embed=helpembed)
 
-def get_number(bot, pkm_name):
-    try:
-        number = bot.pkmn_info['pokemon_list'].index(pkm_name) + 1
-    except ValueError:
-        number = None
-    return number
-
-def get_name(bot, pkmn_number):
-    pkmn_number = int(pkmn_number) - 1
-    try:
-        name = bot.pkmn_info['pokemon_list'][pkmn_number]
-    except IndexError:
-        name = None
-    return name
-
 def get_raidlist(bot):
     raidlist = []
     for level in bot.raid_info['raid_eggs']:
@@ -241,10 +226,10 @@ def get_effectiveness(type_eff):
         return 1
 
 async def ask(bot, message, user_list=None, timeout=60, *, react_list=['✅', '❎']):
-    if user_list and type(user_list) != __builtins__.list:
+    if user_list and not isinstance(user_list, list):
         user_list = [user_list]
     def check(reaction, user):
-        if user_list and type(user_list) is __builtins__.list:
+        if user_list and isinstance(user_list, list):
             return (user.id in user_list) and (reaction.message.id == message.id) and (reaction.emoji in react_list)
         elif not user_list:
             return (user.id != message.author.id) and (reaction.message.id == message.id) and (reaction.emoji in react_list)
@@ -257,3 +242,62 @@ async def ask(bot, message, user_list=None, timeout=60, *, react_list=['✅', '�
     except asyncio.TimeoutError:
         await message.clear_reactions()
         return
+
+async def ask_list(bot, prompt, destination, choices_list, options_emoji_list, user_list=None, *, allow_edit=False):    
+    if not (choices_list and options_emoji_list):
+        return None    
+    next_emoji = '➡'
+    next_emoji_text = '➡️'
+    edit_emoji = '✏'
+    edit_emoji_text = '✏️'
+    cancel_emoji = '❌'
+    num_pages = (len(choices_list) - 1) // len(options_emoji_list)    
+    for offset in range(num_pages + 1):
+        list_embed = discord.Embed(colour=destination.guild.me.colour)
+        other_options = []
+        emojified_options = []
+        current_start = offset * len(options_emoji_list)
+        current_options_emoji = options_emoji_list
+        current_choices = choices_list[current_start:current_start+len(options_emoji_list)]
+        try:
+            if len(current_choices) < len(current_options_emoji):
+                current_options_emoji = current_options_emoji[:len(current_choices)]
+            for i, name in enumerate(current_choices):
+                emojified_options.append(f"{current_options_emoji[i]}: {name}")
+            list_embed.add_field(name=prompt, value='\n'.join(emojified_options), inline=False)
+            embed_footer="Choose the reaction corresponding to the desired entry above."
+            if offset != num_pages:
+                other_options.append(next_emoji)
+                embed_footer += f" Select {next_emoji_text} to see more options."
+            if allow_edit:
+                other_options.append(edit_emoji)
+                embed_footer += f" To enter a custom answer, select {edit_emoji_text}."
+            embed_footer += f" Select {cancel_emoji} to cancel."
+            list_embed.set_footer(text=embed_footer)
+            other_options.append(cancel_emoji)
+            q_msg = await destination.send(embed=list_embed)
+            all_options = current_options_emoji + other_options
+            reaction, __ = await ask(bot, q_msg, user_list, react_list=all_options)
+        except TypeError:
+            return None
+        if not reaction:
+            return None
+        await q_msg.delete()
+        if reaction.emoji in current_options_emoji:
+            return choices_list[current_start+current_options_emoji.index(reaction.emoji)]
+        if reaction.emoji == edit_emoji:
+            break
+        if reaction.emoji == cancel_emoji:
+            return None    
+    def check(message):
+        if user_list and type(user_list) is __builtins__.list:
+            return (message.author.id in user_list)
+        elif not user_list:
+            return (message.author.id != message.guild.me.id)
+        return message.author.id == user_list
+    try:
+        await destination.send("Meowth! What's the custom value?")
+        message = await bot.wait_for('message', check=check, timeout=60)
+        return message.content
+    except Exception:
+        return None

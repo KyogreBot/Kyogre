@@ -13,7 +13,7 @@ def is_owner():
 
 def is_dev_check(ctx):
     author = ctx.author.id
-    dev_list = [132314336914833409, 174764205927432192, 263607303096369152]
+    dev_list = [454869333764603904,371387628093833216]
     return author in dev_list
 
 def is_dev_or_owner():
@@ -43,7 +43,6 @@ def role_or_permissions(ctx, check, **perms):
     return role is not None
 
 def serverowner_or_permissions(**perms):
-
     def predicate(ctx):
         owner = ctx.guild.owner
         if ctx.author.id == owner.id:
@@ -52,22 +51,22 @@ def serverowner_or_permissions(**perms):
     return commands.check(predicate)
 
 def serverowner():
-    return guildowner_or_permissions()
+    return serverowner_or_permissions()
 
 #configuration
-def check_wantset(ctx):
+def check_subscribeset(ctx):
     if ctx.guild is None:
         return False
     guild = ctx.guild
-    return ctx.bot.guild_dict[guild.id]['configure_dict']['want'].get('enabled',False)
+    return ctx.bot.guild_dict[guild.id]['configure_dict'].get('subscribe', {}).get('enabled',False)
 
-def check_wantchannel(ctx):
+def check_subscribechannel(ctx):
     if ctx.guild is None:
         return False
     channel = ctx.channel
     guild = ctx.guild
-    want_channels = ctx.bot.guild_dict[guild.id]['configure_dict']['want'].get('report_channels',[])
-    return channel.id in want_channels
+    subscribe_channels = ctx.bot.guild_dict[guild.id]['configure_dict'].get('subscribe', {}).get('report_channels',[])
+    return channel.id in subscribe_channels
 
 def check_citychannel(ctx):
     if ctx.guild is None:
@@ -324,14 +323,14 @@ def allowteam():
             raise errors.TeamSetCheckFail()
     return commands.check(predicate)
 
-def allowwant():
+def allowsubscribe():
     def predicate(ctx):
-        if check_wantset(ctx):
-            if check_wantchannel(ctx):
+        if check_subscribeset(ctx):
+            if check_subscribechannel(ctx):
                 return True
             else:
-                raise errors.WantChannelCheckFail()
-        raise errors.WantSetCheckFail()
+                raise errors.SubscribeChannelCheckFail()
+        raise errors.SubscribeSetCheckFail()
     return commands.check(predicate)
 
 def allowtrade():

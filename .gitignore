@@ -3,6 +3,7 @@
 config.json
 data/serverdict_backup
 data/serverdict
+data/*.db*
 
 logs/
 __pychache__/

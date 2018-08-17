@@ -3,6 +3,7 @@ import discord
 from string import ascii_lowercase
 
 from meowth import utils
+from meowth.exts.db.meowthdb import PokemonTable
 
 from discord.ext.commands import CommandError
 
@@ -62,14 +63,6 @@ class Pokemon():
     __slots__ = ('species', 'id', 'types', 'bot', 'guild', 'pkmn_list',
                  'pb_raid', 'weather', 'moveset', 'form', 'shiny', 'alolan', 'legendary', 'mythical')
     
-    _legendary_list = [144, 145, 146, 150, 243, 244, 245, 377, 378, 379, 380, 381, 382, 383, 384]
-    _mythical_list = [151, 251]
-    _shiny_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 25, 26, 90, 91, 126, 129, 130, 138, 139,
-            140, 141, 142, 144, 147, 148, 149, 172, 175, 176, 179, 180, 181, 198,
-            202, 240, 246, 247, 248, 249, 250, 261, 262, 296, 297, 302, 303,
-            304, 305, 306, 307, 308, 311, 312, 315, 320, 321, 333, 334, 353, 354, 355,
-            356, 359, 360, 361, 362, 370, 382]
-    _alolan_list = [19, 20, 26, 27, 28, 37, 38, 50, 51, 52, 53, 74, 75, 76, 88, 89, 103, 105]
     _form_list = [
         'normal', 'sunny', 'rainy', 'snowy', 'sunglasses',
         'ash', 'party', 'witch', 'santa', 'summer',
@@ -91,39 +84,37 @@ class Pokemon():
         'castform': ['normal', 'rainy', 'snowy', 'sunny'],
         'deoxys': ['defense', 'normal', 'attack', 'speed']			
     }
+    _pkmn_dict = {r['name'].lower(): r for r in PokemonTable.select().where(PokemonTable.released == True).dicts()}
 
     def __init__(self, bot, pkmn, guild=None, **attribs):
         self.bot = bot
         self.guild = guild
-        self.pkmn_list = bot.pkmn_info['pokemon_list']
-        if pkmn.isdigit():
-            try:
-                pkmn = self.pkmn_list[int(pkmn)-1]
-                self.id = pkmn
-            except IndexError:
-                pass
-        else:
-            self.id = self.pkmn_list.index(pkmn)+1
-        self.species = pkmn
-        if pkmn not in self.pkmn_list:
+        p_obj = Pokemon.find_obj(pkmn)
+        if not p_obj:
             raise PokemonNotFound(pkmn)
+        self.id = p_obj['id']
+        self.species = p_obj['name']
         self.pb_raid = None
         self.weather = attribs.get('weather', None)
         self.moveset = attribs.get('moveset', [])
         self.form = attribs.get('form', '')
         if self.form not in Pokemon._form_dict.get(self.species, []):
             self.form = None
-        self.shiny = attribs.get('shiny', False) and self.id in Pokemon._shiny_list
-        self.alolan = attribs.get('alolan', False) and self.id in Pokemon._alolan_list
-        self.legendary = self.id in Pokemon._legendary_list
-        self.mythical = self.id in Pokemon._mythical_list
-        self.types = self._get_type()
+        self.shiny = attribs.get('shiny', False) and p_obj['shiny']
+        self.alolan = attribs.get('alolan', False) and p_obj['alolan']
+        self.legendary = p_obj['legendary']
+        self.mythical = p_obj['mythical']
+        if self.alolan:
+            self.types = p_obj['types']['alolan']
+        else:
+            self.types = p_obj['types']['default']
 
     def __str__(self):
         return self.name
 
     @property
     def name(self):
+        # name without cosmetic modifiers (for identifying substantive differences)
         name = self.species.title()
         if self.form and self.form in Pokemon._stat_forms:
             if self.form in Pokemon._prefix_forms:
@@ -136,6 +127,7 @@ class Pokemon():
     
     @property
     def full_name(self):
+        # name with all modifiers
         name = self.species.title()
         if self.form:
             if self.form in Pokemon._prefix_forms:
@@ -299,15 +291,6 @@ class Pokemon():
                 types_eff[t] = v
         return types_eff
 
-    def _get_type(self):
-        """:class:`list` : Returns the Pokemon's types"""
-        types = None
-        if self.alolan:
-            types = self.bot.type_list[self.id-1].get('alolan', None)
-        if not types:
-            types = self.bot.type_list[self.id-1].get('default', None) 
-        return types
-
     @property
     def type_effects(self):
         """:class:`dict` : Returns a dict of all Pokemon types and their
@@ -388,30 +371,36 @@ class Pokemon():
             argument = argument.replace(f, '').strip()
         else:
             form = None
-        if argument.isdigit():
-            try:
-                match = ctx.bot.pkmn_info['pokemon_list'][int(argument)-1]
-                score = 100
-            except IndexError:
-                raise commands.errors.BadArgument(
-                    'Pokemon ID "{}" not valid'.format(argument))
-        else:
-            pkmn_list = ctx.bot.pkmn_info['pokemon_list']
+        
+        p_obj = Pokemon.find_obj(argument)
+        if not p_obj:
+            pkmn_list = [p for p in Pokemon._pkmn_dict]
             match, score = utils.get_match(pkmn_list, argument)
+        else:
+            match = p_obj['name']
+            score = 100
+
         if match:
             if score >= 80:
-                result = cls(ctx.bot, str(match), ctx.guild, shiny=shiny, alolan=alolan, form=form)
+                result = cls(ctx.bot, match, ctx.guild, shiny=shiny, alolan=alolan, form=form)
             else:
                 result = {
-                    'suggested' : str(match),
+                    'suggested' : match,
                     'original'   : argument
                 }
 
         if not result:
             raise commands.errors.BadArgument(
                 'Pokemon "{}" not valid'.format(argument))
-
         return result
+    
+    @classmethod
+    def find_obj(cls, pkmn):
+        if pkmn.isdigit():
+            p_obj = next((v for k, v in Pokemon._pkmn_dict.items() if v['id'] == int(pkmn)), None)
+        else:
+            p_obj = next((v for k, v in Pokemon._pkmn_dict.items() if k == pkmn.strip().lower()), None)
+        return p_obj
 
     @classmethod
     def get_pokemon(cls, bot, argument, guild=None):
@@ -440,14 +429,12 @@ class Pokemon():
             argument = arg_split[0]
             form_check = arg_split[1]
 
-        if argument.isdigit():
-            try:
-                match = bot.pkmn_info['pokemon_list'][int(argument)-1]
-            except IndexError:
-                return None
+        p_obj = Pokemon.find_obj(argument)
+        if not p_obj:
+            pkmn_list = [p for p in Pokemon._pkmn_dict]
+            match = utils.get_match(pkmn_list, argument, score_cutoff=80)[0]
         else:
-            pkmn_list = bot.pkmn_info['pokemon_list']
-            match = utils.get_match(pkmn_list, argument)[0]
+            match = p_obj['name']
 
         if not match:
             return None

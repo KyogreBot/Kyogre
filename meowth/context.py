@@ -10,6 +10,13 @@ class Context(commands.Context):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.get = GetTools(self)
+        if not self.guild and self.message:
+            member_matches = [(self.get.member(self.message.author.id, guild_id), guild_id) for guild_id in self.bot.guild_dict.keys()]
+            member_matches = [(m[0], m[1]) for m in member_matches if m[0] is not None]
+            if len(member_matches) == 1 or True:
+                self.guild = member_matches[0][0].guild
+            else:
+                return
         guild_data = self.bot.guild_dict[self.guild.id]
         self.data = settings.GuildData(self, guild_data)
 

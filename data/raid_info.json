@@ -1,77 +1,71 @@
 {
-  "raid_eggs": {
-    "1": {
-      "egg": "normal", 
-      "egg_img": "1.png", 
-      "pokemon": [
-        "charmander",
-        "magikarp",
-        "makuhita",
-        "meditite",
-        "omanyte",
-        "wailmer"
-      ], 
-      "hatchtime": 60, 
-      "raidtime": 45
-    }, 
-    "2": {
-      "egg": "normal", 
-      "egg_img": "2.png", 
-      "pokemon": [
-        "alolan exeggutor",
-        "kirlia",
-        "magmar",
-        "mawile",
-        "sudowoodo"
-      ], 
-      "hatchtime": 60, 
-      "raidtime": 45
-    }, 
-    "3": {
-      "egg": "rare", 
-      "egg_img": "3.png", 
-      "pokemon": [
-        "alolan raichu",
-        "donphan",
-        "flareon",
-        "machamp",
-        "onix",
-        "porygon"
-      ], 
-      "hatchtime": 60, 
-      "raidtime": 45
-    }, 
-    "4": {
-      "egg": "rare", 
-      "egg_img": "4.png", 
-      "pokemon": [
-        "absol", 
-        "alolan marowak", 
-        "golem",
-        "houndoom",
-        "rhydon",
-        "tyranitar"
-      ], 
-      "hatchtime": 60, 
-      "raidtime": 45
-    }, 
-    "5": {
-      "egg": "legendary", 
-      "egg_img": "5.png", 
-      "pokemon": [
-        "registeel"
-      ], 
-      "hatchtime": 60, 
-      "raidtime": 45
-    }, 
-    "EX": {
-      "egg": "EX", 
-      "egg_img": "EX.png", 
-      "pokemon": [
-        "mewtwo"
-      ], 
-      "hatchtime": 14, 
-      "raidtime": 45
+    "raid_eggs": {
+        "1": {
+            "egg": "normal",
+            "egg_img": "1.png",
+            "pokemon": [
+                "magikarp",
+                "makuhita",
+                "meditite",
+                "wailmer"
+            ],
+            "hatchtime": 60,
+            "raidtime": 45
+        },
+        "2": {
+            "egg": "normal",
+            "egg_img": "2.png",
+            "pokemon": [
+                "kirlia",
+                "roselia",
+                "mawile",
+                "alolan exeggutor"
+            ],
+            "hatchtime": 60,
+            "raidtime": 45
+        },
+        "3": {
+            "egg": "rare",
+            "egg_img": "3.png",
+            "pokemon": [
+                "alolan raichu",
+                "donphan",
+                "machamp",
+                "piloswine",
+                "tangela"
+            ],
+            "hatchtime": 60,
+            "raidtime": 45
+        },
+        "4": {
+            "egg": "rare",
+            "egg_img": "4.png",
+            "pokemon": [
+                "absol",
+                "alolan marowak",
+                "rhydon",
+                "tyranitar"
+            ],
+            "hatchtime": 60,
+            "raidtime": 45
+        },
+        "5": {
+            "egg": "legendary",
+            "egg_img": "5.png",
+            "pokemon": [
+                "regirock"
+            ],
+            "hatchtime": 60,
+            "raidtime": 45
+        },
+        "EX": {
+            "egg": "EX",
+            "egg_img": "EX.png",
+            "pokemon": [
+                "mewtwo"
+            ],
+            "hatchtime": 14,
+            "raidtime": 45
+        }
     }
-  }
 }

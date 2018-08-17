@@ -9,8 +9,8 @@ class TeamSetCheckFail(CommandError):
     'Exception raised checks.teamset fails'
     pass
 
-class WantSetCheckFail(CommandError):
-    'Exception raised checks.wantset fails'
+class SubscribeSetCheckFail(CommandError):
+    'Exception raised checks.subscribeset fails'
     pass
 
 class WildSetCheckFail(CommandError):
@@ -49,8 +49,8 @@ class CityChannelCheckFail(CommandError):
     'Exception raised checks.citychannel fails'
     pass
 
-class WantChannelCheckFail(CommandError):
-    'Exception raised checks.wantchannel fails'
+class SubscribeChannelCheckFail(CommandError):
+    'Exception raised checks.subscribechannel fails'
     pass
 
 class RaidChannelCheckFail(CommandError):
@@ -174,8 +174,8 @@ def custom_error_handling(bot, logger):
             error = await ctx.channel.send(msg)
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
-        elif isinstance(error, WantSetCheckFail):
-            msg = _('Meowth! Pokemon Notifications are not enabled on this server. **{prefix}{cmd_name}** is unable to be used.').format(cmd_name=ctx.invoked_with, prefix=prefix)
+        elif isinstance(error, SubscribeSetCheckFail):
+            msg = _('Meowth! Subscriptions are not enabled on this server. **{prefix}{cmd_name}** is unable to be used.').format(cmd_name=ctx.invoked_with, prefix=prefix)
             error = await ctx.channel.send(msg)
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
@@ -236,16 +236,16 @@ def custom_error_handling(bot, logger):
             error = await ctx.channel.send(msg)
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
-        elif isinstance(error, WantChannelCheckFail):
+        elif isinstance(error, SubscribeChannelCheckFail):
             guild = ctx.guild
             msg = _('Meowth! Please use **{prefix}{cmd_name}** in the following channel').format(cmd_name=ctx.invoked_with, prefix=prefix)
-            want_channels = bot.guild_dict[guild.id]['configure_dict']['want']['report_channels']
-            if len(want_channels) > 1:
+            subscribe_channels = bot.guild_dict[guild.id]['configure_dict']['subscribe']['report_channels']
+            if len(subscribe_channels) > 1:
                 msg += _('s:\n')
             else:
                 msg += _(': ')
             counter = 0
-            for c in want_channels:
+            for c in subscribe_channels:
                 channel = discord.utils.get(guild.channels, id=c)
                 if counter > 0:
                     msg += '\n'
