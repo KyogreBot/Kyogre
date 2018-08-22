@@ -41,6 +41,10 @@ class ArchiveSetCheckFail(CommandError):
     'Exception raised checks.archiveset fails'
     pass
 
+class RegionsSetCheckFail(CommandError):
+    'Exception raised checks.regionsset fails'
+    pass
+
 class InviteSetCheckFail(CommandError):
     'Exception raised checks.inviteset fails'
     pass

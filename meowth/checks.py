@@ -211,6 +211,12 @@ def check_welcomeset(ctx):
     guild = ctx.guild
     return ctx.bot.guild_dict[guild.id]['configure_dict']['welcome'].get('enabled',False)
 
+def check_regionsset(ctx):
+    if ctx.guild is None:
+        return False
+    guild = ctx.guild
+    return ctx.bot.guild_dict[guild.id]['configure_dict'].setdefault('regions', {}).get('enabled', False)
+
 def check_archiveset(ctx):
     if ctx.guild is None:
         return False
@@ -332,6 +338,15 @@ def allowsubscribe():
                 raise errors.SubscribeChannelCheckFail()
         raise errors.SubscribeSetCheckFail()
     return commands.check(predicate)
+
+def allowregion():
+    def predicate(ctx):
+        if check_regionsset(ctx):
+            return True
+        else:
+            raise errors.RegionsSetCheckFail()
+    return commands.check(predicate)
+            
 
 def allowtrade():
     def predicate(ctx):

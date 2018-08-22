@@ -186,7 +186,7 @@ def types_to_str(guild, type_list):
 # Convert an arbitrary string into something which
 # is acceptable as a Discord channel name.
 
-def sanitize_channel_name(name):
+def sanitize_name(name):
     # Remove all characters other than alphanumerics,
     # dashes, underscores, and spaces
     ret = re.sub('[^a-zA-Z0-9 _\\-]', '', name)
@@ -448,7 +448,7 @@ async def create_raid_channel(raid_type, pkmn, level, details, report_channel):
         cat = get_category(report_channel, str(level), category_type=raid_type)
     meowth_overwrite = (Meowth.user, discord.PermissionOverwrite(send_messages=True, read_messages=True, manage_roles=True, manage_channels=True, manage_messages=True, add_reactions=True, external_emojis=True, read_message_history=True, embed_links=True, mention_everyone=True, attach_files=True))
     raid_channel_overwrite_list.append(meowth_overwrite)
-    name = sanitize_channel_name(name+details)
+    name = sanitize_name(name+details)
     ow = dict(raid_channel_overwrite_list)
     return await guild.create_text_channel(name, overwrites=ow, category=cat)
 
@@ -1312,6 +1312,98 @@ async def exit(ctx):
     Meowth._shutdown_mode = 0
     await Meowth.logout()
 
+@Meowth.group(name='region', case_insensitive=True)
+@checks.allowregion()
+async def _region(ctx):
+    """Handles user-region settings"""
+    if ctx.invoked_subcommand == None:
+        raise commands.BadArgument()
+
+@_region.command(name="join")
+async def join(ctx, *, region_names: str = ''):
+    """Joins regional roles from the provided comma-separated list
+
+    Examples:
+    !region join kanto
+    !region join kanto, johto, hoenn"""
+    message = ctx.message
+    guild = message.guild
+    channel = message.channel
+    author = message.author
+    response = ""
+    region_info_dict = guild_dict[guild.id]['configure_dict']['regions']['info']
+    enabled_roles = set([r.get('role', None) for r in region_info_dict.values()])
+    requested_roles = set([r for r in re.split(r'\s*,\s*', region_names.lower().strip()) if r])
+    valid_requests = requested_roles & enabled_roles
+    invalid_requests = requested_roles - enabled_roles
+    role_objs = [discord.utils.get(guild.roles, name=role) for role in valid_requests]
+    if role_objs:
+        try:
+            await author.add_roles(*role_objs, reason="user requested region role add via Meowth")
+            await message.add_reaction('✅')
+            response += "Successfully joined "
+        except:
+            response += "Failed joining "
+        response += f"{len(valid_requests)} roles:\n{', '.join(valid_requests)}"
+    if invalid_requests:
+        response += f"\n\n{len(invalid_requests)} invalid roles detected:\n{', '.join(invalid_requests)}\n\n"
+        response += f"Acceptable regions are: {', '.join(enabled_roles)}"
+    resp = await channel.send(response)
+    await asyncio.sleep(10)
+    await resp.delete()
+
+@_region.command(name="leave")
+async def _leave(ctx, *, region_names: str = ''):
+    """Leaves regional roles from the provided comma-separated list
+
+    Examples:
+    !region leave kanto
+    !region leave kanto, johto, hoenn"""
+    message = ctx.message
+    guild = message.guild
+    channel = message.channel
+    author = message.author
+    response = ""
+    region_info_dict = guild_dict[guild.id]['configure_dict']['regions']['info']
+    enabled_roles = set([r.get('role', None) for r in region_info_dict.values()])
+    requested_roles = set([r for r in re.split(r'\s*,\s*', region_names.lower().strip()) if r])
+    valid_requests = requested_roles & enabled_roles
+    invalid_requests = requested_roles - enabled_roles
+    role_objs = [discord.utils.get(guild.roles, name=role) for role in valid_requests]
+    if role_objs:
+        try:
+            await author.remove_roles(*role_objs, reason="user requested region role remove via Meowth")
+            await message.add_reaction('✅')
+            response += "Successfully left "
+        except:
+            response += "Failed leaving "
+        response += f"{len(valid_requests)} roles:\n{', '.join(valid_requests)}"
+    if invalid_requests:
+        response += f"\n\n{len(invalid_requests)} invalid roles detected:\n{', '.join(invalid_requests)}\n\n"
+        response += f"Acceptable regions are: {', '.join(enabled_roles)}"
+    resp = await channel.send(response)
+    await asyncio.sleep(10)
+    await resp.delete()
+
+@_region.command(name="list")
+async def _list(ctx):
+    """Lists the user's active region roles
+
+    Usage: !region list"""
+    message = ctx.message
+    guild = message.guild
+    channel = message.channel
+    author = message.author
+    region_info_dict = guild_dict[guild.id]['configure_dict']['regions']['info']
+    enabled_roles = set([r.get('role', None) for r in region_info_dict.values()])
+    user_roles = set([r.name for r in author.roles])
+    active_roles = user_roles & enabled_roles
+    response = f"You have {len(active_roles)} active region roles:\n{', '.join(active_roles)}"
+    await message.add_reaction('✅')
+    resp = await channel.send(response)
+    await asyncio.sleep(15)
+    await resp.delete()
+
 @Meowth.group(name='set', case_insensitive=True)
 async def _set(ctx):
     """Changes a setting."""
@@ -1322,40 +1414,35 @@ async def _set(ctx):
 @commands.has_permissions(manage_guild=True)
 async def regional(ctx, regional):
     """Changes server regional pokemon."""
-
-    if regional.isdigit():
-        regional = int(regional)
-    else:
-        regional = regional.lower()
-        if regional == "reset" and checks.is_dev_or_owner(ctx):
-            msg = _("Are you sure you want to clear all regionals?")
-            question = await ctx.channel.send(msg)
-            try:
-                timeout = False
-                res, reactuser = await ask(question, ctx.message.channel, ctx.message.author.id)
-            except TypeError:
-                timeout = True
-            await question.delete()
-            if timeout or res.emoji == '❎':
-                return
-            elif res.emoji == '✅':
-                pass
-            else:
-                return
-            guild_dict_copy = copy.deepcopy(guild_dict)
-            for guildid in guild_dict_copy.keys():
-                guild_dict[guildid]['configure_dict']['settings']['regional'] = None
+    regional = regional.lower()
+    if regional == "reset" and checks.is_dev_or_owner(ctx):
+        msg = _("Are you sure you want to clear all regionals?")
+        question = await ctx.channel.send(msg)
+        try:
+            timeout = False
+            res, reactuser = await ask(question, ctx.message.channel, ctx.message.author.id)
+        except TypeError:
+            timeout = True
+        await question.delete()
+        if timeout or res.emoji == '❎':
             return
-        elif regional == 'clear':
-            regional = None
-            _set_regional(Meowth, ctx.guild, regional)
-            await ctx.message.channel.send(_("Meowth! Regional raid boss cleared!"))
-            return
+        elif res.emoji == '✅':
+            pass
         else:
-            regional = get_number(regional)
-    if regional in get_raidlist():
+            return
+        guild_dict_copy = copy.deepcopy(guild_dict)
+        for guildid in guild_dict_copy.keys():
+            guild_dict[guildid]['configure_dict']['settings']['regional'] = None
+        return
+    elif regional == 'clear':
+        regional = None
         _set_regional(Meowth, ctx.guild, regional)
-        await ctx.message.channel.send(_("Meowth! Regional raid boss set to **{boss}**!").format(boss=str(Pokemon.get_pokemon(Meowth, regional)).title()))
+        await ctx.message.channel.send(_("Meowth! Regional raid boss cleared!"))
+        return
+    regional = Pokemon.get_pokemon(Meowth, regional)
+    if regional.is_raid:
+        _set_regional(Meowth, ctx.guild, regional)
+        await ctx.message.channel.send(_("Meowth! Regional raid boss set to **{boss}**!").format(boss=regional.name))
     else:
         await ctx.message.channel.send(_("Meowth! That Pokemon doesn't appear in raids!"))
         return
@@ -1678,7 +1765,7 @@ async def configure(ctx, *, configlist: str=""):
     Meowth will DM you instructions on how to configure Meowth for your server.
     If it is not your first time configuring, you can choose a section to jump to.
     You can also include a comma separated [list] of sections from the following:
-    all, team, welcome, raid, exraid, invite, counters, wild, research, subscribe, archive, timezone"""
+    all, team, welcome, regions, raid, exraid, invite, counters, wild, research, subscribe, archive, timezone"""
     await _configure(ctx, configlist)
 
 async def _configure(ctx, configlist):
@@ -1695,7 +1782,7 @@ async def _configure(ctx, configlist):
             del guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][session]
     config_dict_temp = getattr(ctx, 'config_dict_temp',copy.deepcopy(guild_dict[guild.id]['configure_dict']))
     firstconfig = False
-    all_commands = ['team', 'welcome', 'raid', 'exraid', 'invite', 'counters', 'wild', 'research', 'meetup', 'subscribe', 'archive', 'trade', 'timezone']
+    all_commands = ['team', 'welcome', 'regions', 'raid', 'exraid', 'invite', 'counters', 'wild', 'research', 'meetup', 'subscribe', 'archive', 'trade', 'timezone']
     enabled_commands = []
     configreplylist = []
     config_error = False
@@ -1720,7 +1807,7 @@ async def _configure(ctx, configlist):
             if config_dict_temp[commandconfig].get('enabled',False):
                 enabled_commands.append(commandconfig)
         configmessage += _("\n\n**Enabled Commands:**\n{enabled_commands}").format(enabled_commands=", ".join(enabled_commands))
-        configmessage += _("\n\n**All Commands:**\n**all** - To redo configuration\n**team** - For Team Assignment configuration\n**welcome** - For Welcome Message configuration\n**raid** - for raid command configuration\n**exraid** - for EX raid command configuration\n**invite** - for invite command configuration\n**counters** - for automatic counters configuration\n**wild** - for wild command configuration\n**research** - for !research command configuration\n**meetup** - for !meetup command configuration\n**subscribe** - for subscribe/unsubscribe command configuration\n**archive** - For !archive configuration\n**trade** - For trade command configuration\n**timezone** - For timezone configuration")
+        configmessage += _("\n\n**All Commands:**\n**all** - To redo configuration\n**team** - For Team Assignment configuration\n**welcome** - For Welcome Message configuration\n**regions** - for region configuration\n**raid** - for raid command configuration\n**exraid** - for EX raid command configuration\n**invite** - for invite command configuration\n**counters** - for automatic counters configuration\n**wild** - for wild command configuration\n**research** - for !research command configuration\n**meetup** - for !meetup command configuration\n**subscribe** - for subscribe/unsubscribe command configuration\n**archive** - For !archive configuration\n**trade** - For trade command configuration\n**timezone** - For timezone configuration")
         configmessage += _('\n\nReply with **cancel** at any time throughout the questions to cancel the configure process.')
         await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=configmessage).set_author(name=_('Meowth Configuration - {guild}').format(guild=guild.name), icon_url=Meowth.user.avatar_url))
         while True:
@@ -1758,6 +1845,10 @@ async def _configure(ctx, configlist):
                 return None
         if "welcome" in configreplylist:
             ctx = await _configure_welcome(ctx)
+            if not ctx:
+                return None
+        if "regions" in configreplylist:
+            ctx = await _configure_regions(ctx)
             if not ctx:
                 return None
         if "raid" in configreplylist:
@@ -1816,9 +1907,7 @@ async def configure_all(ctx):
     """All settings"""
     await _configure(ctx, "all")
 
-@configure.command()
-async def team(ctx):
-    """!team command settings"""
+async def _check_sessions_and_invoke(ctx, func_ref):
     guild = ctx.message.guild
     owner = ctx.message.author
     try:
@@ -1832,12 +1921,16 @@ async def team(ctx):
     guild_dict[ctx.guild.id]['configure_dict']['settings']['config_sessions'][owner.id] = config_sessions
     if guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id] > 1:
         await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("**MULTIPLE SESSIONS!**\n\nIt looks like you have **{yoursessions}** active configure sessions. I recommend you send **cancel** first and then send your request again to avoid confusing me.\n\nYour Sessions: **{yoursessions}** | Total Sessions: **{allsessions}**").format(allsessions=sum(guild_dict[guild.id]['configure_dict']['settings']['config_sessions'].values()),yoursessions=guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id])))
-    ctx = await _configure_team(ctx)
+    ctx = await func_ref(ctx)
     if ctx:
         guild_dict[guild.id]['configure_dict'] = ctx.config_dict_temp
         await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("Meowth! Alright! Your settings have been saved and I'm ready to go! If you need to change any of these settings, just type **!configure** in your server again.")).set_author(name=_('Configuration Complete'), icon_url=Meowth.user.avatar_url))
     del guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id]
 
+@configure.command()
+async def team(ctx):
+    """!team command settings"""
+    return await _check_sessions_and_invoke(ctx, _configure_team)
 
 async def _configure_team(ctx):
     guild = ctx.message.guild
@@ -1848,9 +1941,7 @@ async def _configure_team(ctx):
         teamreply = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
         if teamreply.content.lower() == 'y':
             config_dict_temp['team']['enabled'] = True
-            high_roles = []
             guild_roles = []
-            lowercase_roles = []
             for role in guild.roles:
                 if role.name.lower() in config['team_dict'] and role.name not in guild_roles:
                     guild_roles.append(role.name)
@@ -1880,24 +1971,7 @@ async def _configure_team(ctx):
 @configure.command()
 async def welcome(ctx):
     """Welcome message settings"""
-    guild = ctx.message.guild
-    owner = ctx.message.author
-    try:
-        await ctx.message.delete()
-    except (discord.errors.Forbidden, discord.errors.HTTPException):
-        pass
-    if not guild_dict[guild.id]['configure_dict']['settings']['done']:
-        await _configure(ctx, "all")
-        return
-    config_sessions = guild_dict[ctx.guild.id]['configure_dict']['settings'].setdefault('config_sessions',{}).setdefault(owner.id,0) + 1
-    guild_dict[ctx.guild.id]['configure_dict']['settings']['config_sessions'][owner.id] = config_sessions
-    if guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id] > 1:
-        await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("**MULTIPLE SESSIONS!**\n\nIt looks like you have **{yoursessions}** active configure sessions. I recommend you send **cancel** first and then send your request again to avoid confusing me.\n\nYour Sessions: **{yoursessions}** | Total Sessions: **{allsessions}**").format(allsessions=sum(guild_dict[guild.id]['configure_dict']['settings']['config_sessions'].values()),yoursessions=guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id])))
-    ctx = await _configure_welcome(ctx)
-    if ctx:
-        guild_dict[guild.id]['configure_dict'] = ctx.config_dict_temp
-        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("Meowth! Alright! Your settings have been saved and I'm ready to go! If you need to change any of these settings, just type **!configure** in your server again.")).set_author(name=_('Configuration Complete'), icon_url=Meowth.user.avatar_url))
-    del guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id]
+    return await _check_sessions_and_invoke(ctx, _configure_welcome)
 
 async def _configure_welcome(ctx):
     guild = ctx.message.guild
@@ -2037,26 +2111,80 @@ async def _configure_welcome(ctx):
     return ctx
 
 @configure.command()
-async def raid(ctx):
-    """!raid reporting settings"""
+async def regions(ctx):
+    """region configuration for server"""
+    return await _check_sessions_and_invoke(ctx, _configure_regions)
+
+async def _configure_regions(ctx):
     guild = ctx.message.guild
     owner = ctx.message.author
-    try:
-        await ctx.message.delete()
-    except (discord.errors.Forbidden, discord.errors.HTTPException):
-        pass
-    if not guild_dict[guild.id]['configure_dict']['settings']['done']:
-        await _configure(ctx, "all")
-        return
-    config_sessions = guild_dict[ctx.guild.id]['configure_dict']['settings'].setdefault('config_sessions',{}).setdefault(owner.id,0) + 1
-    guild_dict[ctx.guild.id]['configure_dict']['settings']['config_sessions'][owner.id] = config_sessions
-    if guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id] > 1:
-        await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("**MULTIPLE SESSIONS!**\n\nIt looks like you have **{yoursessions}** active configure sessions. I recommend you send **cancel** first and then send your request again to avoid confusing me.\n\nYour Sessions: **{yoursessions}** | Total Sessions: **{allsessions}**").format(allsessions=sum(guild_dict[guild.id]['configure_dict']['settings']['config_sessions'].values()),yoursessions=guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id])))
-    ctx = await _configure_raid(ctx)
-    if ctx:
-        guild_dict[guild.id]['configure_dict'] = ctx.config_dict_temp
-        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("Meowth! Alright! Your settings have been saved and I'm ready to go! If you need to change any of these settings, just type **!configure** in your server again.")).set_author(name=_('Configuration Complete'), icon_url=Meowth.user.avatar_url))
-    del guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id]
+    config_dict_temp = getattr(ctx, 'config_dict_temp',copy.deepcopy(guild_dict[guild.id]['configure_dict']))
+    config_dict_temp.setdefault('regions', {})
+    await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("I can keep track of multiple regions within your community. This can be useful for communities that span multiple cities or areas where users tend to only be interested in certain subsets of raids, research, etc. To start, I'll need the names of the regions you'd like to set up: `region-name, region-name, region-name`\n\nExample: `north-saffron, south-saffron, celadon`\n\nTo facilitate communication, I will be creating roles for each region name provided, so make sure the names are meaningful!\n\nIf you do not require regions, you may want to disable this functionality.\n\nRespond with: **N** to disable, or the **region-name** list to enable, each seperated with a comma and space:")).set_author(name=_('Region Names'), icon_url=Meowth.user.avatar_url))
+    region_dict = {}
+    while True:
+        region_names = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+        response = region_names.content.strip().lower()
+        if response == 'n':
+            config_dict_temp['regions']['enabled'] = False
+            await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('Regions disabled')))
+            break
+        elif response == 'cancel':
+            await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
+            return None
+        else:
+            config_dict_temp['regions']['enabled'] = True
+            region_names_list = re.split(r'\s*,\s*', response)
+        break
+    if config_dict_temp['regions']['enabled']:
+        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('Occasionally I will generate Google Maps links to give people directions to locations! To do this, I need to know what city/town/area each region represents to ensure I get the right location in the map. For each region name you provided, I will need its corresponding general location using only letters and spaces, with each location seperated by a comma and space.\n\nExample: `saffron city kanto, saffron city kanto, celadon city kanto`\n\nEach location will have to be in the same order as you provided the names in the previous question.\n\nRespond with: **location info, location info, location info** each matching the order of the previous region name list below.')).set_author(name=_('Region Locations'), icon_url=Meowth.user.avatar_url))
+        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{region_name_list}').format(region_name_list=response[:2000])).set_author(name=_('Entered Regions'), icon_url=Meowth.user.avatar_url))
+        while True:
+            locations = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+            response = locations.content.strip().lower()
+            if response == 'cancel':
+                await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
+                return None
+            region_locations_list = re.split(r'\s*,\s*', response)
+            if len(region_locations_list) == len(region_names_list):
+                for i in range(len(region_names_list)):
+                    region_dict[region_names_list[i]] = {'location': region_locations_list[i], 'role': sanitize_name(region_names_list[i])}
+                break
+            else:
+                await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The number of locations doesn't match the number of regions you gave me earlier!\n\nI'll show you the two lists to compare:\n\n{region_names_list}\n{region_locations_list}\n\nPlease double check that your locations match up with your provided region names and resend your response.").format(region_names_list=', '.join(region_names_list), region_locations_list=', '.join(region_locations_list))))
+                continue
+        await owner.send(embed=discord.Embed(colour=discord.Colour.green(), description=_('Region locations are set')))
+    # set up roles
+    new_region_roles = set([r['role'] for r in region_dict.values()])
+    existing_region_dict = config_dict_temp['regions'].get('info', None)
+    if existing_region_dict:
+        existing_region_roles = set([r['role'] for r in existing_region_dict.values()])
+        obsolete_roles = existing_region_roles - new_region_roles
+        new_region_roles = new_region_roles - existing_region_roles
+        # remove obsolete roles
+        for role in obsolete_roles:
+            temp_role = discord.utils.get(guild.roles, name=role)
+            if temp_role:
+                try:
+                    await temp_role.delete(reason="Removed from Meowth region configuration")
+                except discord.errors.HTTPException:
+                    pass
+    for role in new_region_roles:
+        temp_role = discord.utils.get(guild.roles, name=role)
+        if not temp_role:
+            try:
+                await guild.create_role(name=role, hoist=False, mentionable=True)
+            except discord.errors.HTTPException:
+                pass
+    await owner.send(embed=discord.Embed(colour=discord.Colour.green(), description=_('Region roles updated')))
+    config_dict_temp['regions']['info'] = region_dict
+    ctx.config_dict_temp = config_dict_temp
+    return ctx
+
+@configure.command()
+async def raid(ctx):
+    """!raid reporting settings"""
+    return await _check_sessions_and_invoke(ctx, _configure_raid)
 
 async def _configure_raid(ctx):
     guild = ctx.message.guild
@@ -2263,24 +2391,7 @@ async def _configure_raid(ctx):
 @configure.command()
 async def exraid(ctx):
     """!exraid reporting settings"""
-    guild = ctx.message.guild
-    owner = ctx.message.author
-    try:
-        await ctx.message.delete()
-    except (discord.errors.Forbidden, discord.errors.HTTPException):
-        pass
-    if not guild_dict[guild.id]['configure_dict']['settings']['done']:
-        await _configure(ctx, "all")
-        return
-    config_sessions = guild_dict[ctx.guild.id]['configure_dict']['settings'].setdefault('config_sessions',{}).setdefault(owner.id,0) + 1
-    guild_dict[ctx.guild.id]['configure_dict']['settings']['config_sessions'][owner.id] = config_sessions
-    if guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id] > 1:
-        await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("**MULTIPLE SESSIONS!**\n\nIt looks like you have **{yoursessions}** active configure sessions. I recommend you send **cancel** first and then send your request again to avoid confusing me.\n\nYour Sessions: **{yoursessions}** | Total Sessions: **{allsessions}**").format(allsessions=sum(guild_dict[guild.id]['configure_dict']['settings']['config_sessions'].values()),yoursessions=guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id])))
-    ctx = await _configure_exraid(ctx)
-    if ctx:
-        guild_dict[guild.id]['configure_dict'] = ctx.config_dict_temp
-        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("Meowth! Alright! Your settings have been saved and I'm ready to go! If you need to change any of these settings, just type **!configure** in your server again.")).set_author(name=_('Configuration Complete'), icon_url=Meowth.user.avatar_url))
-    del guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id]
+    return await _check_sessions_and_invoke(ctx, _configure_exraid)
 
 async def _configure_exraid(ctx):
     guild = ctx.message.guild
@@ -2454,24 +2565,7 @@ async def _configure_exraid(ctx):
 @configure.command()
 async def invite(ctx):
     """!invite command settings"""
-    guild = ctx.message.guild
-    owner = ctx.message.author
-    try:
-        await ctx.message.delete()
-    except (discord.errors.Forbidden, discord.errors.HTTPException):
-        pass
-    if not guild_dict[guild.id]['configure_dict']['settings']['done']:
-        await _configure(ctx, "all")
-        return
-    config_sessions = guild_dict[ctx.guild.id]['configure_dict']['settings'].setdefault('config_sessions',{}).setdefault(owner.id,0) + 1
-    guild_dict[ctx.guild.id]['configure_dict']['settings']['config_sessions'][owner.id] = config_sessions
-    if guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id] > 1:
-        await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("**MULTIPLE SESSIONS!**\n\nIt looks like you have **{yoursessions}** active configure sessions. I recommend you send **cancel** first and then send your request again to avoid confusing me.\n\nYour Sessions: **{yoursessions}** | Total Sessions: **{allsessions}**").format(allsessions=sum(guild_dict[guild.id]['configure_dict']['settings']['config_sessions'].values()),yoursessions=guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id])))
-    ctx = await _configure_invite(ctx)
-    if ctx:
-        guild_dict[guild.id]['configure_dict'] = ctx.config_dict_temp
-        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("Meowth! Alright! Your settings have been saved and I'm ready to go! If you need to change any of these settings, just type **!configure** in your server again.")).set_author(name=_('Configuration Complete'), icon_url=Meowth.user.avatar_url))
-    del guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id]
+    return await _check_sessions_and_invoke(ctx, _configure_invite)
 
 async def _configure_invite(ctx):
     guild = ctx.message.guild
@@ -2500,22 +2594,7 @@ async def _configure_invite(ctx):
 @configure.command()
 async def counters(ctx):
     """Automatic counters settings"""
-    guild = ctx.message.guild
-    owner = ctx.message.author
-    try:
-        await ctx.message.delete()
-    except (discord.errors.Forbidden, discord.errors.HTTPException):
-        pass
-    if not guild_dict[guild.id]['configure_dict']['settings']['done']:
-        await _configure(ctx, "all")
-        return
-    config_sessions = guild_dict[ctx.guild.id]['configure_dict']['settings'].setdefault('config_sessions',{}).setdefault(owner.id,0) + 1
-    guild_dict[ctx.guild.id]['configure_dict']['settings']['config_sessions'][owner.id] = config_sessions
-    ctx = await _configure_counters(ctx)
-    if ctx:
-        guild_dict[guild.id]['configure_dict'] = ctx.config_dict_temp
-        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("Meowth! Alright! Your settings have been saved and I'm ready to go! If you need to change any of these settings, just type **!configure** in your server again.")).set_author(name=_('Configuration Complete'), icon_url=Meowth.user.avatar_url))
-    del guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id]
+    return await _check_sessions_and_invoke(ctx, _configure_counters)
 
 async def _configure_counters(ctx):
     guild = ctx.message.guild
@@ -2555,24 +2634,7 @@ async def _configure_counters(ctx):
 @configure.command()
 async def wild(ctx):
     """!wild reporting settings"""
-    guild = ctx.message.guild
-    owner = ctx.message.author
-    try:
-        await ctx.message.delete()
-    except (discord.errors.Forbidden, discord.errors.HTTPException):
-        pass
-    if not guild_dict[guild.id]['configure_dict']['settings']['done']:
-        await _configure(ctx, "all")
-        return
-    config_sessions = guild_dict[ctx.guild.id]['configure_dict']['settings'].setdefault('config_sessions',{}).setdefault(owner.id,0) + 1
-    guild_dict[ctx.guild.id]['configure_dict']['settings']['config_sessions'][owner.id] = config_sessions
-    if guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id] > 1:
-        await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("**MULTIPLE SESSIONS!**\n\nIt looks like you have **{yoursessions}** active configure sessions. I recommend you send **cancel** first and then send your request again to avoid confusing me.\n\nYour Sessions: **{yoursessions}** | Total Sessions: **{allsessions}**").format(allsessions=sum(guild_dict[guild.id]['configure_dict']['settings']['config_sessions'].values()),yoursessions=guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id])))
-    ctx = await _configure_wild(ctx)
-    if ctx:
-        guild_dict[guild.id]['configure_dict'] = ctx.config_dict_temp
-        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("Meowth! Alright! Your settings have been saved and I'm ready to go! If you need to change any of these settings, just type **!configure** in your server again.")).set_author(name=_('Configuration Complete'), icon_url=Meowth.user.avatar_url))
-    del guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id]
+    return await _check_sessions_and_invoke(ctx, _configure_wild)
 
 async def _configure_wild(ctx):
     guild = ctx.message.guild
@@ -2655,24 +2717,7 @@ async def _configure_wild(ctx):
 @configure.command()
 async def research(ctx):
     """!research reporting settings"""
-    guild = ctx.message.guild
-    owner = ctx.message.author
-    try:
-        await ctx.message.delete()
-    except (discord.errors.Forbidden, discord.errors.HTTPException):
-        pass
-    if not guild_dict[guild.id]['configure_dict']['settings']['done']:
-        await _configure(ctx, "all")
-        return
-    config_sessions = guild_dict[ctx.guild.id]['configure_dict']['settings'].setdefault('config_sessions',{}).setdefault(owner.id,0) + 1
-    guild_dict[ctx.guild.id]['configure_dict']['settings']['config_sessions'][owner.id] = config_sessions
-    if guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id] > 1:
-        await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("**MULTIPLE SESSIONS!**\n\nIt looks like you have **{yoursessions}** active configure sessions. I recommend you send **cancel** first and then send your request again to avoid confusing me.\n\nYour Sessions: **{yoursessions}** | Total Sessions: **{allsessions}**").format(allsessions=sum(guild_dict[guild.id]['configure_dict']['settings']['config_sessions'].values()),yoursessions=guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id])))
-    ctx = await _configure_research(ctx)
-    if ctx:
-        guild_dict[guild.id]['configure_dict'] = ctx.config_dict_temp
-        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("Meowth! Alright! Your settings have been saved and I'm ready to go! If you need to change any of these settings, just type **!configure** in your server again.")).set_author(name=_('Configuration Complete'), icon_url=Meowth.user.avatar_url))
-    del guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id]
+    return await _check_sessions_and_invoke(ctx, _configure_research)
 
 async def _configure_research(ctx):
     guild = ctx.message.guild
@@ -2755,24 +2800,7 @@ async def _configure_research(ctx):
 @configure.command(aliases=['event'])
 async def meetup(ctx):
     """!meetup reporting settings"""
-    guild = ctx.message.guild
-    owner = ctx.message.author
-    try:
-        await ctx.message.delete()
-    except (discord.errors.Forbidden, discord.errors.HTTPException):
-        pass
-    if not guild_dict[guild.id]['configure_dict']['settings']['done']:
-        await _configure(ctx, "all")
-        return
-    config_sessions = guild_dict[ctx.guild.id]['configure_dict']['settings'].setdefault('config_sessions',{}).setdefault(owner.id,0) + 1
-    guild_dict[ctx.guild.id]['configure_dict']['settings']['config_sessions'][owner.id] = config_sessions
-    if guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id] > 1:
-        await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("**MULTIPLE SESSIONS!**\n\nIt looks like you have **{yoursessions}** active configure sessions. I recommend you send **cancel** first and then send your request again to avoid confusing me.\n\nYour Sessions: **{yoursessions}** | Total Sessions: **{allsessions}**").format(allsessions=sum(guild_dict[guild.id]['configure_dict']['settings']['config_sessions'].values()),yoursessions=guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id])))
-    ctx = await _configure_meetup(ctx)
-    if ctx:
-        guild_dict[guild.id]['configure_dict'] = ctx.config_dict_temp
-        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("Meowth! Alright! Your settings have been saved and I'm ready to go! If you need to change any of these settings, just type **!configure** in your server again.")).set_author(name=_('Configuration Complete'), icon_url=Meowth.user.avatar_url))
-    del guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id]
+    return await _check_sessions_and_invoke(ctx, _configure_meetup)
 
 async def _configure_meetup(ctx):
     guild = ctx.message.guild
@@ -2930,27 +2958,9 @@ async def _configure_meetup(ctx):
 @configure.command()
 async def subscribe(ctx):
     """!subcribe/!unsubscribe settings"""
-    guild = ctx.message.guild
-    owner = ctx.message.author
-    try:
-        await ctx.message.delete()
-    except (discord.errors.Forbidden, discord.errors.HTTPException):
-        pass
-    if not guild_dict[guild.id]['configure_dict']['settings']['done']:
-        await _configure(ctx, "all")
-        return
-    config_sessions = guild_dict[ctx.guild.id]['configure_dict']['settings'].setdefault('config_sessions',{}).setdefault(owner.id,0) + 1
-    guild_dict[ctx.guild.id]['configure_dict']['settings']['config_sessions'][owner.id] = config_sessions
-    if guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id] > 1:
-        await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("**MULTIPLE SESSIONS!**\n\nIt looks like you have **{yoursessions}** active configure sessions. I recommend you send **cancel** first and then send your request again to avoid confusing me.\n\nYour Sessions: **{yoursessions}** | Total Sessions: **{allsessions}**").format(allsessions=sum(guild_dict[guild.id]['configure_dict']['settings']['config_sessions'].values()),yoursessions=guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id])))
-    ctx = await _configure_subscribe(ctx)
-    if ctx:
-        guild_dict[guild.id]['configure_dict'] = ctx.config_dict_temp
-        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("Meowth! Alright! Your settings have been saved and I'm ready to go! If you need to change any of these settings, just type **!configure** in your server again.")).set_author(name=_('Configuration Complete'), icon_url=Meowth.user.avatar_url))
-    del guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id]
+    return await _check_sessions_and_invoke(ctx, _configure_subscribe)
 
 async def _configure_subscribe(ctx):
-    # TODO update this method for subscribe
     guild = ctx.message.guild
     owner = ctx.message.author
     config_dict_temp = getattr(ctx, 'config_dict_temp',copy.deepcopy(guild_dict[guild.id]['configure_dict']))
@@ -3014,24 +3024,7 @@ async def _configure_subscribe(ctx):
 @configure.command()
 async def archive(ctx):
     """Configure !archive command settings"""
-    guild = ctx.message.guild
-    owner = ctx.message.author
-    try:
-        await ctx.message.delete()
-    except (discord.errors.Forbidden, discord.errors.HTTPException):
-        pass
-    if not guild_dict[guild.id]['configure_dict']['settings']['done']:
-        await _configure(ctx, "all")
-        return
-    config_sessions = guild_dict[ctx.guild.id]['configure_dict']['settings'].setdefault('config_sessions',{}).setdefault(owner.id,0) + 1
-    guild_dict[ctx.guild.id]['configure_dict']['settings']['config_sessions'][owner.id] = config_sessions
-    if guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id] > 1:
-        await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("**MULTIPLE SESSIONS!**\n\nIt looks like you have **{yoursessions}** active configure sessions. I recommend you send **cancel** first and then send your request again to avoid confusing me.\n\nYour Sessions: **{yoursessions}** | Total Sessions: **{allsessions}**").format(allsessions=sum(guild_dict[guild.id]['configure_dict']['settings']['config_sessions'].values()),yoursessions=guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id])))
-    ctx = await _configure_archive(ctx)
-    if ctx:
-        guild_dict[guild.id]['configure_dict'] = ctx.config_dict_temp
-        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("Meowth! Alright! Your settings have been saved and I'm ready to go! If you need to change any of these settings, just type **!configure** in your server again.")).set_author(name=_('Configuration Complete'), icon_url=Meowth.user.avatar_url))
-    del guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id]
+    return await _check_sessions_and_invoke(ctx, _configure_archive)
 
 async def _configure_archive(ctx):
     guild = ctx.message.guild
@@ -3089,24 +3082,7 @@ async def _configure_archive(ctx):
 @configure.command(aliases=['settings'])
 async def timezone(ctx):
     """Configure timezone and other settings"""
-    guild = ctx.message.guild
-    owner = ctx.message.author
-    try:
-        await ctx.message.delete()
-    except (discord.errors.Forbidden, discord.errors.HTTPException):
-        pass
-    if not guild_dict[guild.id]['configure_dict']['settings']['done']:
-        await _configure(ctx, "all")
-        return
-    config_sessions = guild_dict[ctx.guild.id]['configure_dict']['settings'].setdefault('config_sessions',{}).setdefault(owner.id,0) + 1
-    guild_dict[ctx.guild.id]['configure_dict']['settings']['config_sessions'][owner.id] = config_sessions
-    if guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id] > 1:
-        await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("**MULTIPLE SESSIONS!**\n\nIt looks like you have **{yoursessions}** active configure sessions. I recommend you send **cancel** first and then send your request again to avoid confusing me.\n\nYour Sessions: **{yoursessions}** | Total Sessions: **{allsessions}**").format(allsessions=sum(guild_dict[guild.id]['configure_dict']['settings']['config_sessions'].values()),yoursessions=guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id])))
-    ctx = await _configure_settings(ctx)
-    if ctx:
-        guild_dict[guild.id]['configure_dict'] = ctx.config_dict_temp
-        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("Meowth! Alright! Your settings have been saved and I'm ready to go! If you need to change any of these settings, just type **!configure** in your server again.")).set_author(name=_('Configuration Complete'), icon_url=Meowth.user.avatar_url))
-    del guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id]
+    return await _check_sessions_and_invoke(ctx, _configure_settings)
 
 async def _configure_settings(ctx):
     guild = ctx.message.guild
@@ -3137,24 +3113,7 @@ async def _configure_settings(ctx):
 @configure.command()
 async def trade(ctx):
     """!trade reporting settings"""
-    guild = ctx.message.guild
-    owner = ctx.message.author
-    try:
-        await ctx.message.delete()
-    except (discord.errors.Forbidden, discord.errors.HTTPException):
-        pass
-    if not guild_dict[guild.id]['configure_dict']['settings']['done']:
-        await _configure(ctx, "all")
-        return
-    config_sessions = guild_dict[ctx.guild.id]['configure_dict']['settings'].setdefault('config_sessions',{}).setdefault(owner.id,0) + 1
-    guild_dict[ctx.guild.id]['configure_dict']['settings']['config_sessions'][owner.id] = config_sessions
-    if guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id] > 1:
-        await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("**MULTIPLE SESSIONS!**\n\nIt looks like you have **{yoursessions}** active configure sessions. I recommend you send **cancel** first and then send your request again to avoid confusing me.\n\nYour Sessions: **{yoursessions}** | Total Sessions: **{allsessions}**").format(allsessions=sum(guild_dict[guild.id]['configure_dict']['settings']['config_sessions'].values()),yoursessions=guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id])))
-    ctx = await _configure_trade(ctx)
-    if ctx:
-        guild_dict[guild.id]['configure_dict'] = ctx.config_dict_temp
-        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("Meowth! Alright! Your settings have been saved and I'm ready to go! If you need to change any of these settings, just type **!configure** in your server again.")).set_author(name=_('Configuration Complete'), icon_url=Meowth.user.avatar_url))
-    del guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id]
+    return await _check_sessions_and_invoke(ctx, _configure_trade)
 
 async def _configure_trade(ctx):
     guild = ctx.message.guild
@@ -3370,7 +3329,7 @@ async def changeraid(ctx, newraid):
         return
     if newraid.isdigit():
         raid_channel_name = _('level-{egg_level}-egg-').format(egg_level=newraid)
-        raid_channel_name += sanitize_channel_name(guild_dict[guild.id]['raidchannel_dict'][channel.id]['address'])
+        raid_channel_name += sanitize_name(guild_dict[guild.id]['raidchannel_dict'][channel.id]['address'])
         guild_dict[guild.id]['raidchannel_dict'][channel.id]['egglevel'] = newraid
         guild_dict[guild.id]['raidchannel_dict'][channel.id]['pokemon'] = ''
         changefrom = guild_dict[guild.id]['raidchannel_dict'][channel.id]['type']
@@ -4472,7 +4431,7 @@ async def _eggtoraid(entered_raid, raid_channel, author=None):
             invitemsgstr2 = ""
         raidreportcontent = _('Meowth! The EX egg has hatched into a {pokemon} raid! Details: {location_details}. {invitemsgstr} coordinate in {raid_channel}').format(pokemon=entered_raid.capitalize(), location_details=egg_address, invitemsgstr=invitemsgstr,raid_channel=raid_channel.mention)
         raidmsg = _("Meowth! {pokemon} EX raid reported by {member} in {citychannel}! Details: {location_details}. Coordinate here{invitemsgstr2}!\n\nClick the question mark reaction to get help on the commands that work in here.\n\nThis channel will be deleted five minutes after the timer expires.").format(pokemon=entered_raid.capitalize(), member=raid_messageauthor.mention, citychannel=reportcitychannel.mention, location_details=egg_address, invitemsgstr2=invitemsgstr2)
-    raid_channel_name = sanitize_channel_name(pkmn.name.lower() + '_' + egg_address)
+    raid_channel_name = sanitize_name(pkmn.name.lower() + '_' + egg_address)
     raid = discord.utils.get(raid_channel.guild.roles, name=pkmn.species)
     if raid == None:
         roletest = ""
@@ -4879,7 +4838,7 @@ async def _meetup(ctx, location):
     raid_details = raid_details.strip()
     raid_gmaps_link = create_gmaps_query(raid_details, message.channel, type="meetup")
     raid_channel_name = _('meetup-')
-    raid_channel_name += sanitize_channel_name(raid_details)
+    raid_channel_name += sanitize_name(raid_details)
     raid_channel_category = get_category(message.channel,"EX", category_type="meetup")
     raid_channel = await message.guild.create_text_channel(raid_channel_name, overwrites=dict(message.channel.overwrites), category=raid_channel_category)
     ow = raid_channel.overwrites_for(raid_channel.guild.default_role)
