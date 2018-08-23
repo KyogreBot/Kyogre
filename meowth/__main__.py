@@ -3736,7 +3736,7 @@ async def subscribe(ctx,*,content):
         s_target = sub[1]
         s_entry = sub[2]
         try:
-            Subscription.create(trainer=trainer, type=s_type, target=s_target)
+            SubscriptionTable.create(trainer=trainer, type=s_type, target=s_target)
             sub_list.append(s_entry)
         except IntegrityError:
             existing_list.append(s_entry)
@@ -5643,7 +5643,6 @@ async def duplicate(ctx):
 
 @Meowth.command()
 async def counters(ctx, *, args = None):
-    #import pdb; pdb.set_trace()
     """Simulate a Raid battle with Pokebattler.
 
     Usage: !counters [pokemon] [weather] [user]
@@ -5728,7 +5727,7 @@ async def _counters(ctx, pkmn, user = None, weather = None, movesetstr = "Unknow
         level = "5"
     pokebattler_name = pkmn.species.upper()
     if pkmn.alolan:
-        pokebattler_name = f"{pkmn.species.upper()}_ALOLA_FORM"
+        pokebattler_name += "_ALOLA_FORM"
     url = "https://fight.pokebattler.com/raids/defenders/{pkmn}/levels/RAID_LEVEL_{level}/attackers/".format(pkmn=pokebattler_name,level=level)
     if user:
         url += "users/{user}/".format(user=user)
@@ -5906,7 +5905,6 @@ async def weather(ctx, *, weather):
         return await ctx.channel.send(_("Meowth! Enter one of the following weather conditions: {}").format(", ".join(weather_list)))
     else:
         guild_dict[ctx.guild.id]['raidchannel_dict'][ctx.channel.id]['weather'] = weather.lower()
-        #import pdb; pdb.set_trace()
         pkmn = guild_dict[ctx.guild.id]['raidchannel_dict'][ctx.channel.id].get('pokemon', None)
         pkmn = Pokemon.get_pokemon(Meowth, pkmn)
         if pkmn:

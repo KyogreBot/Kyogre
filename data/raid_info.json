@@ -4,10 +4,11 @@
             "egg": "normal",
             "egg_img": "1.png",
             "pokemon": [
-                "magikarp",
-                "makuhita",
-                "meditite",
-                "wailmer"
+                "chikorita",
+                "cyndaquil",
+                "totodile",
+                "sunkern",
+                "yanma"
             ],
             "hatchtime": 60,
             "raidtime": 45
@@ -19,7 +20,8 @@
                 "kirlia",
                 "roselia",
                 "mawile",
-                "alolan exeggutor"
+                "alolan exeggutor",
+                "pineco"
             ],
             "hatchtime": 60,
             "raidtime": 45
@@ -44,7 +46,8 @@
                 "absol",
                 "alolan marowak",
                 "rhydon",
-                "tyranitar"
+                "tyranitar",
+                "ursaring"
             ],
             "hatchtime": 60,
             "raidtime": 45

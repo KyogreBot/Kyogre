@@ -185,4 +185,4 @@ class SubscriptionTable(BaseModel):
     target = TextField(index=True)
 
     class Meta:
-        constraints = [SQL('UNIQUE(trainer, type, target)')]
+        constraints = [SQL('UNIQUE(trainer, guild, type, target)')]
