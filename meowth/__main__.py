@@ -326,6 +326,15 @@ async def ask(message, destination, user_list=None, *, react_list=['✅', '❎']
     except asyncio.TimeoutError:
         await message.clear_reactions()
         return    
+@Meowth.command(name='gym')
+async def gym(ctx, message):
+    gyms = get_gyms(message.guild.id)
+    gym = await location_match_prompt(message.channel, message.author.id, message.content, gyms)
+    if not gym:
+        return await message.channel.send(_("No gym found with name '{0}'. Try again using the exact gym name!").format(message.content))
+    else:
+        gym_embed = discord.Embed(title=_('Click here for directions to {0}!'.format(gym.name)), url=gym.maps_url, colour=message.guild.me.colour)
+        return await ctx.channel.send(content="", embed=gym_embed)
 
 def get_gyms(guild_id):
     location_matching_cog = Meowth.cogs.get('LocationMatching')
