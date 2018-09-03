@@ -21,7 +21,7 @@ Kyogre assists with organising Pokemon Go communities with support for:
  - Automated listings for raids, research, wilds, etc
  - Nest reporting (coming soon)
 
-# -- IMPORTANT NOTE -- The following installation/usage instructions are from the Meowth repo linked above. However, PLEASE do not contact the Meowth team for support regarding this bot's features. We have implemented functionality they do not support, hence the rename.
+### -- IMPORTANT NOTE -- The following installation/usage instructions are from the Meowth repo linked above. However, PLEASE do not contact the Meowth team for support regarding this bot's features. We have implemented functionality they do not support, hence the rename.
 
 ## Dependencies
 
