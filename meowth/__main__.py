@@ -1,4 +1,3 @@
-
 import asyncio
 import copy
 import datetime
@@ -1335,7 +1334,7 @@ async def join(ctx, *, region_names: str = ''):
     enabled_roles = set([r.get('role', None) for r in region_info_dict.values()])
     requested_roles = set([r for r in re.split(r'\s*,\s*', region_names.lower().strip()) if r])
     if not requested_roles:
-        return await channel.send(user_region_list("join", author, enabled_roles))
+        return await channel.send(_user_region_list("join", author, enabled_roles))
     valid_requests = requested_roles & enabled_roles
     invalid_requests = requested_roles - enabled_roles
     role_objs = [discord.utils.get(guild.roles, name=role) for role in valid_requests]
@@ -1370,7 +1369,7 @@ async def _leave(ctx, *, region_names: str = ''):
     enabled_roles = set([r.get('role', None) for r in region_info_dict.values()])
     requested_roles = set([r for r in re.split(r'\s*,\s*', region_names.lower().strip()) if r])
     if not requested_roles:
-        return await channel.send(user_region_list("leave", author, enabled_roles))
+        return await channel.send(_user_region_list("leave", author, enabled_roles))
     valid_requests = requested_roles & enabled_roles
     invalid_requests = requested_roles - enabled_roles
     role_objs = [discord.utils.get(guild.roles, name=role) for role in valid_requests]
@@ -1389,12 +1388,13 @@ async def _leave(ctx, *, region_names: str = ''):
     await asyncio.sleep(10)
     await resp.delete()
                   
-def user_region_list(action, author, enabled_roles):
-    response = "Please select one or more regions separated by commas `!region join renton, kent`"
+def _user_region_list(action, author, enabled_roles):
+    roles = [r.name for r in author.roles]
+    response = f"Please select one or more regions separated by commas `!region {action} renton, kent`\n\n"
     if action == "join":
-        response += f"Regions available to join are: {', '.join(set(enabled_roles).difference(roles))}"
+        response += f" Regions available to join are: {', '.join(set(enabled_roles).difference(roles)) or 'N/A'}"
     else:
-        response += f"Regions available to leave are: {', '.join(set(enabled_roles).intersection(roles))}"
+        response += f" Regions available to leave are: {', '.join(set(enabled_roles).intersection(roles)) or 'N/A'}"
     return response
 
 @_region.command(name="list")
@@ -5008,7 +5008,7 @@ async def research(ctx, *, details = None):
                     return await message.channel.send(_("I couldn't find a pokestop named '{0}'. Try again using the exact pokestop name!").format(location))
                 location = stop.name
                 loc_url = stop.maps_url
-                regions = [location.region]
+                regions = [stop.region]
             else:
                 loc_url = create_gmaps_query(location, channel, type="research")
             location = location.replace(loc_url,"").strip()
