@@ -3,7 +3,7 @@ from peewee import Proxy, chunked
 from playhouse.apsw_ext import *
 from playhouse.sqlite_ext import JSONField
 
-class MeowthDB:
+class KyogreDB:
     _db = Proxy()
     @classmethod
     def start(cls, db_path):
@@ -55,7 +55,7 @@ class MeowthDB:
 
 class BaseModel(Model):
     class Meta:
-        database = MeowthDB._db
+        database = KyogreDB._db
 
 class TeamTable(BaseModel):
     name = TextField(unique=True)
@@ -63,7 +63,7 @@ class TeamTable(BaseModel):
 
     @classmethod
     def reload_default(cls):
-        if not MeowthDB._db:
+        if not KyogreDB._db:
             return
         try:
             cls.delete()
@@ -98,7 +98,7 @@ class PokemonTable(BaseModel):
 
     @classmethod
     def reload_default(cls):
-        if not MeowthDB._db:
+        if not KyogreDB._db:
             return
         try:
             cls.delete()
@@ -106,7 +106,7 @@ class PokemonTable(BaseModel):
             pass
         with open('data/pkmn_data.json', 'r') as f:
             pkmn_data = json.loads(f.read())
-        with MeowthDB._db.atomic():
+        with KyogreDB._db.atomic():
             for chunk in chunked(pkmn_data, 50):
                 cls.insert_many(chunk).execute()
 
@@ -122,7 +122,7 @@ class RegionTable(BaseModel):
 
     @classmethod
     def reload_default(cls):
-        if not MeowthDB._db:
+        if not KyogreDB._db:
             return
         try:
             cls.delete()
@@ -130,7 +130,7 @@ class RegionTable(BaseModel):
             pass
         with open('data/region_data.json', 'r') as f:
             region_data = json.loads(f.read())
-        with MeowthDB._db.atomic():
+        with KyogreDB._db.atomic():
             for region in region_data:
                 try:
                     if 'guild' in region and region['guild']:
@@ -151,7 +151,7 @@ class LocationTable(BaseModel):
 
     @classmethod
     def reload_default(cls):
-        if not MeowthDB._db:
+        if not KyogreDB._db:
             return
         try:
             cls.delete()
@@ -162,7 +162,7 @@ class LocationTable(BaseModel):
         with open('data/pokestop_data.json', 'r') as f:
             pokestop_data = json.loads(f.read())
         all_data = dict(gym_data, **pokestop_data)
-        with MeowthDB._db.atomic():
+        with KyogreDB._db.atomic():
             for name, data in all_data.items():
                 try:
                     latitude, longitude = data['coordinates'].split(',')

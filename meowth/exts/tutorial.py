@@ -303,7 +303,7 @@ class Tutorial:
 
         await asyncio.sleep(1)
         await raid_channel.send(
-            "A couple of notes about raid channels. Meowth has "
+            "A couple of notes about raid channels. Kyogre has "
             "partnered with Pokebattler to give you the best counters "
             "for each raid boss in every situation. You can set the "
             "weather in the initial raid report, or with the "
@@ -418,9 +418,9 @@ class Tutorial:
 
     @commands.group(invoke_without_command=True)
     async def tutorial(self, ctx):
-        """Launches an interactive tutorial session for Meowth.
+        """Launches an interactive tutorial session for Kyogre.
 
-        Meowth will create a private channel and initiate a
+        Kyogre will create a private channel and initiate a
         conversation that walks you through the various commands
         that are enabled on the current server."""
 
@@ -437,7 +437,7 @@ class Tutorial:
             name, overwrites=ows)
         await ctx.message.delete()
         await ctx.send(
-            ("Meowth! I've created a private tutorial channel for "
+            ("I've created a private tutorial channel for "
              f"you! Continue in {ctx.tutorial_channel.mention}"),
             delete_after=20.0)
 
@@ -446,7 +446,7 @@ class Tutorial:
         enabled = [k for k, v in cfg.items() if v.get('enabled', False)]
 
         await ctx.tutorial_channel.send(
-            f"Hi {ctx.author.mention}! I'm Meowth, a Discord helper bot for "
+            f"Hi {ctx.author.mention}! I'm Kyogre, a Discord helper bot for "
             "Pokemon Go communities! I created this channel to teach you all "
             "about the things I can do to help you on this server! You can "
             "abandon this tutorial at any time and I'll delete this channel "
@@ -505,7 +505,7 @@ class Tutorial:
 
             # finish tutorial
             await ctx.tutorial_channel.send(
-                f"This concludes the Meowth tutorial! "
+                f"This concludes the Kyogre tutorial! "
                 "This channel will be deleted in 30 seconds.")
             await asyncio.sleep(30)
 
@@ -517,7 +517,7 @@ class Tutorial:
     async def want(self, ctx):
         """Launches an tutorial session for the want feature.
 
-        Meowth will create a private channel and initiate a
+        Kyogre will create a private channel and initiate a
         conversation that walks you through the various commands
         that are enabled on the current server."""
 
@@ -533,7 +533,7 @@ class Tutorial:
             name, overwrites=ows)
         await ctx.message.delete()
         await ctx.send(
-            ("Meowth! I've created a private tutorial channel for "
+            ("I've created a private tutorial channel for "
              f"you! Continue in {ctx.tutorial_channel.mention}"),
             delete_after=20.0)
 
@@ -541,7 +541,7 @@ class Tutorial:
         cfg = self.bot.guild_dict[guild.id]['configure_dict']
 
         await ctx.tutorial_channel.send(
-            f"Hi {ctx.author.mention}! I'm Meowth, a Discord helper bot for "
+            f"Hi {ctx.author.mention}! I'm Kyogre, a Discord helper bot for "
             "Pokemon Go communities! I created this channel to teach you "
             "about the want command! You can abandon this tutorial at any time "
             "and I'll delete this channel after five minutes. "
@@ -550,7 +550,7 @@ class Tutorial:
         try:
             await self.want_tutorial(ctx, cfg)
             await ctx.tutorial_channel.send(
-                f"This concludes the Meowth tutorial! "
+                f"This concludes the Kyogre tutorial! "
                 "This channel will be deleted in ten seconds.")
             await asyncio.sleep(10)
         finally:
@@ -561,7 +561,7 @@ class Tutorial:
     async def wild(self, ctx):
         """Launches an tutorial session for the wild feature.
 
-        Meowth will create a private channel and initiate a
+        Kyogre will create a private channel and initiate a
         conversation that walks you through wild command."""
 
         newbie = ctx.author
@@ -576,7 +576,7 @@ class Tutorial:
             name, overwrites=ows)
         await ctx.message.delete()
         await ctx.send(
-            ("Meowth! I've created a private tutorial channel for "
+            ("I've created a private tutorial channel for "
              f"you! Continue in {ctx.tutorial_channel.mention}"),
             delete_after=20.0)
 
@@ -584,7 +584,7 @@ class Tutorial:
         cfg = self.bot.guild_dict[guild.id]['configure_dict']
 
         await ctx.tutorial_channel.send(
-            f"Hi {ctx.author.mention}! I'm Meowth, a Discord helper bot for "
+            f"Hi {ctx.author.mention}! I'm Kyogre, a Discord helper bot for "
             "Pokemon Go communities! I created this channel to teach you "
             "about the wild command! You can abandon this tutorial at any time "
             "and I'll delete this channel after five minutes. "
@@ -593,7 +593,7 @@ class Tutorial:
         try:
             await self.wild_tutorial(ctx, cfg)
             await ctx.tutorial_channel.send(
-                f"This concludes the Meowth tutorial! "
+                f"This concludes the tutorial! "
                 "This channel will be deleted in ten seconds.")
             await asyncio.sleep(10)
         finally:
@@ -604,7 +604,7 @@ class Tutorial:
     async def raid(self, ctx):
         """Launches an tutorial session for the raid feature.
 
-        Meowth will create a private channel and initiate a
+        Kyogre will create a private channel and initiate a
         conversation that walks you through the raid commands."""
 
         newbie = ctx.author
@@ -619,7 +619,7 @@ class Tutorial:
             name, overwrites=ows)
         await ctx.message.delete()
         await ctx.send(
-            ("Meowth! I've created a private tutorial channel for "
+            ("I've created a private tutorial channel for "
              f"you! Continue in {ctx.tutorial_channel.mention}"),
             delete_after=20.0)
 
@@ -627,7 +627,7 @@ class Tutorial:
         cfg = self.bot.guild_dict[guild.id]['configure_dict']
 
         await ctx.tutorial_channel.send(
-            f"Hi {ctx.author.mention}! I'm Meowth, a Discord helper bot for "
+            f"Hi {ctx.author.mention}! I'm Kyogre, a Discord helper bot for "
             "Pokemon Go communities! I created this channel to teach you "
             "about the raid command! You can abandon this tutorial at any time "
             "and I'll delete this channel after five minutes. "
@@ -636,7 +636,7 @@ class Tutorial:
         try:
             await self.raid_tutorial(ctx, cfg)
             await ctx.tutorial_channel.send(
-                f"This concludes the Meowth tutorial! "
+                f"This concludes the tutorial! "
                 "This channel will be deleted in ten seconds.")
             await asyncio.sleep(10)
         finally:
@@ -647,7 +647,7 @@ class Tutorial:
     async def research(self, ctx):
         """Launches an tutorial session for the research feature.
 
-        Meowth will create a private channel and initiate a
+        Kyogre will create a private channel and initiate a
         conversation that walks you through the research command."""
 
         newbie = ctx.author
@@ -662,7 +662,7 @@ class Tutorial:
             name, overwrites=ows)
         await ctx.message.delete()
         await ctx.send(
-            ("Meowth! I've created a private tutorial channel for "
+            ("I've created a private tutorial channel for "
              f"you! Continue in {ctx.tutorial_channel.mention}"),
             delete_after=20.0)
 
@@ -670,7 +670,7 @@ class Tutorial:
         cfg = self.bot.guild_dict[guild.id]['configure_dict']
 
         await ctx.tutorial_channel.send(
-            f"Hi {ctx.author.mention}! I'm Meowth, a Discord helper bot for "
+            f"Hi {ctx.author.mention}! I'm Kyogre, a Discord helper bot for "
             "Pokemon Go communities! I created this channel to teach you "
             "about the research command! You can abandon this tutorial at "
             "any time and I'll delete this channel after five minutes. "
@@ -679,7 +679,7 @@ class Tutorial:
         try:
             await self.research_tutorial(ctx, cfg)
             await ctx.tutorial_channel.send(
-                f"This concludes the Meowth tutorial! "
+                f"This concludes the tutorial! "
                 "This channel will be deleted in ten seconds.")
             await asyncio.sleep(10)
         finally:
@@ -690,7 +690,7 @@ class Tutorial:
     async def team(self, ctx):
         """Launches an tutorial session for the team feature.
 
-        Meowth will create a private channel and initiate a
+        Kyogre will create a private channel and initiate a
         conversation that walks you through the team command."""
 
         newbie = ctx.author
@@ -705,12 +705,12 @@ class Tutorial:
             name, overwrites=ows)
         await ctx.message.delete()
         await ctx.send(
-            ("Meowth! I've created a private tutorial channel for "
+            ("I've created a private tutorial channel for "
              f"you! Continue in {ctx.tutorial_channel.mention}"),
             delete_after=20.0)
 
         await ctx.tutorial_channel.send(
-            f"Hi {ctx.author.mention}! I'm Meowth, a Discord helper bot for "
+            f"Hi {ctx.author.mention}! I'm Kyogre, a Discord helper bot for "
             "Pokemon Go communities! I created this channel to teach you "
             "about the team command! You can abandon this tutorial at any time "
             "and I'll delete this channel after five minutes. "
@@ -719,7 +719,7 @@ class Tutorial:
         try:
             await self.team_tutorial(ctx)
             await ctx.tutorial_channel.send(
-                f"This concludes the Meowth tutorial! "
+                f"This concludes the tutorial! "
                 "This channel will be deleted in ten seconds.")
             await asyncio.sleep(10)
         finally:

@@ -6,14 +6,14 @@ import time
 import subprocess
 import argparse
 
-#Launcher for Meowthv2
+#Launcher for Kyogre
 
 def parse_cli_args():
     parser = argparse.ArgumentParser(
-        description="Meowth Launcher - Pokemon Go Bot for Discord")
+        description="Kyogre Launcher - Pokemon Go Bot for Discord")
     parser.add_argument(
         "--auto-restart", "-r",
-        help="Auto-Restarts Meowth in case of a crash.", action="store_true")
+        help="Auto-Restarts Kyogre in case of a crash.", action="store_true")
     parser.add_argument(
         "--debug", "-d",
         help=("Prevents output being sent to Discord DM, "
@@ -21,7 +21,7 @@ def parse_cli_args():
         action="store_true")
     return parser.parse_args()
 
-def run_meowth(autorestart):
+def run_kyogre(autorestart):
     interpreter = sys.executable
     if interpreter is None:
         raise RuntimeError("Python could not be found")
@@ -45,7 +45,7 @@ def run_meowth(autorestart):
                 #standard restart
                 retries = 0
                 print("")
-                print("Restarting Meowth")
+                print("Restarting Kyogre")
                 print("")
                 continue
             else:
@@ -54,16 +54,16 @@ def run_meowth(autorestart):
                 retries += 1
                 wait_time = min([retries^2, 60])
                 print("")
-                print("Meowth experienced a crash.")
+                print("Kyogre experienced a crash.")
                 print("")
                 for i in range(wait_time, 0, -1):
                     sys.stdout.write("\r")
                     sys.stdout.write(
-                        "Restarting Meowth from crash in {:0d}".format(i))
+                        "Restarting Kyogre from crash in {:0d}".format(i))
                     sys.stdout.flush()
                     time.sleep(1)
 
-    print("Meowth has closed. Exit code: {exit_code}".format(exit_code=code))
+    print("Kyogre has closed. Exit code: {exit_code}".format(exit_code=code))
 
 args = parse_cli_args()
 
@@ -71,5 +71,5 @@ if __name__ == '__main__':
     abspath = os.path.abspath(__file__)
     dirname = os.path.dirname(abspath)
     os.chdir(dirname)
-    print("Launching Meowth...")
-    run_meowth(autorestart=args.auto_restart)
+    print("Launching Kyogre...")
+    run_kyogre(autorestart=args.auto_restart)

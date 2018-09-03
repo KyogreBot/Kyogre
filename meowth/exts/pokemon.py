@@ -3,7 +3,7 @@ import discord
 from string import ascii_lowercase
 
 from meowth import utils
-from meowth.exts.db.meowthdb import PokemonTable
+from meowth.exts.db.kyogredb import PokemonTable
 
 from discord.ext.commands import CommandError
 
@@ -227,8 +227,8 @@ class Pokemon():
             shiny_str = "s"
         else:
             shiny_str = ""
-        return ('https://raw.githubusercontent.com/FoglyOgly/'
-                f'Meowth/discordpy-v1/images/pkmn/{pkmn_no}{form_str}_{alolan_str}{shiny_str}.png?cache=3')
+        return ('https://raw.githubusercontent.com/klords/Kyogre/master/'
+                f'images/pkmn/{pkmn_no}{form_str}_{alolan_str}{shiny_str}.png?cache=3')
 
     # async def colour(self):
     #     """:class:`discord.Colour` : Discord colour based on Pokemon sprite."""

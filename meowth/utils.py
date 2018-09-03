@@ -296,7 +296,7 @@ async def ask_list(bot, prompt, destination, choices_list, options_emoji_list, u
             return (message.author.id != message.guild.me.id)
         return message.author.id == user_list
     try:
-        await destination.send("Meowth! What's the custom value?")
+        await destination.send("What's the custom value?")
         message = await bot.wait_for('message', check=check, timeout=60)
         return message.content
     except Exception:

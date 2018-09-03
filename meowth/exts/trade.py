@@ -11,8 +11,8 @@ from meowth.exts.pokemon import Pokemon
 
 class Trade:
 
-    icon_url = ("https://raw.githubusercontent.com/FoglyOgly/Meowth/"
-                "discordpy-v1/images/misc/trade_icon_small.png")
+    icon_url = ("https://raw.githubusercontent.com/klords/Kyogre/master/"
+                "images/misc/trade_icon_small.png")
 
     __slots__ = [
         'bot', '_data', 'lister_id', 'listing_id', 'report_channel_id',
@@ -126,7 +126,7 @@ class Trade:
         else:
             rolestr = ""
 
-        offer_str = ("{role}Meowth! {lister} offers a {pkmn} up for trade!"
+        offer_str = ("{role}{lister} offers a {pkmn} up for trade!"
                      "").format(role=rolestr, lister=ctx.author.display_name,
                                 pkmn=offered_pokemon)
 
@@ -182,7 +182,7 @@ class Trade:
         offer_embed = self.make_offer_embed(trader, offered_pokemon, pkmn)
 
         offermsg = await self.lister.send(
-            ("Meowth! {} offers to trade their {} for your {}! "
+            ("{} offers to trade their {} for your {}! "
              "React with :white_check_mark: to accept the offer or "
              ":negative_squared_cross_mark: to reject it!").format(
                  trader.display_name, pkmn, offered_pokemon),
@@ -208,7 +208,7 @@ class Trade:
         offered_pokemon = await self.offered_pokemon()
 
         acceptedmsg = (
-            "Meowth! {} has agreed to trade their {} for {}'s {}\n\n"
+            "{} has agreed to trade their {} for {}'s {}\n\n"
             "Please DM them to coordinate the trade! "
             "React with :ballot_box_with_check: when the trade has been "
             "completed! To reject or cancel this offer, react with "
@@ -245,7 +245,7 @@ class Trade:
                 reject = self.guild.get_member(offerid)
                 try:
                     await reject.send((
-                        "Meowth... {} accepted a competing offer for their {}."
+                        "{} accepted a competing offer for their {}."
                         "").format(self.lister.display_name, offered_pokemon))
                 except discord.HTTPException:
                     pass
@@ -253,7 +253,7 @@ class Trade:
 
 
         await listingmsg.edit(
-            content="Meowth! {} has accepted an offer!".format(
+            content="{} has accepted an offer!".format(
                 self.lister.display_name),
             )
 
@@ -303,10 +303,10 @@ class Trade:
         listingmsg = await self.get_listmsg()
         trader = self.guild.get_member(offer_id)
         await self.lister.send(
-            "Meowth... {} withdrew their trade offer of {}.".format(
+            "{} withdrew their trade offer of {}.".format(
                 trader.display_name, self.offers[offer_id]))
 
-        offer_str = "Meowth! {lister} offers a {pkmn} up for trade!".format(
+        offer_str = "{lister} offers a {pkmn} up for trade!".format(
             lister=self.lister.display_name, pkmn=offered_pokemon)
 
         instructions = "React to this message to make an offer!"
@@ -330,10 +330,10 @@ class Trade:
         wanted_pokemon = await self.wanted_pokemon()
 
         await trader.send(
-            "Meowth... {} rejected your offer for their {}.".format(
+            "{} rejected your offer for their {}.".format(
                 self.lister.display_name, offered_pokemon))
 
-        offer_str = "Meowth! {lister} offers a {pkmn} up for trade!".format(
+        offer_str = "{lister} offers a {pkmn} up for trade!".format(
             lister=self.lister.display_name, pkmn=offered_pokemon)
 
         instructions = "React to this message to make an offer!"
@@ -357,7 +357,7 @@ class Trade:
             reject = self.guild.get_member(offerid)
 
             await reject.send(
-                "Meowth... {} canceled their trade offer of {}".format(
+                "{} canceled their trade offer of {}".format(
                     self.lister.display_name, offered_pokemon))
 
         await self.close_trade()
@@ -367,7 +367,7 @@ class Trade:
 
     async def confirm_trade(self):
         listingmsg = await self.get_listmsg()
-        await listingmsg.edit(content='Meowth! This trade has been completed!', embed=None)
+        await listingmsg.edit(content='This trade has been completed!', embed=None)
         await asyncio.sleep(5)
         await self.close_trade()
 

@@ -4,7 +4,7 @@ import json
 from discord.ext import commands
 
 from meowth import utils, checks
-from meowth.exts.db.meowthdb import *
+from meowth.exts.db.kyogredb import *
 
 class Location:
     def __init__(self, name, latitude, longitude, region):

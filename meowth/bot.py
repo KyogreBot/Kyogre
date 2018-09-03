@@ -2,7 +2,7 @@ from discord.ext import commands
 from meowth.context import Context
 
 class MeowthBot(commands.AutoShardedBot):
-    """Custom Discord Bot class for Meowth"""
+    """Custom Discord Bot class for Kyogre"""
 
     async def process_commands(self, message):
         """Processes commands that are registed with the bot and it's groups.

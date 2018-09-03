@@ -1,10 +1,10 @@
 {
-"//": "Configuration file for Meowth Discord bot.",
+"//": "Configuration file for Kyogre Discord bot.",
 
 
 "//": "Server information",
 
-"//": "Language you want for Meowth.",
+"//": "Language you want for Kyogre.",
 "//": "fr, en",
 "bot-language": "en",
 "pokemon-language": "en",
@@ -16,8 +16,8 @@
 "//": "Default bot prefix. Used if server has not set one.",
 "default_prefix":"!",
 
-"//": "Define Meowth's master id (that's you).",
-"//": "Meowth will only take admin commands from the user with this id",
+"//": "Define Kyogre's master id (that's you).",
+"//": "Kyogre will only take admin commands from the user with this id",
 "master": 000000000000000000,
 
 "//": "Limit egg assumed hatches to certain egg levels.",
