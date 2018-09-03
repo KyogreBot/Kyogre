@@ -54,19 +54,19 @@ def serverowner():
     return serverowner_or_permissions()
 
 #configuration
-def check_subscribeset(ctx):
+def check_subscriptionset(ctx):
     if ctx.guild is None:
         return False
     guild = ctx.guild
-    return ctx.bot.guild_dict[guild.id]['configure_dict'].get('subscribe', {}).get('enabled',False)
+    return ctx.bot.guild_dict[guild.id]['configure_dict'].get('subscriptions', {}).get('enabled',False)
 
-def check_subscribechannel(ctx):
+def check_subscriptionchannel(ctx):
     if ctx.guild is None:
         return False
     channel = ctx.channel
     guild = ctx.guild
-    subscribe_channels = ctx.bot.guild_dict[guild.id]['configure_dict'].get('subscribe', {}).get('report_channels',[])
-    return channel.id in subscribe_channels
+    subscription_channels = ctx.bot.guild_dict[guild.id]['configure_dict'].get('subscriptions', {}).get('report_channels',[])
+    return channel.id in subscription_channels
 
 def check_citychannel(ctx):
     if ctx.guild is None:
@@ -217,6 +217,14 @@ def check_regionsset(ctx):
     guild = ctx.guild
     return ctx.bot.guild_dict[guild.id]['configure_dict'].setdefault('regions', {}).get('enabled', False)
 
+def check_regionchange(ctx):
+    if ctx.guild is None:
+        return False
+    channel = ctx.channel
+    guild = ctx.guild
+    channel_list = ctx.bot.guild_dict[guild.id]['configure_dict']['regions'].get('command_channels',[])
+    return channel.id in channel_list
+
 def check_archiveset(ctx):
     if ctx.guild is None:
         return False
@@ -329,20 +337,23 @@ def allowteam():
             raise errors.TeamSetCheckFail()
     return commands.check(predicate)
 
-def allowsubscribe():
+def allowsubscription():
     def predicate(ctx):
-        if check_subscribeset(ctx):
-            if check_subscribechannel(ctx):
+        if check_subscriptionset(ctx):
+            if check_subscriptionchannel(ctx):
                 return True
             else:
-                raise errors.SubscribeChannelCheckFail()
-        raise errors.SubscribeSetCheckFail()
+                raise errors.SubscriptionChannelCheckFail()
+        raise errors.SubscriptionSetCheckFail()
     return commands.check(predicate)
 
 def allowregion():
     def predicate(ctx):
         if check_regionsset(ctx):
-            return True
+            if check_regionchange(ctx):
+                return True
+            else:
+                raise errors.RegionChangeCheckFail()
         else:
             raise errors.RegionsSetCheckFail()
     return commands.check(predicate)

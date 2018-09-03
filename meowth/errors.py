@@ -9,8 +9,8 @@ class TeamSetCheckFail(CommandError):
     'Exception raised checks.teamset fails'
     pass
 
-class SubscribeSetCheckFail(CommandError):
-    'Exception raised checks.subscribeset fails'
+class SubscriptionSetCheckFail(CommandError):
+    'Exception raised checks.subscriptionset fails'
     pass
 
 class WildSetCheckFail(CommandError):
@@ -45,6 +45,10 @@ class RegionsSetCheckFail(CommandError):
     'Exception raised checks.regionsset fails'
     pass
 
+class RegionChangeCheckFail(CommandError):
+    'Exception raised checks.regionchange fails'
+    pass
+
 class InviteSetCheckFail(CommandError):
     'Exception raised checks.inviteset fails'
     pass
@@ -53,8 +57,8 @@ class CityChannelCheckFail(CommandError):
     'Exception raised checks.citychannel fails'
     pass
 
-class SubscribeChannelCheckFail(CommandError):
-    'Exception raised checks.subscribechannel fails'
+class SubscriptionChannelCheckFail(CommandError):
+    'Exception raised checks.subscriptionchannel fails'
     pass
 
 class RaidChannelCheckFail(CommandError):
@@ -178,7 +182,7 @@ def custom_error_handling(bot, logger):
             error = await ctx.channel.send(msg)
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
-        elif isinstance(error, SubscribeSetCheckFail):
+        elif isinstance(error, SubscriptionSetCheckFail):
             msg = _('Meowth! Subscriptions are not enabled on this server. **{prefix}{cmd_name}** is unable to be used.').format(cmd_name=ctx.invoked_with, prefix=prefix)
             error = await ctx.channel.send(msg)
             await asyncio.sleep(10)
@@ -218,6 +222,11 @@ def custom_error_handling(bot, logger):
             error = await ctx.channel.send(msg)
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
+        elif isinstance(error, RegionsSetCheckFail):
+            msg = _('Meowth! Regions are not enabled on this server. **{prefix}{cmd_name}** is unable to be used.').format(cmd_name=ctx.invoked_with, prefix=prefix)
+            error = await ctx.channel.send(msg)
+            await asyncio.sleep(10)
+            await delete_error(ctx.message, error)
         elif isinstance(error, InviteSetCheckFail):
             msg = _('Meowth! EX Raid Invite is not enabled on this server. **{prefix}{cmd_name}** is unable to be used.').format(cmd_name=ctx.invoked_with, prefix=prefix)
             error = await ctx.channel.send(msg)
@@ -240,16 +249,16 @@ def custom_error_handling(bot, logger):
             error = await ctx.channel.send(msg)
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
-        elif isinstance(error, SubscribeChannelCheckFail):
+        elif isinstance(error, SubscriptionChannelCheckFail):
             guild = ctx.guild
             msg = _('Meowth! Please use **{prefix}{cmd_name}** in the following channel').format(cmd_name=ctx.invoked_with, prefix=prefix)
-            subscribe_channels = bot.guild_dict[guild.id]['configure_dict']['subscribe']['report_channels']
-            if len(subscribe_channels) > 1:
+            subscription_channels = bot.guild_dict[guild.id]['configure_dict']['subscriptions']['report_channels']
+            if len(subscription_channels) > 1:
                 msg += _('s:\n')
             else:
                 msg += _(': ')
             counter = 0
-            for c in subscribe_channels:
+            for c in subscription_channels:
                 channel = discord.utils.get(guild.channels, id=c)
                 if counter > 0:
                     msg += '\n'
@@ -466,6 +475,20 @@ def custom_error_handling(bot, logger):
                         msg += '\n' + channel.mention
                     else:
                         msg += '\n#deleted-channel'
+            error = await ctx.channel.send(msg)
+            await asyncio.sleep(10)
+            await delete_error(ctx.message, error)
+        elif isinstance(error,RegionChangeCheckFail):
+            guild = ctx.guild
+            msg = _('Meowth! Please use **{prefix}{cmd_name}** in ').format(cmd_name=ctx.invoked_with, prefix=prefix)
+            city_channels = bot.guild_dict[guild.id]['configure_dict']['regions']['command_channels']
+            msg += _('one of the following channels:')
+            for c in city_channels:
+                channel = discord.utils.get(guild.channels, id=c)
+                if channel:
+                    msg += '\n' + channel.mention
+                else:
+                    msg += '\n#deleted-channel'
             error = await ctx.channel.send(msg)
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)

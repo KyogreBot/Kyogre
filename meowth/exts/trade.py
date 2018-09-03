@@ -6,7 +6,7 @@ from discord.ext import commands
 
 from meowth import utils, checks
 
-from meowth.exts import pokemon
+from meowth.exts.pokemon import Pokemon
 
 
 class Trade:
@@ -168,12 +168,12 @@ class Trade:
     async def offered_pokemon(self):
         listingmsg = await self.get_listmsg()
         ctx = await self.bot.get_context(listingmsg)
-        return pokemon.Pokemon.get_pokemon(ctx, self._data['offered_pokemon'])
+        return Pokemon.get_pokemon(ctx, self._data['offered_pokemon'])
 
     async def wanted_pokemon(self):
         listingmsg = await self.get_listmsg()
         ctx = await self.bot.get_context(listingmsg)
-        return [pokemon.Pokemon.get_pokemon(ctx, want) for want in self._data['wanted_pokemon']]
+        return [Pokemon.get_pokemon(ctx, want) for want in self._data['wanted_pokemon']]
 
     async def make_offer(self, trader_id, pkmn):
         offered_pokemon = await self.offered_pokemon()
@@ -204,7 +204,7 @@ class Trade:
         listingmsg = await self.get_listmsg()
 
         ctx = await self.bot.get_context(listingmsg)
-        offer = pokemon.Pokemon.get_pokemon(ctx, offer)
+        offer = Pokemon.get_pokemon(ctx, offer)
         offered_pokemon = await self.offered_pokemon()
 
         acceptedmsg = (
@@ -406,7 +406,7 @@ class Trading:
 
     @commands.command()
     @checks.allowtrade()
-    async def trade(self, ctx, *, offer: pokemon.Pokemon):
+    async def trade(self, ctx, *, offer: Pokemon):
         """Create a trade listing."""
 
         want_ask = await ctx.send(
@@ -427,7 +427,7 @@ class Trading:
         await want_ask.delete()
         await want_reply.delete()
 
-        pkmn_convert = functools.partial(pokemon.Pokemon.get_pokemon, ctx)
+        pkmn_convert = functools.partial(Pokemon.get_pokemon, ctx)
 
         wants = map(str.strip, wants)
         wants = map(pkmn_convert, wants)

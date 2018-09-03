@@ -5,6 +5,7 @@ import datetime
 import errno
 import functools
 import gettext
+import heapq
 import io
 import json
 import os
@@ -42,6 +43,7 @@ from meowth.exts.pokemon import Pokemon
 
 logger = init_loggers()
 _ = gettext.gettext
+dm_queue = []
 
 def _get_prefix(bot, message):
     guild = message.guild
@@ -58,22 +60,26 @@ Meowth = MeowthBot(
     activity=discord.Game(name="Pokemon Go"))
 
 custom_error_handling(Meowth, logger)
-try:
-    with open(os.path.join('data', 'serverdict'), 'rb') as fd:
-        Meowth.guild_dict = pickle.load(fd)
-    logger.info('Serverdict Loaded Successfully')
-except OSError:
-    logger.info('Serverdict Not Found - Looking for Backup')
+
+def _load_data(bot):
     try:
-        with open(os.path.join('data', 'serverdict_backup'), 'rb') as fd:
-            Meowth.guild_dict = pickle.load(fd)
-        logger.info('Serverdict Backup Loaded Successfully')
+        with open(os.path.join('data', 'serverdict'), 'rb') as fd:
+            bot.guild_dict = pickle.load(fd)
+        logger.info('Serverdict Loaded Successfully')
     except OSError:
-        logger.info('Serverdict Backup Not Found - Creating New Serverdict')
-        Meowth.guild_dict = {}
-        with open(os.path.join('data', 'serverdict'), 'wb') as fd:
-            pickle.dump(Meowth.guild_dict, fd, -1)
-        logger.info('Serverdict Created')
+        logger.info('Serverdict Not Found - Looking for Backup')
+        try:
+            with open(os.path.join('data', 'serverdict_backup'), 'rb') as fd:
+                bot.guild_dict = pickle.load(fd)
+            logger.info('Serverdict Backup Loaded Successfully')
+        except OSError:
+            logger.info('Serverdict Backup Not Found - Creating New Serverdict')
+            bot.guild_dict = {}
+            with open(os.path.join('data', 'serverdict'), 'wb') as fd:
+                pickle.dump(bot.guild_dict, fd, -1)
+            logger.info('Serverdict Created')
+
+_load_data(Meowth)
 
 guild_dict = Meowth.guild_dict
 
@@ -336,18 +342,18 @@ async def gym(ctx, message):
         gym_embed = discord.Embed(title=_('Click here for directions to {0}!'.format(gym.name)), url=gym.maps_url, colour=message.guild.me.colour)
         return await ctx.channel.send(content="", embed=gym_embed)
 
-def get_gyms(guild_id):
+def get_gyms(guild_id, regions):
     location_matching_cog = Meowth.cogs.get('LocationMatching')
     if not location_matching_cog:
         return None
-    gyms = location_matching_cog.get_gyms(guild_id)
+    gyms = location_matching_cog.get_gyms(guild_id, regions)
     return gyms
 
-def get_stops(guild_id):
+def get_stops(guild_id, regions):
     location_matching_cog = Meowth.cogs.get('LocationMatching')
     if not location_matching_cog:
         return None
-    stops = location_matching_cog.get_stops(guild_id)
+    stops = location_matching_cog.get_stops(guild_id, regions)
     return stops
 
 async def location_match_prompt(channel, author_id, name, locations):
@@ -668,6 +674,7 @@ async def expire_channel(channel):
                             guild_dict[guild.id]['raidchannel_dict'][channel.id]['reportcity'])
                         reportmsg = await report_channel.get_message(guild_dict[channel.guild.id]['raidchannel_dict'][channel.id]['raidreport'])
                         await reportmsg.edit(embed=discord.Embed(description=expiremsg, colour=channel.guild.me.colour))
+                        await _update_listing_channels(guild, 'raid', edit=False, regions=guild_dict[guild.id]['raidchannel_dict'][channel.id].get('regions', None))
                     except:
                         pass
                     # channel doesn't exist anymore in serverdict
@@ -1000,6 +1007,7 @@ async def on_ready():
         owners.append(guild.owner)
     await _print(Meowth.owner, _("Meowth! That's right!\n\n{server_count} servers connected.\n{member_count} members found.").format(server_count=guilds, member_count=users))
     await maint_start()
+    await process_dm_queue()
 
 @Meowth.event
 async def on_guild_join(guild):
@@ -1072,7 +1080,7 @@ async def on_member_join(member):
 
 @Meowth.event
 async def on_message(message):
-    # TODO get rid of this garbage
+    # TODO get rid of this garbage, why tf is raid processing here
     if message.guild != None:
         raid_status = guild_dict[message.guild.id]['raidchannel_dict'].get(message.channel.id, None)
         if raid_status:
@@ -1786,7 +1794,7 @@ async def configure(ctx, *, configlist: str=""):
     Meowth will DM you instructions on how to configure Meowth for your server.
     If it is not your first time configuring, you can choose a section to jump to.
     You can also include a comma separated [list] of sections from the following:
-    all, team, welcome, regions, raid, exraid, invite, counters, wild, research, subscribe, archive, timezone"""
+    all, team, welcome, regions, raid, exraid, invite, counters, wild, research, subscription, archive, timezone"""
     await _configure(ctx, configlist)
 
 async def _configure(ctx, configlist):
@@ -1803,7 +1811,7 @@ async def _configure(ctx, configlist):
             del guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][session]
     config_dict_temp = getattr(ctx, 'config_dict_temp',copy.deepcopy(guild_dict[guild.id]['configure_dict']))
     firstconfig = False
-    all_commands = ['team', 'welcome', 'regions', 'raid', 'exraid', 'invite', 'counters', 'wild', 'research', 'meetup', 'subscribe', 'archive', 'trade', 'timezone']
+    all_commands = ['team', 'welcome', 'regions', 'raid', 'exraid', 'invite', 'counters', 'wild', 'research', 'meetup', 'subscription', 'archive', 'trade', 'timezone']
     enabled_commands = []
     configreplylist = []
     config_error = False
@@ -1823,12 +1831,12 @@ async def _configure(ctx, configlist):
         await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("**MULTIPLE SESSIONS!**\n\nIt looks like you have **{yoursessions}** active configure sessions. I recommend you send **cancel** first and then send your request again to avoid confusing me.\n\nYour Sessions: **{yoursessions}** | Total Sessions: **{allsessions}**").format(allsessions=sum(config_dict_temp['settings']['config_sessions'].values()),yoursessions=config_dict_temp['settings']['config_sessions'][owner.id])))
     configmessage = _("Meowth! That's Right! Welcome to the configuration for Meowth the Pokemon Go Helper Bot! I will be guiding you through some steps to get me setup on your server.\n\n**Role Setup**\nBefore you begin the configuration, please make sure my role is moved to the top end of the server role hierarchy. It can be under admins and mods, but must be above team and general roles. [Here is an example](http://i.imgur.com/c5eaX1u.png)")
     if not firstconfig and not configreplylist:
-        configmessage += _("\n\n**Welcome Back**\nThis isn't your first time configuring. You can either reconfigure everything by replying with **all** or reply with a comma separated list to configure those commands. Example: `subscribe, raid, wild`")
+        configmessage += _("\n\n**Welcome Back**\nThis isn't your first time configuring. You can either reconfigure everything by replying with **all** or reply with a comma separated list to configure those commands. Example: `subscription, raid, wild`")
         for commandconfig in config_dict_temp.keys():
             if config_dict_temp[commandconfig].get('enabled',False):
                 enabled_commands.append(commandconfig)
         configmessage += _("\n\n**Enabled Commands:**\n{enabled_commands}").format(enabled_commands=", ".join(enabled_commands))
-        configmessage += _("\n\n**All Commands:**\n**all** - To redo configuration\n**team** - For Team Assignment configuration\n**welcome** - For Welcome Message configuration\n**regions** - for region configuration\n**raid** - for raid command configuration\n**exraid** - for EX raid command configuration\n**invite** - for invite command configuration\n**counters** - for automatic counters configuration\n**wild** - for wild command configuration\n**research** - for !research command configuration\n**meetup** - for !meetup command configuration\n**subscribe** - for subscribe/unsubscribe command configuration\n**archive** - For !archive configuration\n**trade** - For trade command configuration\n**timezone** - For timezone configuration")
+        configmessage += _("\n\n**All Commands:**\n**all** - To redo configuration\n**team** - For Team Assignment configuration\n**welcome** - For Welcome Message configuration\n**regions** - for region configuration\n**raid** - for raid command configuration\n**exraid** - for EX raid command configuration\n**invite** - for invite command configuration\n**counters** - for automatic counters configuration\n**wild** - for wild command configuration\n**research** - for !research command configuration\n**meetup** - for !meetup command configuration\n**subscription** - for subscription command configuration\n**archive** - For !archive configuration\n**trade** - For trade command configuration\n**timezone** - For timezone configuration")
         configmessage += _('\n\nReply with **cancel** at any time throughout the questions to cancel the configure process.')
         await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=configmessage).set_author(name=_('Meowth Configuration - {guild}').format(guild=guild.name), icon_url=Meowth.user.avatar_url))
         while True:
@@ -1900,8 +1908,8 @@ async def _configure(ctx, configlist):
             ctx = await _configure_research(ctx)
             if not ctx:
                 return None
-        if "subscribe" in configreplylist:
-            ctx = await _configure_subscribe(ctx)
+        if "subscription" in configreplylist:
+            ctx = await _configure_subscription(ctx)
             if not ctx:
                 return None
         if "archive" in configreplylist:
@@ -2175,6 +2183,52 @@ async def _configure_regions(ctx):
                 await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The number of locations doesn't match the number of regions you gave me earlier!\n\nI'll show you the two lists to compare:\n\n{region_names_list}\n{region_locations_list}\n\nPlease double check that your locations match up with your provided region names and resend your response.").format(region_names_list=', '.join(region_names_list), region_locations_list=', '.join(region_locations_list))))
                 continue
         await owner.send(embed=discord.Embed(colour=discord.Colour.green(), description=_('Region locations are set')))
+        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('Lastly, I need to know what channels should be flagged to allow users to modify their region assignments. Please enter the channels to be used for this as a comma-separated list. \n\nExample: `general, region-assignment`\n\nNote that this answer does *not* directly correspond to the previously entered channels/regions.\n\n')).set_author(name=_('Region Command Channels'), icon_url=Meowth.user.avatar_url))
+        while True:
+            locations = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+            response = locations.content.strip().lower()
+            if response == 'cancel':
+                await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
+                return None
+            channel_list = [c.strip() for c in response.split(',')]
+            guild_channel_list = []
+            for channel in guild.text_channels:
+                guild_channel_list.append(channel.id)
+            channel_objs = []
+            channel_names = []
+            channel_errors = []
+            for item in channel_list:
+                channel = None
+                if item.isdigit():
+                    channel = discord.utils.get(guild.text_channels, id=int(item))
+                if not channel:
+                    item = re.sub('[^a-zA-Z0-9 _\\-]+', '', item)
+                    item = item.replace(" ","-")
+                    name = await letter_case(guild.text_channels, item.lower())
+                    channel = discord.utils.get(guild.text_channels, name=name)
+                if channel:
+                    channel_objs.append(channel)
+                    channel_names.append(channel.name)
+                else:
+                    channel_errors.append(item)
+            channel_list = [x.id for x in channel_objs]
+            diff = set(channel_list) - set(guild_channel_list)
+            if (not diff) and (not channel_errors):
+                await owner.send(embed=discord.Embed(colour=discord.Colour.green(), description=_('Region Command Channels enabled')))
+                for channel in channel_objs:
+                    ow = channel.overwrites_for(Meowth.user)
+                    ow.send_messages = True
+                    ow.read_messages = True
+                    ow.manage_roles = True
+                    try:
+                        await channel.set_permissions(Meowth.user, overwrite=ow)
+                    except (discord.errors.Forbidden, discord.errors.HTTPException, discord.errors.InvalidArgument):
+                        await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_('I couldn\'t set my own permissions in this channel. Please ensure I have the correct permissions in {channel} using **{prefix}get perms**.').format(prefix=ctx.prefix, channel=channel.mention)))
+                config_dict_temp['regions']['command_channels'] = channel_list
+                break
+            else:
+                await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The channel list you provided doesn't match with your servers channels.\n\nThe following aren't in your server: **{invalid_channels}**\n\nPlease double check your channel list and resend your reponse.").format(invalid_channels=', '.join(channel_errors))))
+                continue
     # set up roles
     new_region_roles = set([r['role'] for r in region_dict.values()])
     existing_region_dict = config_dict_temp['regions'].get('info', None)
@@ -2201,6 +2255,113 @@ async def _configure_regions(ctx):
     config_dict_temp['regions']['info'] = region_dict
     ctx.config_dict_temp = config_dict_temp
     return ctx
+
+async def _get_listings(guild, owner, config_dict_temp):
+    listing_dict = {}
+    if config_dict_temp.get('regions', {}).get('enabled', None):
+        region_names = list(config_dict_temp['regions']['info'].keys())
+        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("I can also provide listings per region that I will keep updated automatically as events are reported, updated, or expired. To get started, please provide a comma-separated list of channel names, one per region, matching the format of this list of regions:\n\n`{region_list}`\n\n**IMPORTANT** I recommend you set the permissions for each channel provided to allow only me to post to it. I will moderate each channel to remove other messages, but it will save me some work!").format(region_list=', '.join(region_names))).set_author(name=_('Listing Channels'), icon_url=Meowth.user.avatar_url))
+        while True:
+            listing_channels = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+            listing_channels = listing_channels.content.lower()
+            if listing_channels == 'n':
+                listing_dict['enabled'] = False
+                await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('Listing disabled')))
+                break
+            elif listing_channels == 'cancel':
+                await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
+                return None
+            else:
+                listing_dict['enabled'] = True
+                channel_dict = {}
+                channel_list = [x.strip() for x in listing_channels.split(',')]
+                guild_channel_list = [channel.id for channel in guild.text_channels]
+                channel_objs = []
+                channel_names = []
+                channel_errors = []
+                for item in channel_list:
+                    channel = None
+                    if item.isdigit():
+                        channel = discord.utils.get(guild.text_channels, id=int(item))
+                    if not channel:
+                        name = sanitize_name(item)
+                        channel = discord.utils.get(guild.text_channels, name=name)
+                    if channel:
+                        channel_objs.append(channel)
+                        channel_names.append(channel.name)
+                    else:
+                        channel_errors.append(item)
+                if len(channel_objs) != len(region_names):
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The channel list you provided doesn't match with your region list.\n\nPlease provide a channel for each region in your region list:\n\n{region_list}").format(region_list=', '.join(region_names))))
+                    continue
+                diff = set([x.id for x in channel_objs]) - set(guild_channel_list)
+                if (not diff) and (not channel_errors):
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.green(), description=_('Listing Channels enabled')))
+                    for i, channel in enumerate(channel_objs):
+                        ow = channel.overwrites_for(Meowth.user)
+                        ow.send_messages = True
+                        ow.read_messages = True
+                        ow.manage_roles = True
+                        try:
+                            await channel.set_permissions(Meowth.user, overwrite = ow)
+                        except (discord.errors.Forbidden, discord.errors.HTTPException, discord.errors.InvalidArgument):
+                            await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_('I couldn\'t set my own permissions in this channel. Please ensure I have the correct permissions in {channel} using **{prefix}get perms**.').format(prefix=ctx.prefix, channel=channel.mention)))
+                        channel_dict[region_names[i]] = channel.id
+                    listing_dict['channels'] = channel_dict
+                    break
+                else:
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The channel list you provided doesn't match with your servers channels.\n\nThe following aren't in your server: **{invalid_channels}**\n\nPlease double check your channel list and resend your reponse.").format(invalid_channels=', '.join(channel_errors))))
+                    continue
+    else:
+        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("I can also provide a listing that I will keep updated automatically as events are reported, updated, or expired. To enable this, please provide a channel name where this listing should be shown.\n\n**IMPORTANT** I recommend you set the permissions for this channel to allow only me to post to it. I will moderate the channel to remove other messages, but it will save me some work!")).set_author(name=_('Listing Channels'), icon_url=Meowth.user.avatar_url))
+        while True:
+            listing_channel = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+            listing_channel = listing_channel.content.lower()
+            if listing_channel == 'n':
+                listing_dict['enabled'] = False
+                await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('Listing disabled')))
+                break
+            elif listing_channel == 'cancel':
+                await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
+                return None
+            else:
+                listing_dict['enabled'] = True
+                channel_dict = {}
+                channel_list = [(listing_channels.split(',')[0]).strip()]
+                guild_channel_list = [channel.id for channel in guild.text_channels]
+                channel_objs = []
+                channel_names = []
+                channel_errors = []
+                for item in channel_list:
+                    channel = None
+                    if item.isdigit():
+                        channel = discord.utils.get(guild.text_channels, id=int(item))
+                    if not channel:
+                        name = sanitize_name(item)
+                        channel = discord.utils.get(guild.text_channels, name=name)
+                    if channel:
+                        channel_objs.append(channel)
+                        channel_names.append(channel.name)
+                    else:
+                        channel_errors.append(item)
+                diff = set([x.id for x in channel_objs]) - set(guild_channel_list)
+                if (not diff) and (not channel_errors):
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.green(), description=_('Listing Channel enabled')))
+                    for i, channel in enumerate(channel_objs):
+                        ow = channel.overwrites_for(Meowth.user)
+                        ow.send_messages = True
+                        ow.read_messages = True
+                        ow.manage_roles = True
+                        try:
+                            await channel.set_permissions(Meowth.user, overwrite = ow)
+                        except (discord.errors.Forbidden, discord.errors.HTTPException, discord.errors.InvalidArgument):
+                            await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_('I couldn\'t set my own permissions in this channel. Please ensure I have the correct permissions in {channel} using **{prefix}get perms**.').format(prefix=ctx.prefix, channel=channel.mention)))
+                    listing_dict['channel'] = channel_objs[0]
+                    break
+                else:
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The channel you provided doesn't match with your servers channels.\n\nPlease double check your channel and resend your reponse.")))
+                    continue
+    return listing_dict
 
 @configure.command()
 async def raid(ctx):
@@ -2264,22 +2425,42 @@ async def _configure_raid(ctx):
                 await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The channel list you provided doesn't match with your servers channels.\n\nThe following aren't in your server: **{invalid_channels}**\n\nPlease double check your channel list and resend your reponse.").format(invalid_channels=', '.join(citychannel_errors))))
                 continue
     if config_dict_temp['raid']['enabled']:
-        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('For each report, I generate Google Maps links to give people directions to the raid or egg! To do this, I need to know which suburb/town/region each report channel represents, to ensure we get the right location in the map. For each report channel you provided, I will need its corresponding general location using only letters and spaces, with each location seperated by a comma and space.\n\nExample: `kansas city mo, hull uk, sydney nsw australia`\n\nEach location will have to be in the same order as you provided the channels in the previous question.\n\nRespond with: **location info, location info, location info** each matching the order of the previous channel list below.')).set_author(name=_('Raid Reporting Locations'), icon_url=Meowth.user.avatar_url))
-        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{citychannel_list}').format(citychannel_list=citychannels.content.lower()[:2000])).set_author(name=_('Entered Channels'), icon_url=Meowth.user.avatar_url))
-        while True:
-            cities = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
-            if cities.content.lower() == 'cancel':
-                await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
-                return None
-            city_list = cities.content.split(',')
-            city_list = [x.strip() for x in city_list]
-            if len(city_list) == len(citychannel_list):
-                for i in range(len(citychannel_list)):
-                    citychannel_dict[citychannel_list[i]] = city_list[i]
-                break
-            else:
-                await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The number of cities doesn't match the number of channels you gave me earlier!\n\nI'll show you the two lists to compare:\n\n{channellist}\n{citylist}\n\nPlease double check that your locations match up with your provided channels and resend your response.").format(channellist=', '.join(citychannel_names), citylist=', '.join(city_list))))
-                continue
+        if config_dict_temp.get('regions', {}).get('enabled', None):
+            region_names = [name for name in config_dict_temp['regions']['info'].keys()]
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('For each report, I generate Google Maps links to give people directions to the raid or egg! To do this, I need to know which region each report channel represents using the region names as previously configured (see below), to ensure we get the right location in the map. For each report channel you provided, I will need its corresponding region using only letters and spaces, with each region seperated by a comma and space.\n\nExample: `kanto, johto, sinnoh`\n\nEach location will have to be in the same order as you provided the channels in the previous question.\n\nRespond with: **region name, region name, region name** each matching the order of the previous channel list below.')).set_author(name=_('Raid Reporting Regions'), icon_url=Meowth.user.avatar_url))
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{citychannel_list}').format(citychannel_list=citychannels.content.lower()[:2000])).set_author(name=_('Entered Channels'), icon_url=Meowth.user.avatar_url))
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{region_names}').format(region_names=(', '.join(region_names)).lower()[:2000])).set_author(name=_('Entered Regions'), icon_url=Meowth.user.avatar_url))
+            while True:
+                regions = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+                regions = regions.content.lower().strip()
+                if regions == 'cancel':
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
+                    return None
+                region_list = [x.strip() for x in regions.split(',')]
+                if len(region_list) == len(citychannel_list):
+                    for i in range(len(citychannel_list)):
+                        citychannel_dict[citychannel_list[i]] = region_list[i]
+                    break
+                else:
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The number of regions doesn't match the number of channels you gave me earlier!\n\nI'll show you the two lists to compare:\n\n{channellist}\n{regionlist}\n\nPlease double check that your regions match up with your provided channels and resend your response.").format(channellist=', '.join(citychannel_names), regionlist=', '.join(region_list))))
+                    continue
+        else:
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('For each report, I generate Google Maps links to give people directions to the raid or egg! To do this, I need to know which suburb/town/region each report channel represents, to ensure we get the right location in the map. For each report channel you provided, I will need its corresponding general location using only letters and spaces, with each location seperated by a comma and space.\n\nExample: `kansas city mo, hull uk, sydney nsw australia`\n\nEach location will have to be in the same order as you provided the channels in the previous question.\n\nRespond with: **location info, location info, location info** each matching the order of the previous channel list below.')).set_author(name=_('Raid Reporting Locations'), icon_url=Meowth.user.avatar_url))
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{citychannel_list}').format(citychannel_list=citychannels.content.lower()[:2000])).set_author(name=_('Entered Channels'), icon_url=Meowth.user.avatar_url))
+            while True:
+                cities = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+                if cities.content.lower() == 'cancel':
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
+                    return None
+                city_list = cities.content.split(',')
+                city_list = [x.strip() for x in city_list]
+                if len(city_list) == len(citychannel_list):
+                    for i in range(len(citychannel_list)):
+                        citychannel_dict[citychannel_list[i]] = city_list[i]
+                    break
+                else:
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The number of cities doesn't match the number of channels you gave me earlier!\n\nI'll show you the two lists to compare:\n\n{channellist}\n{citylist}\n\nPlease double check that your locations match up with your provided channels and resend your response.").format(channellist=', '.join(citychannel_names), citylist=', '.join(city_list))))
+                    continue
         config_dict_temp['raid']['report_channels'] = citychannel_dict
         await owner.send(embed=discord.Embed(colour=discord.Colour.green(), description=_('Raid Reporting Locations are set')))
         await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("How would you like me to categorize the raid channels I create? Your options are:\n\n**none** - If you don't want them categorized\n**same** - If you want them in the same category as the reporting channel\n**region** - If you want them categorized by region\n**level** - If you want them categorized by level.")).set_author(name=_('Raid Reporting Categories'), icon_url=Meowth.user.avatar_url))
@@ -2406,6 +2587,7 @@ async def _configure_raid(ctx):
             break
         await owner.send(embed=discord.Embed(colour=discord.Colour.green(), description=_('Raid Categories are set')))
         config_dict_temp['raid']['category_dict'] = category_dict
+        config_dict_temp['raid']['listings'] = await _get_listings(guild, owner, config_dict_temp)
     ctx.config_dict_temp = config_dict_temp
     return ctx
 
@@ -2471,22 +2653,42 @@ async def _configure_exraid(ctx):
                 await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The channel list you provided doesn't match with your servers channels.\n\nThe following aren't in your server: **{invalid_channels}**\n\nPlease double check your channel list and resend your reponse.").format(invalid_channels=', '.join(citychannel_errors))))
                 continue
     if config_dict_temp['exraid']['enabled']:
-        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('For each report, I generate Google Maps links to give people directions to EX raids! To do this, I need to know which suburb/town/region each report channel represents, to ensure we get the right location in the map. For each report channel you provided, I will need its corresponding general location using only letters and spaces, with each location seperated by a comma and space.\n\nExample: `kansas city mo, hull uk, sydney nsw australia`\n\nEach location will have to be in the same order as you provided the channels in the previous question.\n\nRespond with: **location info, location info, location info** each matching the order of the previous channel list below.')).set_author(name=_('EX Raid Reporting Locations'), icon_url=Meowth.user.avatar_url))
-        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{citychannel_list}').format(citychannel_list=citychannels.content.lower()[:2000])).set_author(name=_('Entered Channels'), icon_url=Meowth.user.avatar_url))
-        while True:
-            cities = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
-            if cities.content.lower() == 'cancel':
-                await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
-                return None
-            city_list = cities.content.split(',')
-            city_list = [x.strip() for x in city_list]
-            if len(city_list) == len(citychannel_list):
-                for i in range(len(citychannel_list)):
-                    citychannel_dict[citychannel_list[i]] = city_list[i]
-                break
-            else:
-                await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The number of cities doesn't match the number of channels you gave me earlier!\n\nI'll show you the two lists to compare:\n\n{channellist}\n{citylist}\n\nPlease double check that your locations match up with your provided channels and resend your response.").format(channellist=', '.join(citychannel_names), citylist=', '.join(city_list))))
-                continue
+        if config_dict_temp.get('regions', {}).get('enabled', None):
+            region_names = [name for name in config_dict_temp['regions']['info'].keys()]
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('For each report, I generate Google Maps links to give people directions to the raid or egg! To do this, I need to know which region each report channel represents using the region names as previously configured (see below), to ensure we get the right location in the map. For each report channel you provided, I will need its corresponding region using only letters and spaces, with each region seperated by a comma and space.\n\nExample: `kanto, johto, sinnoh`\n\nEach location will have to be in the same order as you provided the channels in the previous question.\n\nRespond with: **region name, region name, region name** each matching the order of the previous channel list below.')).set_author(name=_('EX Raid Reporting Regions'), icon_url=Meowth.user.avatar_url))
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{citychannel_list}').format(citychannel_list=citychannels.content.lower()[:2000])).set_author(name=_('Entered Channels'), icon_url=Meowth.user.avatar_url))
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{region_names}').format(region_names=region_names[:2000])).set_author(name=_('Entered Regions'), icon_url=Meowth.user.avatar_url))
+            while True:
+                regions = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+                regions = regions.content.lower().strip()
+                if regions == 'cancel':
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
+                    return None
+                region_list = [x.strip() for x in regions.split(',')]
+                if len(region_list) == len(citychannel_list):
+                    for i in range(len(citychannel_list)):
+                        citychannel_dict[citychannel_list[i]] = region_list[i]
+                    break
+                else:
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The number of regions doesn't match the number of channels you gave me earlier!\n\nI'll show you the two lists to compare:\n\n{channellist}\n{regionlist}\n\nPlease double check that your regions match up with your provided channels and resend your response.").format(channellist=', '.join(citychannel_names), regionlist=', '.join(region_list))))
+                    continue
+        else:
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('For each report, I generate Google Maps links to give people directions to EX raids! To do this, I need to know which suburb/town/region each report channel represents, to ensure we get the right location in the map. For each report channel you provided, I will need its corresponding general location using only letters and spaces, with each location seperated by a comma and space.\n\nExample: `kansas city mo, hull uk, sydney nsw australia`\n\nEach location will have to be in the same order as you provided the channels in the previous question.\n\nRespond with: **location info, location info, location info** each matching the order of the previous channel list below.')).set_author(name=_('EX Raid Reporting Locations'), icon_url=Meowth.user.avatar_url))
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{citychannel_list}').format(citychannel_list=citychannels.content.lower()[:2000])).set_author(name=_('Entered Channels'), icon_url=Meowth.user.avatar_url))
+            while True:
+                cities = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+                if cities.content.lower() == 'cancel':
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
+                    return None
+                city_list = cities.content.split(',')
+                city_list = [x.strip() for x in city_list]
+                if len(city_list) == len(citychannel_list):
+                    for i in range(len(citychannel_list)):
+                        citychannel_dict[citychannel_list[i]] = city_list[i]
+                    break
+                else:
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The number of cities doesn't match the number of channels you gave me earlier!\n\nI'll show you the two lists to compare:\n\n{channellist}\n{citylist}\n\nPlease double check that your locations match up with your provided channels and resend your response.").format(channellist=', '.join(citychannel_names), citylist=', '.join(city_list))))
+                    continue
         config_dict_temp['exraid']['report_channels'] = citychannel_dict
         await owner.send(embed=discord.Embed(colour=discord.Colour.green(), description=_('EX Raid Reporting Locations are set')))
         await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("How would you like me to categorize the EX raid channels I create? Your options are:\n\n**none** - If you don't want them categorized\n**same** - If you want them in the same category as the reporting channel\n**other** - If you want them categorized in a provided category name or ID")).set_author(name=_('EX Raid Reporting Categories'), icon_url=Meowth.user.avatar_url))
@@ -2714,23 +2916,44 @@ async def _configure_wild(ctx):
                 await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The channel list you provided doesn't match with your servers channels.\n\nThe following aren't in your server: **{invalid_channels}**\n\nPlease double check your channel list and resend your reponse.").format(invalid_channels=', '.join(citychannel_errors))))
                 continue
     if config_dict_temp['wild']['enabled']:
-        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('For each report, I generate Google Maps links to give people directions to wild spawns! To do this, I need to know which suburb/town/region each report channel represents, to ensure we get the right location in the map. For each report channel you provided, I will need its corresponding general location using only letters and spaces, with each location seperated by a comma and space.\n\nExample: `kansas city mo, hull uk, sydney nsw australia`\n\nEach location will have to be in the same order as you provided the channels in the previous question.\n\nRespond with: **location info, location info, location info** each matching the order of the previous channel list below.')).set_author(name=_('Wild Reporting Locations'), icon_url=Meowth.user.avatar_url))
-        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{citychannel_list}').format(citychannel_list=citychannels.content.lower()[:2000])).set_author(name=_('Entered Channels'), icon_url=Meowth.user.avatar_url))
-        while True:
-            cities = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
-            if cities.content.lower() == 'cancel':
-                await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
-                return None
-            city_list = cities.content.split(',')
-            city_list = [x.strip() for x in city_list]
-            if len(city_list) == len(citychannel_list):
-                for i in range(len(citychannel_list)):
-                    citychannel_dict[citychannel_list[i]] = city_list[i]
-                break
-            else:
-                await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The number of cities doesn't match the number of channels you gave me earlier!\n\nI'll show you the two lists to compare:\n\n{channellist}\n{citylist}\n\nPlease double check that your locations match up with your provided channels and resend your response.").format(channellist=', '.join(citychannel_names), citylist=', '.join(city_list))))
-                continue
+        if config_dict_temp.get('regions', {}).get('enabled', None):
+            region_names = [name for name in config_dict_temp['regions']['info'].keys()]
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('For each report, I generate Google Maps links to give people directions to wild spawns! To do this, I need to know which region each report channel represents using the region names as previously configured (see below), to ensure we get the right location in the map. For each report channel you provided, I will need its corresponding region using only letters and spaces, with each region seperated by a comma and space.\n\nExample: `kanto, johto, sinnoh`\n\nEach location will have to be in the same order as you provided the channels in the previous question.\n\nRespond with: **region name, region name, region name** each matching the order of the previous channel list below.')).set_author(name=_('Wild Reporting Regions'), icon_url=Meowth.user.avatar_url))
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{citychannel_list}').format(citychannel_list=citychannels.content.lower()[:2000])).set_author(name=_('Entered Channels'), icon_url=Meowth.user.avatar_url))
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{region_names}').format(region_names=region_names[:2000])).set_author(name=_('Entered Regions'), icon_url=Meowth.user.avatar_url))
+            while True:
+                regions = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+                regions = regions.content.lower().strip()
+                if regions == 'cancel':
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
+                    return None
+                region_list = [x.strip() for x in regions.split(',')]
+                if len(region_list) == len(citychannel_list):
+                    for i in range(len(citychannel_list)):
+                        citychannel_dict[citychannel_list[i]] = region_list[i]
+                    break
+                else:
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The number of regions doesn't match the number of channels you gave me earlier!\n\nI'll show you the two lists to compare:\n\n{channellist}\n{regionlist}\n\nPlease double check that your regions match up with your provided channels and resend your response.").format(channellist=', '.join(citychannel_names), regionlist=', '.join(region_list))))
+                    continue
+        else:
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('For each report, I generate Google Maps links to give people directions to wild spawns! To do this, I need to know which suburb/town/region each report channel represents, to ensure we get the right location in the map. For each report channel you provided, I will need its corresponding general location using only letters and spaces, with each location seperated by a comma and space.\n\nExample: `kansas city mo, hull uk, sydney nsw australia`\n\nEach location will have to be in the same order as you provided the channels in the previous question.\n\nRespond with: **location info, location info, location info** each matching the order of the previous channel list below.')).set_author(name=_('Wild Reporting Locations'), icon_url=Meowth.user.avatar_url))
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{citychannel_list}').format(citychannel_list=citychannels.content.lower()[:2000])).set_author(name=_('Entered Channels'), icon_url=Meowth.user.avatar_url))
+            while True:
+                cities = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+                if cities.content.lower() == 'cancel':
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
+                    return None
+                city_list = cities.content.split(',')
+                city_list = [x.strip() for x in city_list]
+                if len(city_list) == len(citychannel_list):
+                    for i in range(len(citychannel_list)):
+                        citychannel_dict[citychannel_list[i]] = city_list[i]
+                    break
+                else:
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The number of cities doesn't match the number of channels you gave me earlier!\n\nI'll show you the two lists to compare:\n\n{channellist}\n{citylist}\n\nPlease double check that your locations match up with your provided channels and resend your response.").format(channellist=', '.join(citychannel_names), citylist=', '.join(city_list))))
+                    continue
         config_dict_temp['wild']['report_channels'] = citychannel_dict
+        config_dict_temp['wild']['listings'] = await _get_listings(guild, owner, config_dict_temp)
         await owner.send(embed=discord.Embed(colour=discord.Colour.green(), description=_('Wild Reporting Locations are set')))
     ctx.config_dict_temp = config_dict_temp
     return ctx
@@ -2797,23 +3020,44 @@ async def _configure_research(ctx):
                 await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The channel list you provided doesn't match with your servers channels.\n\nThe following aren't in your server: **{invalid_channels}**\n\nPlease double check your channel list and resend your reponse.").format(invalid_channels=', '.join(citychannel_errors))))
                 continue
     if config_dict_temp['research']['enabled']:
-        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('For each report, I generate Google Maps links to give people directions to field research! To do this, I need to know which suburb/town/region each report channel represents, to ensure we get the right location in the map. For each report channel you provided, I will need its corresponding general location using only letters and spaces, with each location seperated by a comma and space.\n\nExample: `kansas city mo, hull uk, sydney nsw australia`\n\nEach location will have to be in the same order as you provided the channels in the previous question.\n\nRespond with: **location info, location info, location info** each matching the order of the previous channel list below.')).set_author(name=_('Research Reporting Locations'), icon_url=Meowth.user.avatar_url))
-        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{citychannel_list}').format(citychannel_list=citychannels.content.lower()[:2000])).set_author(name=_('Entered Channels'), icon_url=Meowth.user.avatar_url))
-        while True:
-            cities = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
-            if cities.content.lower() == 'cancel':
-                await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
-                return None
-            city_list = cities.content.split(',')
-            city_list = [x.strip() for x in city_list]
-            if len(city_list) == len(citychannel_list):
-                for i in range(len(citychannel_list)):
-                    citychannel_dict[citychannel_list[i]] = city_list[i]
-                break
-            else:
-                await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The number of cities doesn't match the number of channels you gave me earlier!\n\nI'll show you the two lists to compare:\n\n{channellist}\n{citylist}\n\nPlease double check that your locations match up with your provided channels and resend your response.").format(channellist=', '.join(citychannel_names), citylist=', '.join(city_list))))
-                continue
+        if config_dict_temp.get('regions', {}).get('enabled', None):
+            region_names = [name for name in config_dict_temp['regions']['info'].keys()]
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('For each report, I generate Google Maps links to give people directions to the field research! To do this, I need to know which region each report channel represents using the region names as previously configured (see below), to ensure we get the right location in the map. For each report channel you provided, I will need its corresponding region using only letters and spaces, with each region seperated by a comma and space.\n\nExample: `kanto, johto, sinnoh`\n\nEach location will have to be in the same order as you provided the channels in the previous question.\n\nRespond with: **region name, region name, region name** each matching the order of the previous channel list below.')).set_author(name=_('Research Reporting Regions'), icon_url=Meowth.user.avatar_url))
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{citychannel_list}').format(citychannel_list=citychannels.content.lower()[:2000])).set_author(name=_('Entered Channels'), icon_url=Meowth.user.avatar_url))
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{region_names}').format(region_names=region_names[:2000])).set_author(name=_('Entered Regions'), icon_url=Meowth.user.avatar_url))
+            while True:
+                regions = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+                regions = regions.content.lower().strip()
+                if regions == 'cancel':
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
+                    return None
+                region_list = [x.strip() for x in regions.split(',')]
+                if len(region_list) == len(citychannel_list):
+                    for i in range(len(citychannel_list)):
+                        citychannel_dict[citychannel_list[i]] = region_list[i]
+                    break
+                else:
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The number of regions doesn't match the number of channels you gave me earlier!\n\nI'll show you the two lists to compare:\n\n{channellist}\n{regionlist}\n\nPlease double check that your regions match up with your provided channels and resend your response.").format(channellist=', '.join(citychannel_names), regionlist=', '.join(region_list))))
+                    continue
+        else:
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('For each report, I generate Google Maps links to give people directions to field research! To do this, I need to know which suburb/town/region each report channel represents, to ensure we get the right location in the map. For each report channel you provided, I will need its corresponding general location using only letters and spaces, with each location seperated by a comma and space.\n\nExample: `kansas city mo, hull uk, sydney nsw australia`\n\nEach location will have to be in the same order as you provided the channels in the previous question.\n\nRespond with: **location info, location info, location info** each matching the order of the previous channel list below.')).set_author(name=_('Research Reporting Locations'), icon_url=Meowth.user.avatar_url))
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{citychannel_list}').format(citychannel_list=citychannels.content.lower()[:2000])).set_author(name=_('Entered Channels'), icon_url=Meowth.user.avatar_url))
+            while True:
+                cities = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+                if cities.content.lower() == 'cancel':
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
+                    return None
+                city_list = cities.content.split(',')
+                city_list = [x.strip() for x in city_list]
+                if len(city_list) == len(citychannel_list):
+                    for i in range(len(citychannel_list)):
+                        citychannel_dict[citychannel_list[i]] = city_list[i]
+                    break
+                else:
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The number of cities doesn't match the number of channels you gave me earlier!\n\nI'll show you the two lists to compare:\n\n{channellist}\n{citylist}\n\nPlease double check that your locations match up with your provided channels and resend your response.").format(channellist=', '.join(citychannel_names), citylist=', '.join(city_list))))
+                    continue
         config_dict_temp['research']['report_channels'] = citychannel_dict
+        config_dict_temp['research']['listings'] = await _get_listings(guild, owner, config_dict_temp)
         await owner.send(embed=discord.Embed(colour=discord.Colour.green(), description=_('Research Reporting Locations are set')))
     ctx.config_dict_temp = config_dict_temp
     return ctx
@@ -2881,22 +3125,42 @@ async def _configure_meetup(ctx):
                 await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The channel list you provided doesn't match with your servers channels.\n\nThe following aren't in your server: **{invalid_channels}**\n\nPlease double check your channel list and resend your reponse.").format(invalid_channels=', '.join(citychannel_errors))))
                 continue
     if config_dict_temp['meetup']['enabled']:
-        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('For each report, I generate Google Maps links to give people directions to meetups! To do this, I need to know which suburb/town/region each report channel represents, to ensure we get the right location in the map. For each report channel you provided, I will need its corresponding general location using only letters and spaces, with each location seperated by a comma and space.\n\nExample: `kansas city mo, hull uk, sydney nsw australia`\n\nEach location will have to be in the same order as you provided the channels in the previous question.\n\nRespond with: **location info, location info, location info** each matching the order of the previous channel list below.')).set_author(name=_('Meetup Reporting Locations'), icon_url=Meowth.user.avatar_url))
-        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{citychannel_list}').format(citychannel_list=citychannels.content.lower()[:2000])).set_author(name=_('Entered Channels'), icon_url=Meowth.user.avatar_url))
-        while True:
-            cities = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
-            if cities.content.lower() == 'cancel':
-                await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
-                return None
-            city_list = cities.content.split(',')
-            city_list = [x.strip() for x in city_list]
-            if len(city_list) == len(citychannel_list):
-                for i in range(len(citychannel_list)):
-                    citychannel_dict[citychannel_list[i]] = city_list[i]
-                break
-            else:
-                await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The number of cities doesn't match the number of channels you gave me earlier!\n\nI'll show you the two lists to compare:\n\n{channellist}\n{citylist}\n\nPlease double check that your locations match up with your provided channels and resend your response.").format(channellist=', '.join(citychannel_names), citylist=', '.join(city_list))))
-                continue
+        if config_dict_temp.get('regions', {}).get('enabled', None):
+            region_names = [name for name in config_dict_temp['regions']['info'].keys()]
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('For each report, I generate Google Maps links to give people directions to the meetup! To do this, I need to know which region each report channel represents using the region names as previously configured (see below), to ensure we get the right location in the map. For each report channel you provided, I will need its corresponding region using only letters and spaces, with each region seperated by a comma and space.\n\nExample: `kanto, johto, sinnoh`\n\nEach location will have to be in the same order as you provided the channels in the previous question.\n\nRespond with: **region name, region name, region name** each matching the order of the previous channel list below.')).set_author(name=_('Meetup Reporting Regions'), icon_url=Meowth.user.avatar_url))
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{citychannel_list}').format(citychannel_list=citychannels.content.lower()[:2000])).set_author(name=_('Entered Channels'), icon_url=Meowth.user.avatar_url))
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{region_names}').format(region_names=region_names[:2000])).set_author(name=_('Entered Regions'), icon_url=Meowth.user.avatar_url))
+            while True:
+                regions = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+                regions = regions.content.lower().strip()
+                if regions == 'cancel':
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
+                    return None
+                region_list = [x.strip() for x in regions.split(',')]
+                if len(region_list) == len(citychannel_list):
+                    for i in range(len(citychannel_list)):
+                        citychannel_dict[citychannel_list[i]] = region_list[i]
+                    break
+                else:
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The number of regions doesn't match the number of channels you gave me earlier!\n\nI'll show you the two lists to compare:\n\n{channellist}\n{regionlist}\n\nPlease double check that your regions match up with your provided channels and resend your response.").format(channellist=', '.join(citychannel_names), regionlist=', '.join(region_list))))
+                    continue
+        else:
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('For each report, I generate Google Maps links to give people directions to meetups! To do this, I need to know which suburb/town/region each report channel represents, to ensure we get the right location in the map. For each report channel you provided, I will need its corresponding general location using only letters and spaces, with each location seperated by a comma and space.\n\nExample: `kansas city mo, hull uk, sydney nsw australia`\n\nEach location will have to be in the same order as you provided the channels in the previous question.\n\nRespond with: **location info, location info, location info** each matching the order of the previous channel list below.')).set_author(name=_('Meetup Reporting Locations'), icon_url=Meowth.user.avatar_url))
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{citychannel_list}').format(citychannel_list=citychannels.content.lower()[:2000])).set_author(name=_('Entered Channels'), icon_url=Meowth.user.avatar_url))
+            while True:
+                cities = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+                if cities.content.lower() == 'cancel':
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
+                    return None
+                city_list = cities.content.split(',')
+                city_list = [x.strip() for x in city_list]
+                if len(city_list) == len(citychannel_list):
+                    for i in range(len(citychannel_list)):
+                        citychannel_dict[citychannel_list[i]] = city_list[i]
+                    break
+                else:
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The number of cities doesn't match the number of channels you gave me earlier!\n\nI'll show you the two lists to compare:\n\n{channellist}\n{citylist}\n\nPlease double check that your locations match up with your provided channels and resend your response.").format(channellist=', '.join(citychannel_names), citylist=', '.join(city_list))))
+                    continue
         config_dict_temp['meetup']['report_channels'] = citychannel_dict
         await owner.send(embed=discord.Embed(colour=discord.Colour.green(), description=_('Meetup Reporting Locations are set')))
         await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("How would you like me to categorize the meetup channels I create? Your options are:\n\n**none** - If you don't want them categorized\n**same** - If you want them in the same category as the reporting channel\n**other** - If you want them categorized in a provided category name or ID")).set_author(name=_('Meetup Reporting Categories'), icon_url=Meowth.user.avatar_url))
@@ -2977,21 +3241,21 @@ async def _configure_meetup(ctx):
     return ctx
 
 @configure.command()
-async def subscribe(ctx):
-    """!subcribe/!unsubscribe settings"""
-    return await _check_sessions_and_invoke(ctx, _configure_subscribe)
+async def subscription(ctx):
+    """!subscription settings"""
+    return await _check_sessions_and_invoke(ctx, _configure_subscription)
 
-async def _configure_subscribe(ctx):
+async def _configure_subscription(ctx):
     guild = ctx.message.guild
     owner = ctx.message.author
     config_dict_temp = getattr(ctx, 'config_dict_temp',copy.deepcopy(guild_dict[guild.id]['configure_dict']))
-    if 'subscribe' not in config_dict_temp:
-        config_dict_temp['subscribe'] = {}
-    await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("The **!subscribe** and **!unsubscribe** commands let users set up special triggers for me to send them a notification DM when an event they're interested in happens. I just need to know what channels you want to use to allow people to manage these notifications with the **!subscribe** and **!unsubscribe** command.\n\nIf you don't want to allow the management of subscriptions, then you may want to disable this feature.\n\nRepond with: **N** to disable, or the **channel-name** list to enable, each seperated by a comma and space.")).set_author(name=_('Meowth Subscriptions'), icon_url=Meowth.user.avatar_url))
+    if 'subscriptions' not in config_dict_temp:
+        config_dict_temp['subscriptions'] = {}
+    await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("The **!subscription** commmand lets users set up special triggers for me to send them a notification DM when an event they're interested in happens. I just need to know what channels you want to use to allow people to manage these notifications with the **!subscription** command.\n\nIf you don't want to allow the management of subscriptions, then you may want to disable this feature.\n\nRepond with: **N** to disable, or the **channel-name** list to enable, each seperated by a comma and space.")).set_author(name=_('Meowth Subscriptions'), icon_url=Meowth.user.avatar_url))
     while True:
         subchs = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
         if subchs.content.lower() == 'n':
-            config_dict_temp['subscribe']['enabled'] = False
+            config_dict_temp['subscriptions']['enabled'] = False
             await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('Meowth Subscriptions disabled')))
             break
         elif subchs.content.lower() == 'cancel':
@@ -3023,8 +3287,8 @@ async def _configure_subscribe(ctx):
             sub_list_set = [x.id for x in sub_list_objs]
             diff = set(sub_list_set) - set(guild_channel_list)
             if (not diff) and (not sub_list_errors):
-                config_dict_temp['subscribe']['enabled'] = True
-                config_dict_temp['subscribe']['report_channels'] = sub_list_set
+                config_dict_temp['subscriptions']['enabled'] = True
+                config_dict_temp['subscriptions']['report_channels'] = sub_list_set
                 for channel in sub_list_objs:
                     ow = channel.overwrites_for(Meowth.user)
                     ow.send_messages = True
@@ -3702,12 +3966,18 @@ async def leaderboard(ctx, type="total"):
 Notifications
 """
 
-@Meowth.command(aliases=["sub"])
-@checks.allowsubscribe()
-async def subscribe(ctx,*,content):
+@Meowth.group(name="subscription", aliases=["sub"])
+@checks.allowsubscription()
+async def _sub(ctx):
+    """Handles user subscriptions"""
+    if ctx.invoked_subcommand == None:
+        raise commands.BadArgument()
+
+@_sub.command(name="add")
+async def _sub_add(ctx, *, content):
     """Create a subscription
 
-    Usage: !subscribe <type> <target>
+    Usage: !sub add <type> <target>
     Meowth will send you a DM if an event is generated
     matching the details of your subscription.
     
@@ -3715,10 +3985,11 @@ async def subscribe(ctx,*,content):
     subscription_types = ['pokemon','raid','research','wild','nest']
     message = ctx.message
     channel = message.channel
+    guild = message.guild
     trainer = message.author.id
 
     content = content.strip().lower()
-    error_message = _get_subscribe_command_error(content, subscription_types)
+    error_message = _get_subscription_command_error(content, subscription_types)
     if error_message:
         response = await message.channel.send(error_message)
         await asyncio.sleep(10)
@@ -3730,6 +4001,8 @@ async def subscribe(ctx,*,content):
     existing_list = []
     sub_list = []
     candidate_list, error_list = _parse_subscription_content(content)
+    guild_obj, __ = GuildTable.get_or_create(snowflake=guild.id)
+    trainer_obj, __ = TrainerTable.get_or_create(snowflake=trainer, guild=guild.id)
 
     for sub in candidate_list:
         s_type = sub[0]
@@ -3757,11 +4030,11 @@ async def subscribe(ctx,*,content):
 
     await channel.send(content=confirmation_msg)
 
-def _get_subscribe_command_error(content, subscription_types):
+def _get_subscription_command_error(content, subscription_types):
     error_message = None
 
     if ' ' not in content:
-        return "Meowth! Both a subscription type and target must be provided! Type `!help subscribe` for more details!"
+        return "Meowth! Both a subscription type and target must be provided! Type `!help sub (add|remove|list)` for more details!"
 
     subscription, target = content.split(' ', 1)
 
@@ -3769,7 +4042,7 @@ def _get_subscribe_command_error(content, subscription_types):
         error_message = _("{subscription} is not a valid subscription type!".format(subscription=subscription.title()))
 
     if target == 'list':
-        error_message = _("Meowth! `list` is not a valid target. Did you mean `!list subscriptions`?")
+        error_message = _("Meowth! `list` is not a valid target. Did you mean `!sub list`?")
     
     return error_message
 
@@ -3816,20 +4089,20 @@ def _parse_subscription_content(content):
     return sub_list, error_list
 
 
-@Meowth.group(aliases=["unsub"])
-@checks.allowsubscribe()
-async def unsubscribe(ctx,*,content):
+@_sub.command(name="remove", aliases=["rm"])
+async def _sub_remove(ctx,*,content):
     """Remove a subscription
 
-    Usage: !unsubscribe <type> <target>
+    Usage: !sub remove <type> <target>
     You will no longer be notified of the specified target for the given event type."""
     subscription_types = ['all','pokemon','raid','research','wild','nest']
     message = ctx.message
     channel = message.channel
+    guild = message.guild
     trainer = message.author.id
 
     content = content.strip().lower()
-    error_message = _get_subscribe_command_error(content, subscription_types)
+    error_message = _get_subscription_command_error(content, subscription_types)
     if error_message:
         response = await message.channel.send(error_message)
         await asyncio.sleep(10)
@@ -3842,14 +4115,18 @@ async def unsubscribe(ctx,*,content):
     not_found_list = []
     remove_list = []
 
+    trainer_query = (TrainerTable
+                        .select(TrainerTable.snowflake)
+                        .where((TrainerTable.snowflake == trainer) & 
+                        (TrainerTable.guild == guild.id)))
+
     # check for special cases
     skip_parse = False
     sub_type, target = content.split(' ', 1)
     if sub_type == 'all':
         if target == 'all':
             try:
-                remove_count = Subscription.delete().where(
-                    (Subscription.trainer == trainer)).execute()
+                remove_count = SubscriptionTable.delete().where((SubscriptionTable.trainer << trainer_query)).execute()
                 message = f'I removed your {remove_count} subscriptions!'
             except:
                 message = 'I was unable to remove your subscriptions!'
@@ -3879,18 +4156,18 @@ async def unsubscribe(ctx,*,content):
         s_entry = sub[2]
         try:
             if s_type == 'all':
-                remove_count += Subscription.delete().where(
-                    (Subscription.trainer == trainer) &
-                    (Subscription.target == s_target)).execute()
+                remove_count += SubscriptionTable.delete().where(
+                    (SubscriptionTable.trainer << trainer_query) &
+                    (SubscriptionTable.target == s_target)).execute()
             elif s_target == 'all':
-                remove_count += Subscription.delete().where(
-                    (Subscription.trainer == trainer) &
-                    (Subscription.type == s_type)).execute()
+                remove_count += SubscriptionTable.delete().where(
+                    (SubscriptionTable.trainer << trainer_query) &
+                    (SubscriptionTable.type == s_type)).execute()
             else:
-                remove_count += Subscription.delete().where(
-                    (Subscription.trainer == trainer) &
-                    (Subscription.type == s_type) &
-                    (Subscription.target == s_target)).execute()
+                remove_count += SubscriptionTable.delete().where(
+                    (SubscriptionTable.trainer << trainer_query) &
+                    (SubscriptionTable.type == s_type) &
+                    (SubscriptionTable.target == s_target)).execute()
             if remove_count > 0:
                 remove_list.append(s_entry)
             else:
@@ -3931,10 +4208,10 @@ async def _wild(message, content):
     if len(content.split()) <= 1:
         await message.channel.send(_('Meowth! Give more details when reporting! Usage: **!wild <pokemon name> <location>**'))
         return
-    # TODO 100 iv handling (put in pokemon?)
     rgx = r'\s*((100(\s*%)?|perfect)(\s*ivs?\b)?)\s*'
     content, count = re.subn(rgx, '', content.strip())
     is_perfect = count > 0
+    # TODO improve this parsing logic
     entered_wild, wild_details = content.split(' ', 1)
     pkmn = Pokemon.get_pokemon(Meowth, entered_wild if entered_wild.isdigit() else content)
     if not pkmn:
@@ -3973,7 +4250,7 @@ async def _wild(message, content):
     wild_reports = guild_dict[message.guild.id].setdefault('trainers',{}).setdefault(message.author.id,{}).setdefault('wild_reports',0) + 1
     guild_dict[message.guild.id]['trainers'][message.author.id]['wild_reports'] = wild_reports
     wild_details = {'pokemon': pkmn, 'perfect': is_perfect, 'location': wild_details}
-    await _send_notifications_async('wild', wild_details, message.channel)
+    await _send_notifications_async('wild', wild_details, message.channel, [message.author.id])
 
 @Meowth.command(aliases=['r', 're', 'egg', 'regg', 'raidegg'])
 @checks.allowraidreport()
@@ -3986,7 +4263,7 @@ async def raid(ctx,pokemon,*,location:commands.clean_content(fix_channel_mention
     Meowth's message will also include the type weaknesses of the boss.
 
     Finally, Meowth will create a separate channel for the raid report, for the purposes of organizing the raid."""
-    content = f"{pokemon} {location}"
+    content = f"{pokemon} {location}".lower()
     if pokemon.isdigit():
         new_channel = await _raidegg(ctx.message, content)
     else:
@@ -4076,14 +4353,16 @@ async def _raid(message, content):
     if raid_details == '':
         await message.channel.send(_('Meowth! Give more details when reporting! Usage: **!raid <pokemon name> <location>**'))
         return
+    regions = _get_channel_regions(message.channel)
     gym = None
-    gyms = get_gyms(message.guild.id)
+    gyms = get_gyms(message.guild.id, regions)
     if gyms:
         gym = await location_match_prompt(message.channel, message.author.id, raid_details, gyms)
         if not gym:
             return await message.channel.send(_("Meowth! I couldn't find a gym named '{0}'. Try again using the exact gym name!").format(raid_details))
         raid_details = gym.name
         raid_gmaps_link = gym.maps_url
+        regions = [gym.region]
     else:
         raid_gmaps_link = create_gmaps_query(raid_details, message.channel, type="raid")
     raid_channel = await create_raid_channel("raid", raid_pokemon, None, raid_details, message.channel)
@@ -4133,6 +4412,7 @@ async def _raid(message, content):
         ctrs_dict = {}
         ctrsmessage_id = None
     guild_dict[message.guild.id]['raidchannel_dict'][raid_channel.id] = {
+        'regions': regions,
         'reportcity': message.channel.id,
         'trainer_dict': {},
         'exp': time.time() + (60 * raid_info['raid_eggs'][str(level)]['raidtime']),
@@ -4157,8 +4437,9 @@ async def _raid(message, content):
     event_loop.create_task(expiry_check(raid_channel))
     raid_reports = guild_dict[message.guild.id].setdefault('trainers',{}).setdefault(message.author.id,{}).setdefault('raid_reports',0) + 1
     guild_dict[message.guild.id]['trainers'][message.author.id]['raid_reports'] = raid_reports
-    raid_details = {'pokemon': raid_pokemon, 'tier': raid_pokemon.raid_level, 'ex-eligible': gym.ex_eligible if gym else False, 'location': raid_details}
-    await _send_notifications_async('raid', raid_details, raid_channel)
+    raid_details = {'pokemon': raid_pokemon, 'tier': raid_pokemon.raid_level, 'ex-eligible': gym.ex_eligible if gym else False, 'location': raid_details, 'regions': regions}
+    await _update_listing_channels(message.guild, 'raid', edit=False, regions=regions)
+    await _send_notifications_async('raid', raid_details, raid_channel, [message.author.id])
     return raid_channel
 
 async def _raidegg(message, content):
@@ -4232,14 +4513,17 @@ async def _raidegg(message, content):
     if raid_details == '':
         await message.channel.send(_('Meowth! Give more details when reporting! Usage: **!raid <pokemon name> <location>**'))
         return
+    config_dict = guild_dict[message.guild.id]['configure_dict']
+    regions = _get_channel_regions(message.channel)
     gym = None
-    gyms = get_gyms(message.guild.id)
+    gyms = get_gyms(message.guild.id, regions)
     if gyms:
         gym = await location_match_prompt(message.channel, message.author.id, raid_details, gyms)
         if not gym:
             return await message.channel.send(_("Meowth! I couldn't find a gym named '{0}'. Try again using the exact gym name!").format(raid_details))
         raid_details = gym.name
         raid_gmaps_link = gym.maps_url
+        regions = [gym.region]
     else:
         raid_gmaps_link = create_gmaps_query(raid_details, message.channel, type="raid")
     if (egg_level > 5) or (egg_level == 0):
@@ -4282,6 +4566,7 @@ async def _raidegg(message, content):
         await raidmessage.add_reaction('\u2754')
         await raidmessage.pin()
         guild_dict[message.guild.id]['raidchannel_dict'][raid_channel.id] = {
+            'regions': regions,
             'reportcity': message.channel.id,
             'trainer_dict': {},
             'exp': time.time() + (60 * raid_info['raid_eggs'][egg_level]['hatchtime']),
@@ -4308,8 +4593,9 @@ async def _raidegg(message, content):
         event_loop.create_task(expiry_check(raid_channel))
         egg_reports = guild_dict[message.guild.id].setdefault('trainers',{}).setdefault(message.author.id,{}).setdefault('egg_reports',0) + 1
         guild_dict[message.guild.id]['trainers'][message.author.id]['egg_reports'] = egg_reports
-        raid_details = {'tier': egg_level, 'ex-eligible': gym.ex_eligible if gym else False, 'location': raid_details}
-        await _send_notifications_async('raid', raid_details, raid_channel)
+        await _update_listing_channels(message.guild, 'raid', edit=False, regions=regions)
+        raid_details = {'tier': egg_level, 'ex-eligible': gym.ex_eligible if gym else False, 'location': raid_details, 'regions': regions}
+        await _send_notifications_async('raid', raid_details, raid_channel, [message.author.id])
         return raid_channel
 
 async def _eggassume(args, raid_channel, author=None):
@@ -4520,7 +4806,9 @@ async def _eggtoraid(entered_raid, raid_channel, author=None):
     else:
         ctrs_dict = eggdetails.get('ctrs_dict',{})
         ctrsmessage_id = eggdetails.get('ctrsmessage', None)
+    regions = eggdetails.get('region', None)
     guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id] = {
+        'regions': regions,
         'reportcity': reportcitychannel.id,
         'trainer_dict': trainer_dict,
         'exp': raidexp,
@@ -4543,6 +4831,7 @@ async def _eggtoraid(entered_raid, raid_channel, author=None):
         raid_reports = guild_dict[raid_channel.guild.id].setdefault('trainers',{}).setdefault(author.id,{}).setdefault('raid_reports',0) + 1
         guild_dict[raid_channel.guild.id]['trainers'][author.id]['raid_reports'] = raid_reports
         await _edit_party(raid_channel, author)
+    await _update_listing_channels(message.guild, 'raid', edit=False, regions=regions)
     event_loop.create_task(expiry_check(raid_channel))
 
 @Meowth.command(aliases=['ex'])
@@ -4567,14 +4856,17 @@ async def _exraid(ctx, location):
         await channel.send(_('Meowth! Give more details when reporting! Usage: **!exraid <location>**'))
         return
     raid_details = location
+    config_dict = guild_dict[message.guild.id]['configure_dict']
+    regions = _get_channel_regions(channel)
     gym = None
-    gyms = get_gyms(message.guild.id)
+    gyms = get_gyms(message.guild.id, regions)
     if gyms:
         gym = await location_match_prompt(message.channel, message.author.id, raid_details, gyms)
         if not gym:
             return await message.channel.send(_("Meowth! I couldn't find a gym named '{0}'. Try again using the exact gym name!").format(raid_details))
         raid_details = gym.name
         raid_gmaps_link = gym.maps_url
+        regions = [gym.region]
     else:
         raid_gmaps_link = create_gmaps_query(raid_details, message.channel, type="exraid")
     egg_info = raid_info['raid_eggs']['EX']
@@ -4616,6 +4908,7 @@ async def _exraid(ctx, location):
     await raidmessage.add_reaction('\u2754')
     await raidmessage.pin()
     guild_dict[message.guild.id]['raidchannel_dict'][raid_channel.id] = {
+        'regions': regions,
         'reportcity': channel.id,
         'trainer_dict': {},
         'exp': time.time() + (((60 * 60) * 24) * raid_info['raid_eggs']['EX']['hatchtime']),
@@ -4718,8 +5011,10 @@ async def research(ctx, *, details = None):
     loc_url = create_gmaps_query("", message.channel, type="research")
     research_embed = discord.Embed(colour=message.guild.me.colour).set_thumbnail(url='https://raw.githubusercontent.com/FoglyOgly/Meowth/discordpy-v1/images/misc/field-research.png?cache=0')
     research_embed.set_footer(text=_('Reported by @{author} - {timestamp}').format(author=author.display_name, timestamp=timestamp.strftime(_('%I:%M %p (%H:%M)'))), icon_url=author.avatar_url_as(format=None, static_format='jpg', size=32))
-    stop = None
-    stops = get_stops(guild.id)
+    config_dict = guild_dict[guild.id]['configure_dict']
+    regions = _get_channel_regions(channel)
+    stops = None
+    stops = get_stops(guild.id, regions)
     while True:
         if details:
             research_split = details.rsplit(",", 2)
@@ -4730,9 +5025,10 @@ async def research(ctx, *, details = None):
             if stops:
                 stop = await location_match_prompt(channel, author.id, location, stops)
                 if not stop:
-                    return await message.channel.send(_("Meowth! I couldn't find a gym named '{0}'. Try again using the exact gym name!").format(location))
+                    return await message.channel.send(_("Meowth! I couldn't find a pokestop named '{0}'. Try again using the exact pokestop name!").format(location))
                 location = stop.name
                 loc_url = stop.maps_url
+                regions = [location.region]
             else:
                 loc_url = create_gmaps_query(location, channel, type="research")
             location = location.replace(loc_url,"").strip()
@@ -4760,9 +5056,10 @@ async def research(ctx, *, details = None):
                 if stops:
                     stop = await location_match_prompt(channel, author.id, location, stops)
                     if not stop:
-                        return await message.channel.send(_("Meowth! I couldn't find a gym named '{0}'. Try again using the exact gym name!").format(location))
+                        return await message.channel.send(_("Meowth! I couldn't find a pokestop named '{0}'. Try again using the exact pokestop name!").format(location))
                     location = stop.name
                     loc_url = stop.maps_url
+                    regions = [location.region]
                 else:
                     loc_url = create_gmaps_query(location, channel, type="research")
                 location = location.replace(loc_url,"").strip()
@@ -4814,6 +5111,7 @@ async def research(ctx, *, details = None):
         confirmation = await channel.send(research_msg,embed=research_embed)
         research_dict = copy.deepcopy(guild_dict[guild.id].get('questreport_dict',{}))
         research_dict[confirmation.id] = {
+            'region': regions,
             'exp':time.time() + to_midnight,
             'expedit':"delete",
             'reportmessage':message.id,
@@ -4899,18 +5197,33 @@ async def _meetup(ctx, location):
     await raid_channel.send(content=_('Meowth! Hey {member}, if you can, set the time that the event starts with **!starttime <date and time>** and also set the time that the event ends using **!timerset <date and time>**.').format(member=message.author.mention))
     event_loop.create_task(expiry_check(raid_channel))
 
-async def _send_notifications_async(type, details, channel):
+async def _send_notifications_async(type, details, channel, exclusions=[]):
     valid_types = ['raid', 'research', 'wild', 'nest']
     if type not in valid_types:
         return
+    guild = channel.guild
     # get trainers
-    results = SubscriptionTable.select(SubscriptionTable.trainer, SubscriptionTable.target).where(
-        (SubscriptionTable.type == type) |
-        (SubscriptionTable.type == 'pokemon')).execute()
-    # send DMs
+    try:
+        results = (SubscriptionTable
+                        .select(SubscriptionTable.trainer, SubscriptionTable.target)
+                        .join(TrainerTable, on=(SubscriptionTable.trainer == TrainerTable.snowflake))
+                        .where((SubscriptionTable.type == type) | (SubscriptionTable.type == 'pokemon'))
+                        .where(TrainerTable.guild == guild.id)).execute()
+    except:
+        return
+    # group targets by trainer
     trainers = set([s.trainer for s in results])
     target_dict = {t: [s.target for s in results if s.trainer == t] for t in trainers}
+    # send DMs
     for trainer in target_dict:
+        if trainer in exclusions:
+            continue
+        regions = details.get('regions', None)
+        region_dict = guild_dict[guild.id]['configure_dict'].get('regions', None)
+        if region_dict and region_dict.get('enabled', False):
+            matched_regions = [n for n, o in region_dict.get('info', {}).items() if o['role'] in [r.name for r in guild.get_member(trainer).roles]]
+            if regions and set(regions).isdisjoint(matched_regions):
+                continue
         targets = target_dict[trainer]
         ex_eligible = details.get('ex-eligible', None)
         tier = details.get('tier', None)
@@ -4937,7 +5250,65 @@ async def _send_notifications_async(type, details, channel):
         description = ', '.join(descriptors)
         start = 'An' if re.match(r'^[aeiou]', description, re.I) else 'A'
         message = 'Meowth! **New {title_type}**! {start} {description} {type} at {location} has been reported! For more details, go to the {mention} channel!'.format(title_type=type.title(), start=start, description=description, type=type, location=details['location'], mention=channel.mention)
-        await channel.guild.get_member(trainer).send(message)
+        await guild.get_member(trainer).send(message)
+
+async def _update_listing_channels(guild, type, edit=False, regions=None):
+    valid_types = ['raid', 'research', 'wild', 'nest']
+    if type not in valid_types:
+        return
+    listing_dict = guild_dict[guild.id]['configure_dict'].get(type, {}).get('listings', None)
+    if not listing_dict or not listing_dict['enabled']:
+        return
+    if 'channel' in listing_dict:
+        channel = guild.get_channel(listing_dict['channel'])
+        return await _update_listing_channel(channel, edit, type)
+    if 'channels' in listing_dict and regions:
+        for region in regions:
+            channel_list = listing_dict['channels'].get(region, [])
+            if not isinstance(channel_list, list):
+                channel_list = [channel_list]
+            for channel_id in channel_list:
+                channel = guild.get_channel(channel_id)
+                await _update_listing_channel(channel, edit, type, region=region)
+
+async def _update_listing_channel(channel, edit, type, region=None):
+    new_message = await _get_list_message(type, channel, region)
+    message_history = []
+    async for m in channel.history(limit=10, reverse=True):
+        message_history.append(m)
+    update_message = None
+    if len(message_history) > 1:
+        if type == 'raid':
+            search_text = 'active raids'
+        else:
+            return
+        for message in message_history:
+            if search_text in message.content.lower():
+                update_message = message
+                break
+    elif len(message_history) == 1:
+        update_message = message_history[0]
+    if update_message:
+        if edit:
+            return await update_message.edit(content=new_message)
+        else:
+            await update_message.delete()
+    await channel.send(new_message)
+
+async def _get_list_message(type, channel, region):
+    if type == 'raid':
+        return await _get_raid_list_message(channel, region)
+    else:
+        return None
+
+def _get_channel_regions(channel):
+    regions = None
+    config_dict = guild_dict[channel.guild.id]['configure_dict']
+    if config_dict.get('regions', {}).get('enabled', None):
+        regions = config_dict.get('raid', {}).get('report_channels', {}).get(channel.id, None)
+        if regions and not isinstance(regions, list):
+            regions = [regions]
+    return regions
 
 """
 Raid Channel Management
@@ -5312,14 +5683,17 @@ async def new(ctx,*,content):
                         report_channel = m.raw_channel_mentions[0]
                         break
         details = ' '.join(location_split)
+        config_dict = guild_dict[message.guild.id]['configure_dict']
+        regions = _get_channel_regions(message.channel)
         gym = None
-        gyms = get_gyms(message.guild.id)
+        gyms = get_gyms(message.guild.id, regions)
         if gyms:
             gym = await location_match_prompt(report_channel, message.author.id, details, gyms)
             if not gym:
                 return await message.channel.send(_("Meowth! I couldn't find a gym named '{0}'. Try again using the exact gym name!").format(details))
             details = gym.name
             newloc = gym.maps_url
+            regions = [gym.region]
         else:
             newloc = create_gmaps_query(details, report_channel, type="raid")
         oldraidmsg = await message.channel.get_message(guild_dict[message.guild.id]['raidchannel_dict'][message.channel.id]['raidmessage'])
@@ -5357,6 +5731,7 @@ async def new(ctx,*,content):
         temp['raidmessage'] = oldraidmsg.id
         temp['raidreport'] = oldreportmsg.id
         temp['gym'] = gym
+        temp['regions'] = regions
         guild_dict[message.guild.id]['raidchannel_dict'][message.channel.id] = temp
         return
 
@@ -5366,7 +5741,7 @@ async def recover(ctx):
 
     Usage: !recover
     Only necessary after a crash."""
-    if (checks.check_subscribechannel(ctx) or checks.check_citychannel(ctx) or checks.check_raidchannel(ctx) or checks.check_eggchannel(ctx) or checks.check_exraidchannel(ctx)):
+    if (checks.check_subscriptionchannel(ctx) or checks.check_citychannel(ctx) or checks.check_raidchannel(ctx) or checks.check_eggchannel(ctx) or checks.check_exraidchannel(ctx)):
         await ctx.channel.send(_("Meowth! I can't recover this channel because I know about it already!"))
     else:
         channel = ctx.channel
@@ -5924,7 +6299,7 @@ async def weather(ctx, *, weather):
 Status Management
 """
 
-status_parse_rgx = r'^(\d+)?(?:[, ]*)([\dimv ,]+)?(?:[, ]*)([a-zA-Z ,]+)?$'
+status_parse_rgx = r'^(\d+(?:[, ]+))?([\dimv ,]+)?(?:[, ]*)([a-zA-Z ,]+)?$'
 status_parser = re.compile(status_parse_rgx)
 
 async def _parse_teamcounts(ctx, teamcounts, trainer_dict, egglevel):
@@ -6600,6 +6975,146 @@ async def backout(ctx):
 """
 List Commands
 """
+async def _get_raid_list_message(channel, region=None):
+    '''
+    listings_enabled | region_set | result
+    ======================================
+            Y        |      Y     |   get for region only (regional listings configured)
+            Y        |      N     |   get for all regions (listings configured -- one channel)
+            N        |      Y     |   normal list for region only (list command enabled in regional channel)
+            N        |      N     |   normal list (all regions -- list command enabled)
+    '''
+    activeraidnum = 0
+    guild = channel.guild
+    listmsg = _('**Meowth!** ')
+    now = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[guild.id]['configure_dict']['settings']['offset'])
+    listing_dict = guild_dict[guild.id]['configure_dict']['raid'].get('listings', {})
+    listing_enabled = listing_dict.get('enabled', False)
+    rc_d = guild_dict[guild.id]['raidchannel_dict']
+    if region:
+        cty = region
+    else:
+        cty = channel.name
+    raid_dict = {}
+    egg_dict = {}
+    exraid_list = []
+    event_list = []
+    for r in rc_d:
+        if region:
+            reportlocation = rc_d[r].get('regions', [])
+        elif listing_enabled and 'channel' in listing_dict:
+            reportlocation = [Meowth.get_channel(listing_dict['channel']).name]
+        else: 
+            reportlocation = [Meowth.get_channel(rc_d[r]['reportcity']).name]
+        if not reportlocation:
+            continue
+        if (cty in reportlocation) and rc_d[r]['active'] and discord.utils.get(guild.text_channels, id=r):
+            exp = rc_d[r]['exp']
+            type = rc_d[r]['type']
+            level = rc_d[r]['egglevel']
+            if (type == 'egg') and level.isdigit():
+                egg_dict[r] = exp
+            elif rc_d[r].get('meetup',{}):
+                event_list.append(r)
+            elif ((type == 'exraid') or (level == 'EX')):
+                exraid_list.append(r)
+            else:
+                raid_dict[r] = exp
+            activeraidnum += 1
+
+    def list_output(r):
+        trainer_dict = rc_d[r]['trainer_dict']
+        rchan = Meowth.get_channel(r)
+        end = now + datetime.timedelta(seconds=rc_d[r]['exp'] - time.time())
+        output = ''
+        start_str = ''
+        ctx_herecount = 0
+        ctx_comingcount = 0
+        ctx_maybecount = 0
+        ctx_lobbycount = 0
+        for trainer in rc_d[r]['trainer_dict'].keys():
+            if not guild.get_member(trainer):
+                continue
+            if trainer_dict[trainer]['status']['here']:
+                ctx_herecount += trainer_dict[trainer]['count']
+            elif trainer_dict[trainer]['status']['coming']:
+                ctx_comingcount += trainer_dict[trainer]['count']
+            elif trainer_dict[trainer]['status']['maybe']:
+                ctx_maybecount += trainer_dict[trainer]['count']
+            elif trainer_dict[trainer]['status']['lobby']:
+                ctx_lobbycount += trainer_dict[trainer]['count']
+        if rc_d[r]['manual_timer'] == False:
+            assumed_str = _(' (assumed)')
+        else:
+            assumed_str = ''
+        starttime = rc_d[r].get('starttime',None)
+        meetup = rc_d[r].get('meetup',{})
+        if starttime and starttime > now and not meetup:
+            start_str = _(' Next group: **{}**').format(starttime.strftime(_('%I:%M %p (%H:%M)')))
+        else:
+            starttime = False
+        if rc_d[r]['egglevel'].isdigit() and (int(rc_d[r]['egglevel']) > 0):
+            expirytext = _(' - Hatches: {expiry}{is_assumed}').format(expiry=end.strftime(_('%I:%M %p (%H:%M)')), is_assumed=assumed_str)
+        elif ((rc_d[r]['egglevel'] == 'EX') or (rc_d[r]['type'] == 'exraid')) and not meetup:
+            expirytext = _(' - Hatches: {expiry}{is_assumed}').format(expiry=end.strftime(_('%B %d at %I:%M %p (%H:%M)')), is_assumed=assumed_str)
+        elif meetup:
+            meetupstart = meetup['start']
+            meetupend = meetup['end']
+            expirytext = ""
+            if meetupstart:
+                expirytext += _(' - Starts: {expiry}{is_assumed}').format(expiry=meetupstart.strftime(_('%B %d at %I:%M %p (%H:%M)')), is_assumed=assumed_str)
+            if meetupend:
+                expirytext += _(" - Ends: {expiry}{is_assumed}").format(expiry=meetupend.strftime(_('%B %d at %I:%M %p (%H:%M)')), is_assumed=assumed_str)
+            if not meetupstart and not meetupend:
+                expirytext = _(' - Starts: {expiry}{is_assumed}').format(expiry=end.strftime(_('%B %d at %I:%M %p (%H:%M)')), is_assumed=assumed_str)
+        else:
+            expirytext = _(' - Expiry: {expiry}{is_assumed}').format(expiry=end.strftime(_('%I:%M %p (%H:%M)')), is_assumed=assumed_str)
+        output += _('    {raidchannel}{expiry_text}\n').format(raidchannel=rchan.mention, expiry_text=expirytext)
+        output += _('    {interestcount} interested, {comingcount} coming, {herecount} here, {lobbycount} in the lobby.{start_str}\n').format(raidchannel=rchan.mention, interestcount=ctx_maybecount, comingcount=ctx_comingcount, herecount=ctx_herecount, lobbycount=ctx_lobbycount, start_str=start_str)
+        return output
+    if activeraidnum:
+        listmsg += _("**Here's the current channels for {0}**\n\n").format(cty.capitalize())
+    if raid_dict:
+        listmsg += _('**Active Raids:**\n')
+        for (r, e) in sorted(raid_dict.items(), key=itemgetter(1)):
+            if len(listmsg) < 1800:
+                listmsg += list_output(r)
+            else:
+                await channel.send(listmsg)
+                listmsg = _('**Active Raids:** (continued)\n')
+                listmsg += list_output(r)
+        listmsg += '\n'
+    if egg_dict:
+        listmsg += _('**Raid Eggs:**\n')
+        for (r, e) in sorted(egg_dict.items(), key=itemgetter(1)):
+            if len(listmsg) < 1800:
+                listmsg += list_output(r)
+            else:
+                await channel.send(listmsg)
+                listmsg = _('**Raid Eggs:** (continued)\n')
+                listmsg += list_output(r)
+        listmsg += '\n'
+    if exraid_list and not listing_enabled:
+        listmsg += _('**EX Raids:**\n')
+        for r in exraid_list:
+            if len(listmsg) < 1800:
+                listmsg += list_output(r)
+            else:
+                await channel.send(listmsg)
+                listmsg = _('**EX Raids:** (continued)\n')
+                listmsg += list_output(r)
+    if event_list and not listing_enabled:
+        listmsg += _('**Meetups:**\n')
+        for r in event_list:
+            if len(listmsg) < 1800:
+                listmsg += list_output(r)
+            else:
+                await channel.send(listmsg)
+                listmsg = _('**Meetups:** (continued)\n')
+                listmsg += list_output(r)
+    if activeraidnum == 0:
+        listmsg = _('Meowth! No active raids! Report one with **!raid <name> <location> [weather] [timer]**.')
+    return listmsg
 
 @Meowth.group(name="list", aliases=['lists'], case_insensitive=True)
 async def _list(ctx):
@@ -6614,131 +7129,17 @@ async def _list(ctx):
         channel = ctx.channel
         now = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[guild.id]['configure_dict']['settings']['offset'])
         if checks.check_raidreport(ctx) or checks.check_exraidreport(ctx):
-            activeraidnum = 0
-            cty = channel.name
-            rc_d = guild_dict[guild.id]['raidchannel_dict']
-            raid_dict = {
-
-            }
-            egg_dict = {
-
-            }
-            exraid_list = []
-            event_list = []
-            for r in rc_d:
-                reportcity = Meowth.get_channel(rc_d[r]['reportcity'])
-                if not reportcity:
-                    continue
-                if (reportcity.name == cty) and rc_d[r]['active'] and discord.utils.get(guild.text_channels, id=r):
-                    exp = rc_d[r]['exp']
-                    type = rc_d[r]['type']
-                    level = rc_d[r]['egglevel']
-                    if (type == 'egg') and level.isdigit():
-                        egg_dict[r] = exp
-                    elif rc_d[r].get('meetup',{}):
-                        event_list.append(r)
-                    elif ((type == 'exraid') or (level == 'EX')):
-                        exraid_list.append(r)
-                    else:
-                        raid_dict[r] = exp
-                    activeraidnum += 1
-
-            def list_output(r):
-                trainer_dict = rc_d[r]['trainer_dict']
-                rchan = Meowth.get_channel(r)
-                end = now + datetime.timedelta(seconds=rc_d[r]['exp'] - time.time())
-                output = ''
-                start_str = ''
-                ctx_herecount = 0
-                ctx_comingcount = 0
-                ctx_maybecount = 0
-                ctx_lobbycount = 0
-                for trainer in rc_d[r]['trainer_dict'].keys():
-                    if not ctx.guild.get_member(trainer):
-                        continue
-                    if trainer_dict[trainer]['status']['here']:
-                        ctx_herecount += trainer_dict[trainer]['count']
-                    elif trainer_dict[trainer]['status']['coming']:
-                        ctx_comingcount += trainer_dict[trainer]['count']
-                    elif trainer_dict[trainer]['status']['maybe']:
-                        ctx_maybecount += trainer_dict[trainer]['count']
-                    elif trainer_dict[trainer]['status']['lobby']:
-                        ctx_lobbycount += trainer_dict[trainer]['count']
-                if rc_d[r]['manual_timer'] == False:
-                    assumed_str = _(' (assumed)')
-                else:
-                    assumed_str = ''
-                starttime = rc_d[r].get('starttime',None)
-                meetup = rc_d[r].get('meetup',{})
-                if starttime and starttime > now and not meetup:
-                    start_str = _(' Next group: **{}**').format(starttime.strftime(_('%I:%M %p (%H:%M)')))
-                else:
-                    starttime = False
-                if rc_d[r]['egglevel'].isdigit() and (int(rc_d[r]['egglevel']) > 0):
-                    expirytext = _(' - Hatches: {expiry}{is_assumed}').format(expiry=end.strftime(_('%I:%M %p (%H:%M)')), is_assumed=assumed_str)
-                elif ((rc_d[r]['egglevel'] == 'EX') or (rc_d[r]['type'] == 'exraid')) and not meetup:
-                    expirytext = _(' - Hatches: {expiry}{is_assumed}').format(expiry=end.strftime(_('%B %d at %I:%M %p (%H:%M)')), is_assumed=assumed_str)
-                elif meetup:
-                    meetupstart = meetup['start']
-                    meetupend = meetup['end']
-                    expirytext = ""
-                    if meetupstart:
-                        expirytext += _(' - Starts: {expiry}{is_assumed}').format(expiry=meetupstart.strftime(_('%B %d at %I:%M %p (%H:%M)')), is_assumed=assumed_str)
-                    if meetupend:
-                        expirytext += _(" - Ends: {expiry}{is_assumed}").format(expiry=meetupend.strftime(_('%B %d at %I:%M %p (%H:%M)')), is_assumed=assumed_str)
-                    if not meetupstart and not meetupend:
-                        expirytext = _(' - Starts: {expiry}{is_assumed}').format(expiry=end.strftime(_('%B %d at %I:%M %p (%H:%M)')), is_assumed=assumed_str)
-                else:
-                    expirytext = _(' - Expiry: {expiry}{is_assumed}').format(expiry=end.strftime(_('%I:%M %p (%H:%M)')), is_assumed=assumed_str)
-                output += _('    {raidchannel}{expiry_text}\n').format(raidchannel=rchan.mention, expiry_text=expirytext)
-                output += _('    {interestcount} interested, {comingcount} coming, {herecount} here, {lobbycount} in the lobby.{start_str}\n').format(raidchannel=rchan.mention, interestcount=ctx_maybecount, comingcount=ctx_comingcount, herecount=ctx_herecount, lobbycount=ctx_lobbycount, start_str=start_str)
-                return output
-            if activeraidnum:
-                listmsg += _("**Here's the current channels for {0}**\n\n").format(cty.capitalize())
-            if raid_dict:
-                listmsg += _('**Active Raids:**\n')
-                for (r, e) in sorted(raid_dict.items(), key=itemgetter(1)):
-                    if len(listmsg) < 1800:
-                        listmsg += list_output(r)
-                    else:
-                        await channel.send(listmsg)
-                        listmsg = _('**Active Raids:** (continued)\n')
-                        listmsg += list_output(r)
-                listmsg += '\n'
-            if egg_dict:
-                listmsg += _('**Raid Eggs:**\n')
-                for (r, e) in sorted(egg_dict.items(), key=itemgetter(1)):
-                    if len(listmsg) < 1800:
-                        listmsg += list_output(r)
-                    else:
-                        await channel.send(listmsg)
-                        listmsg = _('**Raid Eggs:** (continued)\n')
-                        listmsg += list_output(r)
-                listmsg += '\n'
-            if exraid_list:
-                listmsg += _('**EX Raids:**\n')
-                for r in exraid_list:
-                    if len(listmsg) < 1800:
-                        listmsg += list_output(r)
-                    else:
-                        await channel.send(listmsg)
-                        listmsg = _('**EX Raids:** (continued)\n')
-                        listmsg += list_output(r)
-            if event_list:
-                listmsg += _('**Meetups:**\n')
-                for r in event_list:
-                    if len(listmsg) < 1800:
-                        listmsg += list_output(r)
-                    else:
-                        await channel.send(listmsg)
-                        listmsg = _('**Meetups:** (continued)\n')
-                        listmsg += list_output(r)
-            if activeraidnum == 0:
-                await channel.send(_('Meowth! No active raids! Report one with **!raid <name> <location> [weather] [timer]**.'))
+            raid_dict = guild_dict[guild.id]['configure_dict']['raid']
+            if raid_dict.get('listings', {}).get('enabled', False):
+                msg = await ctx.channel.send("*Raid list command disabled when listings are provided by server*")
+                await asyncio.sleep(10)
+                await msg.delete()
+                await ctx.message.delete()
                 return
-            else:
-                await channel.send(listmsg)
-                return
+            region = None
+            if guild_dict[guild.id]['configure_dict'].get('regions', {}).get('enabled', False) and raid_dict.get('categories', None) == 'region':
+                region = raid_dict.get('category_dict', {}).get(channel.id, None)
+            listmsg = await _get_raid_list_message(channel, region)
         elif checks.check_raidactive(ctx):
             team_list = ["mystic","valor","instinct","unknown"]
             tag = False
@@ -7059,16 +7460,19 @@ async def _teamlist(ctx):
         listmsg = _(' Nobody has updated their status!')
     return listmsg
 
-@_list.command()
-@checks.allowsubscribe()
-async def subscriptions(ctx):
+@_sub.command(name="list", aliases=["ls"])
+async def _sub_list(ctx):
     """List the subscriptions for the user
 
-    Usage: !list subscriptions"""
+    Usage: !sub list"""
     message = ctx.message
     channel = message.channel
     author = message.author
-    results = SubscriptionTable.select(SubscriptionTable.type, SubscriptionTable.target).where(SubscriptionTable.trainer == ctx.author.id).execute()
+    results = (SubscriptionTable
+                    .select(SubscriptionTable.type, SubscriptionTable.target)
+                    .join(TrainerTable, on=(SubscriptionTable.trainer == TrainerTable.snowflake))
+                    .where(SubscriptionTable.trainer == ctx.author.id)
+                    .where(TrainerTable.guild == ctx.guild.id)).execute()
     subscription_msg = ''
     types = set([s.type for s in results])
     subscriptions = {t: [s.target for s in results if s.type == t] for t in types}
@@ -7077,7 +7481,7 @@ async def subscriptions(ctx):
     if subscription_msg:
         listmsg = _(' Your current subscriptions are:\n\n{subscriptions}').format(subscriptions=subscription_msg)
     else:
-        listmsg = _(" You don\'t have any subscriptions! use **!subscribe** to add some.")
+        listmsg = _(" You don\'t have any subscriptions! use the **!subscription add** command to add some.")
     listmsg = _('**Meowth!**') + listmsg
     await author.send(listmsg)
     response = await channel.send(f"{author.mention}, check your inbox! I've sent your subscriptions to you directly!")
@@ -7156,6 +7560,26 @@ async def _wildlist(ctx):
     else:
         listmsg = _(" There are no reported wild pokemon. Report one with **!wild <pokemon> <location>**")
     return listmsg
+
+@Meowth.command(hidden=True)
+async def dm_queue_test(ctx):
+    global dm_queue
+    for i in range(1,4):
+        for j in range(1,11):
+            heapq.heappush(dm_queue, (i*j, ctx.author, str(j)))
+
+async def process_dm_queue():
+    global dm_queue
+    if dm_queue:
+        print('sending batch of dms')
+        asyncio.ensure_future(_send_dms(dm_queue[:5]))
+        dm_queue = dm_queue[5:]
+    await asyncio.sleep(5)
+    asyncio.ensure_future(process_dm_queue())
+
+async def _send_dms(dm_list):
+    for dm in dm_list:
+        await dm[1].send(dm[2])
 
 try:
     event_loop.run_until_complete(Meowth.start(config['bot_token']))
