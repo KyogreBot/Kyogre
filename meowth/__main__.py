@@ -6278,7 +6278,7 @@ async def weather(ctx, *, weather):
 Status Management
 """
 
-status_parse_rgx = r'^(\d+(?:[, ]+))?([\dimv ,]+)?(?:[, ]*)([a-zA-Z ,]+)?$'
+status_parse_rgx = r'^(\d+)$|^(\d+(?:[, ]+))?([\dimv ,]+)?(?:[, ]*)([a-zA-Z ,]+)?$'
 status_parser = re.compile(status_parse_rgx)
 
 async def _parse_teamcounts(ctx, teamcounts, trainer_dict, egglevel):
@@ -6304,7 +6304,8 @@ async def _process_status_command(ctx, teamcounts):
     errors = []
     if not parsed_counts:
         raise ValueError("I couldn't understand that format! Check the format against `!help interested` and try again.")
-    total, groups, bosses = parsed_counts.groups()
+    totalA, totalB, groups, bosses = parsed_counts.groups()
+    total = totalA or totalB
     if bosses and guild_dict[ctx.guild.id]['raidchannel_dict'][ctx.channel.id]['type'] == "egg":
         entered_interest = set(entered_interest)
         bosses_list = bosses.lower().split(',')
