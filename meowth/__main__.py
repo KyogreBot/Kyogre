@@ -7435,21 +7435,54 @@ async def _teamlist(ctx):
     return listmsg
 
 @_sub.command(name="list", aliases=["ls"])
-async def _sub_list(ctx):
+async def _sub_list(ctx, *, content):
     """List the subscriptions for the user
 
-    Usage: !sub list"""
+    Usage: !sub list <type> 
+    Leave type empty to receive complete list of all subscriptions.
+    Or include a type to receive a specific list
+    Valid types are: pokemon, raid, research, wild, and nest"""
     message = ctx.message
     channel = message.channel
     author = message.author
+    subscription_types = ['pokemon','raid','research','wild','nest']
+
     results = (SubscriptionTable
-                    .select(SubscriptionTable.type, SubscriptionTable.target)
-                    .join(TrainerTable, on=(SubscriptionTable.trainer == TrainerTable.snowflake))
-                    .where(SubscriptionTable.trainer == ctx.author.id)
-                    .where(TrainerTable.guild == ctx.guild.id)).execute()
+                .select(SubscriptionTable.type, SubscriptionTable.target)
+                .join(TrainerTable, on=(SubscriptionTable.trainer == TrainerTable.snowflake))
+                .where(SubscriptionTable.trainer == ctx.author.id)
+                .where(TrainerTable.guild == ctx.guild.id))
+
+    if content:
+        sub_types = [re.sub('[^A-Za-z]+', '', s.lower()) for s in content.split(',')]
+        invalid_types = []
+        valid_types = []
+        for s in sub_types:
+            if s in subscription_types:
+                valid_types.append(s)
+            else:
+                invalid_types.append(s)
+
+        if (valid_types):
+            results = results.where(SubscriptionTable.type << valid_types)
+        else:
+            response_msg = "No valid subscription types found! Valid types are: {types}".format(subs=', '.join(subscription_types))
+            response = await channel.send(response_msg)
+            await asyncio.sleep(10)
+            await response.delete()
+            await message.delete()
+            return
+        
+        if (invalid_types):
+            response_msg = "\nUnable to find these subscription types: {inv}".format(inv=', '.join(invalid_types))
+    
+    results = results.execute()
+        
+    response_msg = f"{author.mention}, check your inbox! I've sent your subscriptions to you directly!" + response_msg  
     subscription_msg = ''
     types = set([s.type for s in results])
     subscriptions = {t: [s.target for s in results if s.type == t] for t in types}
+    
     for sub in subscriptions:
         subscription_msg += '**{category}**:\n\t{subs}\n\n'.format(category=sub.title(),subs='\n\t'.join(subscriptions[sub]))
     if subscription_msg:
@@ -7457,7 +7490,7 @@ async def _sub_list(ctx):
     else:
         listmsg = _("You don\'t have any subscriptions! use the **!subscription add** command to add some.")
     await author.send(listmsg)
-    response = await channel.send(f"{author.mention}, check your inbox! I've sent your subscriptions to you directly!")
+    response = await channel.send(response_msg)
     await asyncio.sleep(10)
     await response.delete()
     await message.delete()
