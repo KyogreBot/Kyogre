@@ -4217,9 +4217,15 @@ async def _sub_list(ctx, *, content=None):
     for sub in subscriptions:
         subscription_msg += '**{category}**:\n\t{subs}\n\n'.format(category=sub.title(),subs='\n\t'.join(subscriptions[sub]))
     if subscription_msg:
-        listmsg = _('Your current subscriptions are:\n\n{subscriptions}').format(subscriptions=subscription_msg)
+        if valid_types:
+            listmsg = _('Your current {types} subscriptions are:\n\n{subscriptions}').format(types = ', '.join(valid_types), subscriptions=subscription_msg)
+        else:
+            listmsg = _('Your current subscriptions are:\n\n{subscriptions}').format(subscriptions=subscription_msg)
     else:
-        listmsg = _("You don\'t have any subscriptions! use the **!subscription add** command to add some.")
+        if valid_types:
+            listmsg = _("You don\'t have any subscriptions for {types}! use the **!subscription add** command to add some.").format(types = ', '.join(valid_types))
+        else:
+            listmsg = _("You don\'t have any subscriptions! use the **!subscription add** command to add some.")
     await author.send(listmsg)
     response = await channel.send(response_msg)
     await asyncio.sleep(10)
