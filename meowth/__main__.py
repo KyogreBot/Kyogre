@@ -6484,6 +6484,9 @@ async def _maybe(channel, author, count, party, entered_interest=None):
     trainer_dict[author.id]['party'] = party
     await _edit_party(channel, author)
     guild_dict[channel.guild.id]['raidchannel_dict'][channel.id]['trainer_dict'] = trainer_dict
+    regions = guild_dict[channel.guild.id]['raidchannel_dict'][channel.id].get('regions', None)
+    if regions:
+        await _update_listing_channels(channel.guild, 'raid', edit=True, regions=regions)
 
 @Meowth.command(aliases=['c'])
 @checks.activechannel()
@@ -6548,6 +6551,9 @@ async def _coming(channel, author, count, party, entered_interest=None):
         trainer_dict[author.id]['interest'] = entered_interest
     await _edit_party(channel, author)
     guild_dict[channel.guild.id]['raidchannel_dict'][channel.id]['trainer_dict'] = trainer_dict
+    regions = guild_dict[channel.guild.id]['raidchannel_dict'][channel.id].get('regions', None)
+    if regions:
+        await _update_listing_channels(channel.guild, 'raid', edit=True, regions=regions)
 
 @Meowth.command(aliases=['h'])
 @checks.activechannel()
@@ -6621,6 +6627,9 @@ async def _here(channel, author, count, party, entered_interest=None):
         trainer_dict[author.id]['interest'] = entered_interest
     await _edit_party(channel, author)
     guild_dict[channel.guild.id]['raidchannel_dict'][channel.id]['trainer_dict'] = trainer_dict
+    regions = guild_dict[channel.guild.id]['raidchannel_dict'][channel.id].get('regions', None)
+    if regions:
+        await _update_listing_channels(channel.guild, 'raid', edit=True, regions=regions)
 
 async def _party_status(ctx, total, teamcounts):
     channel = ctx.channel
@@ -6872,6 +6881,9 @@ async def _cancel(channel, author):
     t_dict['interest'] = []
     t_dict['count'] = 1
     await _edit_party(channel, author)
+    regions = guild_dict[channel.guild.id]['raidchannel_dict'][channel.id].get('regions', None)
+    if regions:
+        await _update_listing_channels(guild, 'raid', edit=True, regions=regions)
 
 async def lobby_countdown(ctx):
     await asyncio.sleep(120)
@@ -6898,6 +6910,9 @@ async def lobby_countdown(ctx):
         pass
     await _edit_party(ctx.channel, ctx.author)
     guild_dict[ctx.guild.id]['raidchannel_dict'][ctx.channel.id]['trainer_dict'] = ctx.trainer_dict
+    regions = guild_dict[channel.guild.id]['raidchannel_dict'][channel.id].get('regions', None)
+    if regions:
+        await _update_listing_channels(ctx.guild, 'raid', edit=True, regions=regions)
 
 @Meowth.command()
 @checks.activeraidchannel()
