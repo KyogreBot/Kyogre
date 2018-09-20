@@ -24,7 +24,7 @@ def is_dev_or_owner():
             return False
     return commands.check(predicate)
 
-def is_banned(ctx):
+def good_standing(ctx):
     guild = ctx.guild
     author = ctx.author
     trainer = guild_dict[guild.id]['trainers'][author.id]
