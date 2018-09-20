@@ -6,6 +6,7 @@ import functools
 import gettext
 import heapq
 import io
+import itertools
 import json
 import os
 import pickle
@@ -33,8 +34,7 @@ from discord.ext import commands
 from meowth.exts.db.kyogredb import *
 KyogreDB.start('data/kyogre.db')
 
-from meowth import checks
-from meowth import utils
+from meowth import checks, utils, constants
 from meowth.bot import MeowthBot
 from meowth.errors import custom_error_handling
 from meowth.logs import init_loggers
@@ -42,7 +42,6 @@ from meowth.exts.pokemon import Pokemon
 
 logger = init_loggers()
 _ = gettext.gettext
-dm_queue = []
 
 def _get_prefix(bot, message):
     guild = message.guild
@@ -315,14 +314,17 @@ async def ask(message, destination, user_list=None, *, react_list=['✅', '❎']
         return    
 
 @Meowth.command(name='gym')
-async def gym(ctx, message):
-    gyms = get_gyms(message.guild.id)
-    gym = await location_match_prompt(message.channel, message.author.id, message.content, gyms)
+async def gym(ctx, *, name):
+    message = ctx.message
+    channel = ctx.channel
+    guild = ctx.guild
+    gyms = get_gyms(guild.id)
+    gym = await location_match_prompt(channel, message.author.id, name, gyms)
     if not gym:
-        return await message.channel.send(_("No gym found with name '{0}'. Try again using the exact gym name!").format(message.content))
+        return await channel.send(_("No gym found with name '{0}'. Try again using the exact gym name!").format(name))
     else:
-        gym_embed = discord.Embed(title=_('Click here for directions to {0}!'.format(gym.name)), url=gym.maps_url, colour=message.guild.me.colour)
-        return await ctx.channel.send(content="", embed=gym_embed)
+        gym_embed = discord.Embed(title=_('Click here for directions to {0}!'.format(gym.name)), url=gym.maps_url, colour=guild.me.colour)
+        return await channel.send(content="", embed=gym_embed)
 
 def get_gyms(guild_id, regions=None):
     location_matching_cog = Meowth.cogs.get('LocationMatching')
@@ -331,11 +333,18 @@ def get_gyms(guild_id, regions=None):
     gyms = location_matching_cog.get_gyms(guild_id, regions)
     return gyms
 
-def get_stops(guild_id, regions):
+def get_stops(guild_id, regions=None):
     location_matching_cog = Meowth.cogs.get('LocationMatching')
     if not location_matching_cog:
         return None
     stops = location_matching_cog.get_stops(guild_id, regions)
+    return stops
+
+def get_all_locations(guild_id, regions=None):
+    location_matching_cog = Meowth.cogs.get('LocationMatching')
+    if not location_matching_cog:
+        return None
+    stops = location_matching_cog.get_all(guild_id, regions)
     return stops
 
 async def location_match_prompt(channel, author_id, name, locations):
@@ -343,22 +352,27 @@ async def location_match_prompt(channel, author_id, name, locations):
     location_matching_cog = Meowth.cogs.get('LocationMatching')
     match = None
     result = location_matching_cog.location_match(name, locations)
-    if not result or result[0] is None:
+    results = [(match.name, score) for match, score in result]
+    match = await prompt_match_result(channel, author_id, name, results)
+    return next((l for l in locations if l.name == match), None)
+
+async def prompt_match_result(channel, author_id, target, result_list):
+    if not isinstance(result_list, list):
+        result_list = [result_list]
+    if not result_list or result_list[0] is None:
         return None
     # quick check if a full match exists
-    exact_match = [match for match, score in result if match.name.lower() == name.lower()]
+    exact_match = [match for match, score in result_list if match.lower() == target.lower()]
     if len(exact_match) == 1:
         return exact_match[0]
     # reminder: partial, exact matches have 100 score, that's why this check exists
-    perfect_scores = [match for match, score in result if score == 100]
+    perfect_scores = [match for match, score in result_list if score == 100]
     if len(perfect_scores) != 1:
         # one or more imperfect candidates only, ask user which to use
-        options_list = [str(i)+'\u20e3' for i in range(10)]
-        sorted_result = sorted(result, key=lambda t: t[1], reverse=True)
-        choices_list = [match.name for match, score in sorted_result]
-        prompt = _("Didn't find an exact match for '{0}'. {1} potential matches found.").format(name, len(result))
-        match = await utils.ask_list(Meowth, prompt, channel, choices_list, options_list, author_id)
-        match = next((l for l, score in sorted_result if l.name == match), None)
+        sorted_result = sorted(result_list, key=lambda t: t[1], reverse=True)
+        choices_list = [match for match, score in sorted_result]
+        prompt = _("Didn't find an exact match for '{0}'. {1} potential matches found.").format(target, len(result_list))
+        match = await utils.ask_list(Meowth, prompt, channel, choices_list, user_list=author_id)
     else:
         # found a solitary best match
         match = perfect_scores[0]
@@ -657,7 +671,7 @@ async def expire_channel(channel):
                             guild_dict[guild.id]['raidchannel_dict'][channel.id]['reportcity'])
                         reportmsg = await report_channel.get_message(guild_dict[channel.guild.id]['raidchannel_dict'][channel.id]['raidreport'])
                         await reportmsg.edit(embed=discord.Embed(description=expiremsg, colour=channel.guild.me.colour))
-                        await _update_listing_channels(guild, 'raid', edit=False, regions=guild_dict[guild.id]['raidchannel_dict'][channel.id].get('regions', None))
+                        await _update_listing_channels(guild, 'raid', edit=True, regions=guild_dict[guild.id]['raidchannel_dict'][channel.id].get('regions', None))
                     except:
                         pass
                     # channel doesn't exist anymore in serverdict
@@ -864,6 +878,7 @@ async def message_cleanup(loop=True):
     while (not Meowth.is_closed()):
         logger.info('message_cleanup ------ BEGIN ------')
         guilddict_temp = copy.deepcopy(guild_dict)
+        update_ids = set()
         for guildid in guilddict_temp.keys():
             questreport_dict = guilddict_temp[guildid].get('questreport_dict',{})
             wildreport_dict = guilddict_temp[guildid].get('wildreport_dict',{})
@@ -890,6 +905,7 @@ async def message_cleanup(loop=True):
                 try:
                     report_message = await report_delete_dict[messageid]['channel'].get_message(messageid)
                     await report_message.delete()
+                    update_ids.add(guildid)
                 except (discord.errors.NotFound, discord.errors.Forbidden, discord.errors.HTTPException):
                     pass
             for messageid in report_edit_dict.keys():
@@ -897,9 +913,14 @@ async def message_cleanup(loop=True):
                     report_message = await report_edit_dict[messageid]['channel'].get_message(messageid)
                     await report_message.edit(content=report_edit_dict[messageid]['action']['content'],embed=discord.Embed(description=report_edit_dict[messageid]['action']['embedcontent'], colour=report_message.embeds[0].colour.value))
                     await report_message.clear_reactions()
+                    update_ids.add(guildid)
                 except (discord.errors.NotFound, discord.errors.Forbidden, discord.errors.HTTPException, IndexError):
                     pass
         # save server_dict changes after cleanup
+        for id in update_ids:
+            guild = Meowth.get_guild(id)
+            await _update_listing_channels(guild, 'wild', edit=True)
+            await _update_listing_channels(guild, 'research', edit=True)
         logger.info('message_cleanup - SAVING CHANGES')
         try:
             await _save()
@@ -990,7 +1011,6 @@ async def on_ready():
         owners.append(guild.owner)
     await _print(Meowth.owner, _("{server_count} servers connected.\n{member_count} members found.").format(server_count=guilds, member_count=users))
     await maint_start()
-    await process_dm_queue()
 
 @Meowth.event
 async def on_guild_join(guild):
@@ -1821,6 +1841,7 @@ async def _configure(ctx, configlist):
         configmessage += _('\n\nReply with **cancel** at any time throughout the questions to cancel the configure process.')
         await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=configmessage).set_author(name=_('Kyogre Configuration - {guild}').format(guild=guild.name), icon_url=Meowth.user.avatar_url))
         while True:
+            config_error = False
             def check(m):
                 return m.guild == None and m.author == owner
             configreply = await Meowth.wait_for('message', check=check)
@@ -2287,7 +2308,7 @@ async def _get_listings(guild, owner, config_dict_temp):
                             await channel.set_permissions(Meowth.user, overwrite = ow)
                         except (discord.errors.Forbidden, discord.errors.HTTPException, discord.errors.InvalidArgument):
                             await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_('I couldn\'t set my own permissions in this channel. Please ensure I have the correct permissions in {channel} using **{prefix}get perms**.').format(prefix=ctx.prefix, channel=channel.mention)))
-                        channel_dict[region_names[i]] = channel.id
+                        channel_dict[region_names[i]] = {'id': channel.id, 'messages': []}
                     listing_dict['channels'] = channel_dict
                     break
                 else:
@@ -2337,7 +2358,7 @@ async def _get_listings(guild, owner, config_dict_temp):
                             await channel.set_permissions(Meowth.user, overwrite = ow)
                         except (discord.errors.Forbidden, discord.errors.HTTPException, discord.errors.InvalidArgument):
                             await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_('I couldn\'t set my own permissions in this channel. Please ensure I have the correct permissions in {channel} using **{prefix}get perms**.').format(prefix=ctx.prefix, channel=channel.mention)))
-                    listing_dict['channel'] = channel_objs[0]
+                    listing_dict['channel'] = {'id': channel_objs[0].id, 'messages': []}
                     break
                 else:
                     await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The channel you provided doesn't match with your servers channels.\n\nPlease double check your channel and resend your reponse.")))
@@ -4178,6 +4199,8 @@ async def _sub_list(ctx, *, content=None):
     author = message.author
     subscription_types = ['pokemon','raid','research','wild','nest']
     response_msg = ''
+    invalid_types = []
+    valid_types = []
     results = (SubscriptionTable
                 .select(SubscriptionTable.type, SubscriptionTable.target)
                 .join(TrainerTable, on=(SubscriptionTable.trainer == TrainerTable.snowflake))
@@ -4186,8 +4209,6 @@ async def _sub_list(ctx, *, content=None):
 
     if content:
         sub_types = [re.sub('[^A-Za-z]+', '', s.lower()) for s in content.split(',')]
-        invalid_types = []
-        valid_types = []
         for s in sub_types:
             if s in subscription_types:
                 valid_types.append(s)
@@ -4236,26 +4257,26 @@ async def _sub_list(ctx, *, content=None):
 Reporting
 """
 
-@Meowth.command(aliases=['w'])
+@Meowth.command(name="wild", aliases=['w'])
 @checks.allowwildreport()
-async def wild(ctx,pokemon,*,location):
+async def _wild(ctx,pokemon,*,location):
     """Report a wild Pokemon spawn location.
 
     Usage: !wild <species> <location>
     Kyogre will insert the details (really just everything after the species name) into a
     Google maps link and post the link to the same channel the report was made in."""
     content = f"{pokemon} {location}"
-    await _wild(ctx.message, content)
+    await _wild_internal(ctx.message, content)
 
-async def _wild(message, content):
+async def _wild_internal(message, content):
     timestamp = (message.created_at + datetime.timedelta(hours=guild_dict[message.channel.guild.id]['configure_dict']['settings']['offset'])).strftime(_('%I:%M %p (%H:%M)'))
     if len(content.split()) <= 1:
         await message.channel.send(_('Give more details when reporting! Usage: **!wild <pokemon name> <location>**'))
         return
+    channel_regions = _get_channel_regions(message.channel, 'wild')
     rgx = r'\s*((100(\s*%)?|perfect)(\s*ivs?\b)?)\s*'
     content, count = re.subn(rgx, '', content.strip())
     is_perfect = count > 0
-    # TODO improve this parsing logic
     entered_wild, wild_details = content.split(' ', 1)
     pkmn = Pokemon.get_pokemon(Meowth, entered_wild if entered_wild.isdigit() else content)
     if not pkmn:
@@ -4263,8 +4284,20 @@ async def _wild(message, content):
     wild_number = pkmn.id
     wild_img_url = pkmn.img_url
     expiremsg = _('**This {pokemon} has despawned!**').format(pokemon=pkmn.full_name)
-    # TODO location matching here
-    wild_gmaps_link = create_gmaps_query(wild_details, message.channel, type="wild")
+    wild_details = content.lower().replace(pkmn.name.lower(), '').strip()
+    wild_gmaps_link = ''
+    locations = get_all_locations(message.guild.id, channel_regions)
+    if locations and not ('http' in wild_details or '/maps' in wild_details):
+        location = await location_match_prompt(message.channel, message.author.id, wild_details, locations)
+        if location:
+            wild_gmaps_link = location.maps_url
+            wild_details = location.name
+    if not wild_gmaps_link:
+        wild_gmaps_link = create_gmaps_query(wild_details, message.channel, type="wild")
+        if 'http' in wild_details or '/maps' in wild_details:
+            wild_details = 'Custom Map Pin'
+        else:
+            wild_details = wild_details.title()
     wild_embed = discord.Embed(title=_('Click here for my directions to the wild {pokemon}!').format(pokemon=pkmn.full_name), description=_("Ask {author} if my directions aren't perfect!").format(author=message.author.name), url=wild_gmaps_link, colour=message.guild.me.colour)
     wild_embed.add_field(name=_('**Details:**'), value=_('{emoji}{pokemon} ({pokemonnumber}) {type}').format(emoji='💯' if is_perfect else '',pokemon=pkmn.full_name, pokemonnumber=str(wild_number), type=''.join(types_to_str(message.guild, pkmn.types))), inline=False)
     wild_embed.set_thumbnail(url=wild_img_url)
@@ -4294,12 +4327,12 @@ async def _wild(message, content):
     wild_reports = guild_dict[message.guild.id].setdefault('trainers',{}).setdefault(message.author.id,{}).setdefault('wild_reports',0) + 1
     guild_dict[message.guild.id]['trainers'][message.author.id]['wild_reports'] = wild_reports
     wild_details = {'pokemon': pkmn, 'perfect': is_perfect, 'location': wild_details}
-    await _update_listing_channels(message.guild, 'wild', edit=False, regions=_get_channel_regions(message.channel, 'wild'))
+    await _update_listing_channels(message.guild, 'wild', edit=False, regions=channel_regions)
     await _send_notifications_async('wild', wild_details, message.channel, [message.author.id])
 
-@Meowth.command(aliases=['r', 're', 'egg', 'regg', 'raidegg'])
+@Meowth.command(name="raid", aliases=['r', 're', 'egg', 'regg', 'raidegg'])
 @checks.allowraidreport()
-async def raid(ctx,pokemon,*,location:commands.clean_content(fix_channel_mentions=True)="", weather=None, timer=None):
+async def _raid(ctx,pokemon,*,location:commands.clean_content(fix_channel_mentions=True)="", weather=None, timer=None):
     """Report an ongoing raid or a raid egg.
 
     Usage: !raid <species/level> <location> [weather] [minutes]
@@ -4312,10 +4345,10 @@ async def raid(ctx,pokemon,*,location:commands.clean_content(fix_channel_mention
     if pokemon.isdigit():
         new_channel = await _raidegg(ctx.message, content)
     else:
-        new_channel = await _raid(ctx.message, content)
+        new_channel = await _raid_internal(ctx.message, content)
     ctx.raid_channel = new_channel
 
-async def _raid(message, content):
+async def _raid_internal(message, content):
     fromegg = False
     if guild_dict[message.channel.guild.id]['raidchannel_dict'].get(message.channel.id,{}).get('type') == "egg":
         fromegg = True
@@ -5041,11 +5074,10 @@ async def _invite(ctx):
 async def research(ctx, *, details = None):
     """Report Field research
     Guided report method with just !research. If you supply arguments in one
-    line, avoid commas in anything but your separations between pokestop,
-    quest, reward. Order matters if you supply arguments. If a pokemon name
-    is included in reward, a @mention will be used if role exists.
+    line, avoid commas in anything but your separations between pokestop and
+    quest. Order matters if you supply arguments.
 
-    Usage: !research [pokestop name [optional URL], quest, reward]"""
+    Usage: !research [pokestop name, quest]"""
     message = ctx.message
     channel = message.channel
     author = message.author
@@ -5062,11 +5094,11 @@ async def research(ctx, *, details = None):
     stops = get_stops(guild.id, regions)
     while True:
         if details:
-            research_split = details.rsplit(",", 2)
-            if len(research_split) != 3:
-                error = _("entered an incorrect amount of arguments.\n\nUsage: **!research** or **!research <pokestop>, <quest>, <reward>**")
+            research_split = details.rsplit(",", 1)
+            if len(research_split) != 2:
+                error = _("entered an incorrect amount of arguments.\n\nUsage: **!research** or **!research <pokestop>, <quest>**")
                 break
-            location, quest, reward = research_split
+            location, quest_name = research_split
             if stops:
                 stop = await location_match_prompt(channel, author.id, location, stops)
                 if not stop:
@@ -5077,8 +5109,14 @@ async def research(ctx, *, details = None):
             else:
                 loc_url = create_gmaps_query(location, channel, type="research")
             location = location.replace(loc_url,"").strip()
+            quest = await _get_quest(ctx, quest_name)
+            if not quest:
+                return await message.channel.send(_("I couldn't find a quest named '{0}'").format(quest_name))
+            reward = await _prompt_reward(ctx, quest)
+            if not reward:
+                return await message.channel.send(_("I couldn't find a reward for '{0}'").format(quest_name))
             research_embed.add_field(name=_("**Pokestop:**"),value='\n'.join(textwrap.wrap(location.title(), width=30)),inline=True)
-            research_embed.add_field(name=_("**Quest:**"),value='\n'.join(textwrap.wrap(quest.title(), width=30)),inline=True)
+            research_embed.add_field(name=_("**Quest:**"),value='\n'.join(textwrap.wrap(quest.name.title(), width=30)),inline=True)
             research_embed.add_field(name=_("**Reward:**"),value='\n'.join(textwrap.wrap(reward.title(), width=30)),inline=True)
             break
         else:
@@ -5104,7 +5142,7 @@ async def research(ctx, *, details = None):
                         return await message.channel.send(_("I couldn't find a pokestop named '{0}'. Try again using the exact pokestop name!").format(location))
                     location = stop.name
                     loc_url = stop.maps_url
-                    regions = [location.region]
+                    regions = [stop.region]
                 else:
                     loc_url = create_gmaps_query(location, channel, type="research")
                 location = location.replace(loc_url,"").strip()
@@ -5125,26 +5163,16 @@ async def research(ctx, *, details = None):
                 await questmsg.delete()
                 break
             elif questmsg:
-                quest = questmsg.clean_content
+                quest = await _get_quest(ctx, questmsg.clean_content)
             await questmsg.delete()
-            research_embed.add_field(name=_("**Quest:**"),value='\n'.join(textwrap.wrap(quest.title(), width=30)),inline=True)
-            research_embed.set_field_at(0, name=research_embed.fields[0].name, value=_("Fantastic! Now, reply with the **reward** for the **{quest}** quest that you received from **{location}**. You can reply with **cancel** to stop anytime.\n\nHere's what I have so far:").format(quest=quest, location=location), inline=False)
-            rewardwait = await channel.send(embed=research_embed)
-            try:
-                rewardmsg = await Meowth.wait_for('message', timeout=60, check=(lambda reply: reply.author == message.author))
-            except asyncio.TimeoutError:
-                rewardmsg = None
-            await rewardwait.delete()
-            if not rewardmsg:
-                error = _("took too long to respond")
+            if not quest:
+                error = "didn't identify the quest"
                 break
-            elif rewardmsg.clean_content.lower() == "cancel":
-                error = _("cancelled the report")
-                await rewardmsg.delete()
+            research_embed.add_field(name=_("**Quest:**"),value='\n'.join(textwrap.wrap(quest.name.title(), width=30)),inline=True)
+            reward = await _prompt_reward(ctx, quest)
+            if not reward:
+                error = "didn't identify the reward"
                 break
-            elif rewardmsg:
-                reward = rewardmsg.clean_content
-            await rewardmsg.delete()
             research_embed.add_field(name=_("**Reward:**"),value='\n'.join(textwrap.wrap(reward.title(), width=30)),inline=True)
             research_embed.remove_field(0)
             break
@@ -5164,7 +5192,7 @@ async def research(ctx, *, details = None):
             'reportauthor':author.id,
             'location':location,
             'url':loc_url,
-            'quest':quest,
+            'quest':quest.name,
             'reward':reward
         }
         guild_dict[guild.id]['questreport_dict'] = research_dict
@@ -5179,9 +5207,255 @@ async def research(ctx, *, details = None):
         await confirmation.delete()
         await message.delete()
 
+async def _get_quest(ctx, name):
+    """gets a quest by name. provided name can be an id instead"""
+    if not name:
+        return
+    id = None
+    if str(name).isnumeric():
+        id = int(name)
+    channel = ctx.channel
+    message = ctx.message
+    try:
+        query = QuestTable.select()
+        if id is not None:
+            query = query.where(QuestTable.id == id)
+        query = query.execute()
+        result = [d for d in query]
+    except:
+        return await channel.send("No quest data available!")
+    if id is not None:
+        return None if not result else result[0]
+    quest_names = [q.name.lower() for q in result]
+    if name.lower() not in quest_names:
+        candidates = utils.get_match(quest_names, name, score_cutoff=60, isPartial=True, limit=20)
+        name = await prompt_match_result(channel, message.author.id, name, candidates)
+    return next((q for q in result if q.name.lower() == name.lower()), None)
+
+async def _prompt_reward(ctx, quest, reward_type=None):
+    """prompts user for reward info selection using quest's reward pool
+    can optionally specify a start point with reward_type"""
+    if not quest or not quest.reward_pool:
+        return
+    channel = ctx.channel
+    message = ctx.message
+    if reward_type:
+        if not reward_type in quest.reward_pool:
+            raise ValueError("Starting point provided is invalid")
+    else:
+        candidates = [k for k, v in quest.reward_pool.items() if len(v) > 0]
+        if len(candidates) == 0:
+            return
+        elif len(candidates) == 1:
+            reward_type = candidates[0]
+        else:
+            prompt = "Please select a reward type:"
+            reward_type = await utils.ask_list(Meowth, prompt, channel, candidates, user_list=message.author.id)
+    if not reward_type:
+        return
+    target_pool = quest.reward_pool[reward_type]
+    # handle encounters
+    if reward_type == "encounters":
+        return f"{', '.join([p.title() for p in target_pool])} Encounter"
+    # handle items
+    if reward_type == "items":
+        if len(target_pool) == 1:
+            target_pool = target_pool[0]
+        else:
+            candidates = [k for k in target_pool]
+            prompt = "Please select an item:"
+            reward_type = await utils.ask_list(Meowth, prompt, channel, candidates, user_list=message.author.id)
+            if not reward_type:
+                return
+            target_pool = target_pool[reward_type]
+    if len(target_pool) == 1:
+        return f"{target_pool[0]} {reward_type.title()}"
+    else:
+        candidates = [str(q) for q in target_pool]
+        prompt = "Please select the correct quantity:"
+        quantity = await utils.ask_list(Meowth, prompt, channel, candidates, user_list=message.author.id)
+        if not quantity:
+            return
+        return f"{quantity} {reward_type.title()}"
+
+@Meowth.group(name="quest")
+async def _quest(ctx):
+    """Quest data management command"""
+    if ctx.invoked_subcommand == None:
+        raise commands.BadArgument()
+
+@_quest.command(name="info", aliases=["lookup", "get", "find"])
+@checks.allowresearchreport()
+async def _quest_info(ctx, *, name):
+    """Look up a quest by name, returning the quest ID and details
+    
+    Usage: !quest info <name>"""
+    channel = ctx.channel
+    quest = await _get_quest(ctx, name)
+    if not quest:
+        return await channel.send("Unable to find quest by that name")
+    await channel.send(format_quest_info(quest))
+
+@_quest.command(name="add")
+@commands.has_permissions(manage_guild=True)
+async def _quest_add(ctx, *, info):
+    """Add a new quest and associated reward pool, separated by comma.
+    
+    Usage: !quest add <name>[, reward_pool]
+    
+    Reward pool should be provided as a JSON string. If not provided, an empty default will be used."""
+    channel = ctx.channel
+    name = None
+    pool = None
+    if ',' in info:
+        name, pool = info.split(',', 1)
+    else:
+        name = info
+    if '{' in name:
+        return await channel.send('Please check the format of your message and try again. The name and reward pool should be separated by a comma')
+    if pool:
+        try:
+            pool = json.loads(pool)
+        except ValueError:
+            return await channel.send("Error: provided reward pool is not a valid JSON string")
+    try:
+        new_quest = QuestTable.create(name=name, reward_pool=pool if pool else {})
+    except:
+        return await channel.send("Unable to add record. Please ensure the quest does not already exist with the find command.")
+    await channel.send(f"Successfully added new quest: {new_quest.name} ({new_quest.id})")
+
+@_quest.command(name="remove", aliases=["rm", "delete", "del"])
+@commands.has_permissions(manage_guild=True)
+async def _quest_remove(ctx, id):
+    """Remove a quest by its ID
+    
+    Usage: !quest remove <id>"""
+    channel = ctx.channel
+
+    try:
+        deleted = QuestTable.delete().where(QuestTable.id == id).execute()
+    except:
+        deleted = False
+    
+    if deleted:
+        return await channel.send("Successfully deleted record")
+    return await channel.send("Unable to delete record")
+
+def format_quest_info(quest):
+    pool = quest.reward_pool
+    output = f"{quest.name} ({quest.id})\n"
+    encounters = pool.get('encounters', [])
+    stardust = pool.get('stardust', [])
+    xp = pool.get('xp', [])
+    items = pool.get('items', {})
+    if encounters:
+        encounters = [str(e) for e in encounters]
+        output += f"\nEncounters: {', '.join(encounters).title()}"
+    if stardust:
+        stardust = [str(s) for s in stardust]
+        output += f"\nStardust: {', '.join(stardust)}"
+    if xp:
+        xp = [str(x) for x in xp]
+        output += f"\nExperience: {', '.join(xp)}"
+    if items:
+        output += "\nItems:"
+        for name, quantities in items.items():
+            output += f"\n\t{name.title()}: {quantities[0] if len(quantities) == 1 else quantities[0] + ' - ' + quantities[-1]}"
+    return output
+
+@Meowth.group(name="rewards")
+@commands.has_permissions(manage_guild=True)
+async def _rewards(ctx):
+    """Quest reward pool data management command"""
+    if ctx.invoked_subcommand == None:
+        raise commands.BadArgument()
+
+@_rewards.command(name="add")
+async def _rewards_add(ctx, *, info):
+    """Adds a reward to reward pool for a given quest using provided comma-separated values.
+    
+    Usage: !rewards add <ID>, <type>, <value>
+    
+    ID must correspond to a valid db entry.
+    If type is not encounters, stardust, or xp, it will be assumed to be an item."""
+    channel = ctx.channel
+    try:
+        id, type, value = re.split(r'\s*,\s*', info)
+        id = int(id)
+        type = type.lower()
+    except:
+        return await channel.send("Error parsing input. Please check the format and try again")
+    try:
+        quest = QuestTable[id]
+    except:
+        return await channel.send(f"Unable to get quest with id {id}")
+    pool = quest.reward_pool
+    if type.startswith("encounter"):
+        pokemon = Pokemon.get_pokemon(Meowth, value)
+        if pokemon:
+            pool["encounters"].append(pokemon.name.lower())
+    else:
+        if not value.isnumeric():
+            return await channel.send("Value must be a numeric quantity")
+        if type == "stardust":
+            pool["stardust"].append(int(value))
+        elif type == "xp":
+            pool["xp"].append(int(value))
+        else:
+            pool["items"].setdefault(type, []).append(int(value))
+    quest.reward_pool = pool
+    quest.save()
+    await channel.send("Successfully added reward to pool")
+
+@_rewards.command(name="remove", aliases=["rm", "delete", "del"])
+async def _rewards_remove(ctx, *, info):
+    """Removes a reward to reward pool for a given quest using provided comma-separated values.
+    
+    Usage: !rewards remove <ID>, <type>, <value>
+    
+    ID must correspond to a valid db entry.
+    If type is not encounters, stardust, or xp, it will be assumed to be an item."""
+    channel = ctx.channel
+    try:
+        id, type, value = re.split(r'\s*,\s*', info)
+        id = int(id)
+        type = type.lower()
+    except:
+        return await channel.send("Error parsing input. Please check the format and try again")
+    try:
+        quest = QuestTable[id]
+    except:
+        return await channel.send(f"Unable to get quest with id {id}")
+    pool = quest.reward_pool
+    if type.startswith("encounter"):
+        pokemon = Pokemon.get_pokemon(Meowth, value)
+        name = pokemon.name.lower()
+        if pokemon:
+            try:
+                pool["encounters"].remove(name)
+            except:
+                return await channel.send(f"Unable to remove {value}")
+    else:
+        if not value.isnumeric():
+            return await channel.send("Value must be a numeric quantity")
+        try:
+            if type == "stardust":
+                pool["stardust"].remove(int(value))
+            elif type == "xp":
+                pool["xp"].remove(int(value))
+            else:
+                pool["items"][type].remove(int(value))
+                if len(pool["items"][type]) == 0:
+                    del pool["items"][type]
+        except:
+            return await channel.send(f"Unable to remove {value}")
+    quest.reward_pool = pool
+    quest.save()
+    await channel.send("Successfully removed reward from pool")
+
 @Meowth.command(aliases=['event'])
 @checks.allowmeetupreport()
-async def meetup(ctx, *,location:commands.clean_content(fix_channel_mentions=True)=""):
+async def meetup(ctx, *, location:commands.clean_content(fix_channel_mentions=True)=""):
     """Report an upcoming event.
 
     Usage: !meetup <location>
@@ -5319,6 +5593,13 @@ async def _generate_raid_notification_async(raid_channel, outbound_dict):
     await msg_obj.delete()
     await temp_role.delete()
 
+@Meowth.command(name="refresh_listings", hidden=True)
+@commands.has_permissions(manage_guild=True)
+async def _refresh_listing_channels(ctx, type, *, regions=None):
+    if regions:
+        regions = [r.strip() for r in regions.split(',')]
+    await _update_listing_channels(ctx.guild, type, edit=True, regions=regions)
+
 async def _update_listing_channels(guild, type, edit=False, regions=None):
     valid_types = ['raid', 'research', 'wild', 'nest']
     if type not in valid_types:
@@ -5327,43 +5608,86 @@ async def _update_listing_channels(guild, type, edit=False, regions=None):
     if not listing_dict or not listing_dict['enabled']:
         return
     if 'channel' in listing_dict:
-        channel = guild.get_channel(listing_dict['channel'])
-        return await _update_listing_channel(channel, edit, type)
-    if 'channels' in listing_dict and regions:
+        channel = Meowth.get_channel(listing_dict['channel']['id'])
+        return await _update_listing_channel(channel, type, edit)
+    if 'channels' in listing_dict:
+        if not regions:
+            regions = [r for r in listing_dict['channels']]
         for region in regions:
             channel_list = listing_dict['channels'].get(region, [])
             if not isinstance(channel_list, list):
                 channel_list = [channel_list]
-            for channel_id in channel_list:
-                channel = guild.get_channel(channel_id)
-                await _update_listing_channel(channel, edit, type, region=region)
+            for channel_info in channel_list:
+                channel = Meowth.get_channel(channel_info['id'])
+                await _update_listing_channel(channel, type, edit, region=region)
 
-async def _update_listing_channel(channel, edit, type, region=None):
-    new_message = await _get_listing_message(type, channel, region)
-    message_history = []
-    message_history = await channel.history(reverse=True).flatten()
-    update_message = None
-    if len(message_history) >= 1:
-        search_text = f"active {type}"
-        for message in message_history:
-            if search_text in message.content.lower():
-                update_message = message
-                break
-    new_embed = discord.Embed(description=new_message, colour=channel.guild.me.colour)
-    if update_message:
-        if edit:
-            return await update_message.edit(embed=new_embed)
+async def _update_listing_channel(channel, type, edit, region=None):
+    lock = asyncio.Lock()
+    async with lock:
+        listing_dict = guild_dict[channel.guild.id]['configure_dict'].get(type, {}).get('listings', None)
+        if not listing_dict or not listing_dict['enabled']:
+            return
+        new_messages = await _get_listing_messages(type, channel, region)
+        previous_messages = await _get_previous_listing_messages(type, channel, region)
+        matches = itertools.zip_longest(new_messages, previous_messages)
+        new_ids = []
+        for pair in matches:
+            new_message = pair[0]
+            old_message = pair[1]
+            if pair[1]:
+                old_message = await channel.get_message(old_message)
+            if new_message:
+                new_embed = discord.Embed(description=new_message, colour=channel.guild.me.colour)
+                if old_message:
+                    if edit:
+                        await old_message.edit(embed=new_embed)
+                        new_ids.append(old_message.id)
+                        continue
+                    else:
+                        await old_message.delete()
+                new_message_obj = await channel.send(embed=new_embed)
+                new_ids.append(new_message_obj.id)
+            else: # old_message must be something if new_message is nothing
+                await old_message.delete()
+        if 'channel' in listing_dict:
+            listing_dict['channel']['messages'] = new_ids
+        elif 'channels' in listing_dict:
+            listing_dict['channels'][region]['messages'] = new_ids
+        guild_dict[channel.guild.id]['configure_dict'][type]['listings'] = listing_dict
+
+async def _get_previous_listing_messages(type, channel, region=None):
+    listing_dict = guild_dict[channel.guild.id]['configure_dict'].get(type, {}).get('listings', None)
+    if not listing_dict or not listing_dict['enabled']:
+        return
+    previous_messages = []
+    if 'channel' in listing_dict:
+        previous_messages = listing_dict['channel'].get('messages', [])
+    elif 'channels' in listing_dict:
+        if region:
+            previous_messages = listing_dict['channels'].get(region, {}).get('messages', [])
         else:
-            await update_message.delete()
-    await channel.send(embed=new_embed)
+            for region, channel_info in listing_dict['channels'].items():
+                if channel_info['id'] == channel.id:
+                    previous_messages = channel_info.get('messages', [])
+                    break
+    else:
+        message_history = []
+        message_history = await channel.history(reverse=True).flatten()
+        if len(message_history) >= 1:
+            search_text = f"active {type}"
+            for message in message_history:
+                if search_text in message.embeds[0].description.lower():
+                    previous_messages.append(message.id)
+                    break
+    return previous_messages
 
-async def _get_listing_message(type, channel, region=None):
+async def _get_listing_messages(type, channel, region=None):
     if type == 'raid':
-        return await _get_raid_listing_message(channel, region)
+        return await _get_raid_listing_messages(channel, region)
     elif type == 'wild':
-        return await _get_wild_listing_message(channel, region)
+        return await _get_wild_listing_messages(channel, region)
     elif type == 'research':
-        return await _get_research_listing_message(channel, region)
+        return await _get_research_listing_messages(channel, region)
     else:
         return None
 
@@ -7056,7 +7380,7 @@ async def backout(ctx):
 """
 List Commands
 """
-async def _get_raid_listing_message(channel, region=None):
+async def _get_raid_listing_messages(channel, region=None):
     '''
     listings_enabled | region_set | result
     ======================================
@@ -7067,6 +7391,7 @@ async def _get_raid_listing_message(channel, region=None):
     '''
     activeraidnum = 0
     guild = channel.guild
+    listmsg_list = []
     listmsg = ""
     now = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[guild.id]['configure_dict']['settings']['offset'])
     listing_dict = guild_dict[guild.id]['configure_dict']['raid'].get('listings', {})
@@ -7150,52 +7475,36 @@ async def _get_raid_listing_message(channel, region=None):
                 expirytext = _(' - Starts: {expiry}{is_assumed}').format(expiry=end.strftime(_('%B %d at %I:%M %p (%H:%M)')), is_assumed=assumed_str)
         else:
             expirytext = _(' - Expiry: {expiry}{is_assumed}').format(expiry=end.strftime(_('%I:%M %p (%H:%M)')), is_assumed=assumed_str)
-        output += _('    {raidchannel}{expiry_text}\n').format(raidchannel=rchan.mention, expiry_text=expirytext)
-        output += _('    {interestcount} interested, {comingcount} coming, {herecount} here, {lobbycount} in the lobby.{start_str}\n').format(raidchannel=rchan.mention, interestcount=ctx_maybecount, comingcount=ctx_comingcount, herecount=ctx_herecount, lobbycount=ctx_lobbycount, start_str=start_str)
+        output += _('\t{raidchannel}{expiry_text} ({interestcount}/{comingcount}/{herecount}/{lobbycount})\n').format(raidchannel=rchan.mention, expiry_text=expirytext, interestcount=ctx_maybecount, comingcount=ctx_comingcount, herecount=ctx_herecount, lobbycount=ctx_lobbycount)
+        #output += _('\t{interestcount} interested, {comingcount} coming, {herecount} here, {lobbycount} in the lobby.{start_str}\n').format(raidchannel=rchan.mention, interestcount=ctx_maybecount, comingcount=ctx_comingcount, herecount=ctx_herecount, lobbycount=ctx_lobbycount, start_str=start_str)
         return output
+    
+    def process_category(category_title, category_list):
+        listmsg += f"**{category_title}:**\n"
+        for r in category_list:
+            new_msg = list_output(r)
+            if len(listmsg) + len(new_msg) < constants.MAX_MESSAGE_LENGTH:
+                listmsg += new_msg
+            else:
+                listmsg_list.append(listmsg)
+                listmsg = f"**{category_title}:** (continued)\n"
+                listmsg += new_msg
+        listmsg += '\n'
+
     if activeraidnum:
         listmsg += _("**Here's the current channels for {0}**\n\n").format(cty.capitalize())
-    if raid_dict:
-        listmsg += _('**Active Raids:**\n')
-        for (r, e) in sorted(raid_dict.items(), key=itemgetter(1)):
-            if len(listmsg) < 1800:
-                listmsg += list_output(r)
-            else:
-                await channel.send(listmsg)
-                listmsg = _('**Active Raids:** (continued)\n')
-                listmsg += list_output(r)
-        listmsg += '\n'
-    if egg_dict:
-        listmsg += _('**Raid Eggs:**\n')
-        for (r, e) in sorted(egg_dict.items(), key=itemgetter(1)):
-            if len(listmsg) < 1800:
-                listmsg += list_output(r)
-            else:
-                await channel.send(listmsg)
-                listmsg = _('**Raid Eggs:** (continued)\n')
-                listmsg += list_output(r)
-        listmsg += '\n'
-    if exraid_list and not listing_enabled:
-        listmsg += _('**EX Raids:**\n')
-        for r in exraid_list:
-            if len(listmsg) < 1800:
-                listmsg += list_output(r)
-            else:
-                await channel.send(listmsg)
-                listmsg = _('**EX Raids:** (continued)\n')
-                listmsg += list_output(r)
-    if event_list and not listing_enabled:
-        listmsg += _('**Meetups:**\n')
-        for r in event_list:
-            if len(listmsg) < 1800:
-                listmsg += list_output(r)
-            else:
-                await channel.send(listmsg)
-                listmsg = _('**Meetups:** (continued)\n')
-                listmsg += list_output(r)
+        if raid_dict:
+            process_category("Active Raids", [r for (r, __) in sorted(raid_dict.items(), key=itemgetter(1))])
+        if egg_dict:
+            process_category("Raid Eggs", [r for (r, __) in sorted(egg_dict.items(), key=itemgetter(1))])
+        if exraid_list and not listing_enabled:
+            process_category("EX Raids", exraid_list)
+        if event_list and not listing_enabled:
+            process_category("Meetups", event_list)
     if activeraidnum == 0:
         listmsg = _('No active raids! Report one with **!raid <name> <location> [weather] [timer]**.')
-    return listmsg
+    listmsg_list.append(listmsg)
+    return listmsg_list
 
 @Meowth.group(name="list", aliases=['lists'], case_insensitive=True)
 async def _list(ctx):
@@ -7220,7 +7529,7 @@ async def _list(ctx):
             region = None
             if guild_dict[guild.id]['configure_dict'].get('regions', {}).get('enabled', False) and raid_dict.get('categories', None) == 'region':
                 region = raid_dict.get('category_dict', {}).get(channel.id, None)
-            listmsg = await _get_listing_message('raid', channel, region)
+            listmsg = await _get_listing_messages('raid', channel, region)
         elif checks.check_raidactive(ctx):
             team_list = ["mystic","valor","instinct","unknown"]
             tag = False
@@ -7548,49 +7857,68 @@ async def research(ctx):
         await msg.delete()
         await ctx.message.delete()
         return
-    listmsg = await _researchlist(ctx)
-    await ctx.channel.send(embed=discord.Embed(colour=ctx.guild.me.colour, description=listmsg))
+    listmsg_list = await _researchlist(ctx)
+    for listmsg in listmsg_list:
+        await ctx.channel.send(embed=discord.Embed(colour=ctx.guild.me.colour, description=listmsg))
 
 async def _researchlist(ctx):
-    return await _get_listing_message('research', ctx.message.channel)
+    return await _get_listing_messages('research', ctx.message.channel)
 
-async def _get_research_listing_message(channel, region=None):
+async def _get_research_listing_messages(channel, region=None):
     guild = channel.guild
     if region:
         loc = region
     else:
         loc = channel.name
     research_dict = copy.deepcopy(guild_dict[guild.id].setdefault('questreport_dict', {}))
-    questmsg = ""
+    research_dict = dict(sorted(research_dict.items(), key=lambda i: (i[1]['quest'], i[1]['reward'], i[1]['location'])))
+    questctr = 0
+    listmsg_list = []
+    listmsg = f"**Here are the active research reports for {loc.capitalize()}**\n"
+    current_category = ""
     for questid in research_dict:
+        newmsg = ""
         try:
             report_channel = guild.get_channel(research_dict[questid]['reportchannel'])
         except:
             continue
         if not region or region in _get_channel_regions(report_channel, 'research'):
             try:
-                await report_channel.get_message(questid)
-                questauthor = guild.get_member(research_dict[questid]['reportauthor'])
-                if questauthor:
-                    questmsg += ('\n🔹')
-                    questmsg += _("**Reward**: {reward}, **Pokestop**: [{location}]({url}), **Quest**: {quest}, **Reported By**: {author}").format(location=research_dict[questid]['location'].title(),quest=research_dict[questid]['quest'].title(),reward=research_dict[questid]['reward'].title(), author=questauthor.display_name, url=research_dict[questid].get('url',None))
+                await report_channel.get_message(questid) # verify quest message exists
+                cat = research_dict[questid]['quest'].title()
+                if current_category != cat:
+                    current_category = cat
+                    newmsg += f"\n\n**{current_category}**"
+                newmsg += ('\n\t🔹')
+                newmsg += _("**Reward**: {reward}, **Pokestop**: [{location}]({url})").format(location=research_dict[questid]['location'].title(), reward=research_dict[questid]['reward'].title(), url=research_dict[questid].get('url',None))
+                if len(listmsg) + len(newmsg) < constants.MAX_MESSAGE_LENGTH:
+                    listmsg += newmsg
+                else:
+                    listmsg_list.append(listmsg)
+                    if current_category not in newmsg:
+                        newmsg = f"**({current_category} continued)"
+                    listmsg = newmsg
+                questctr += 1
             except discord.errors.NotFound:
-                continue
-    if questmsg:
-        listmsg = _(' **Here are the active research reports for {channel}**\n{questmsg}').format(channel=channel.name.capitalize(),questmsg=questmsg)
-    else:
-        listmsg = _(" There are no active research reports. Report one with **!research**")
-    return listmsg
+                continue    
+    if questctr == 0:
+        listmsg = "There are no active research reports. Report one with **!research**"
+    listmsg_list.append(listmsg)
+    return listmsg_list
 
-async def _get_wild_listing_message(channel, region=None):
+async def _get_wild_listing_messages(channel, region=None):
     guild = channel.guild
     if region:
         loc = region
     else:
         loc = channel.name
     wild_dict = copy.deepcopy(guild_dict[guild.id].get('wildreport_dict',{}))
-    wildmsg = ""
+    wild_dict = dict(sorted(wild_dict.items(), key=lambda i: (i[1]['pokemon'], i[1]['location'])))
+    wildctr = 0
+    listmsg_list = []
+    listmsg = f"**Here are the active wild reports for {loc.capitalize()}**\n"
     for wildid in wild_dict:
+        newmsg = ""
         try:
             report_channel = guild.get_channel(wild_dict[wildid]['reportchannel'])
         except:
@@ -7598,17 +7926,20 @@ async def _get_wild_listing_message(channel, region=None):
         if not region or region in _get_channel_regions(report_channel, 'wild'):
             try:
                 await report_channel.get_message(wildid)
-                wildauthor = guild.get_member(wild_dict[wildid]['reportauthor'])
-                if wildauthor:
-                    wildmsg += ('\n🔹')
-                    wildmsg += _("**Pokemon**: {pokemon}, **Location**: [{location}]({url}), **Reported By**: {author}").format(pokemon=wild_dict[wildid]['pokemon'].title(),location=wild_dict[wildid]['location'].title(),author=wildauthor.display_name,url=wild_dict[wildid].get('url',None))
+                newmsg += ('\n🔹')
+                newmsg += _("**Pokemon**: {pokemon}, **Location**: [{location}]({url})").format(pokemon=wild_dict[wildid]['pokemon'].title(),location=wild_dict[wildid]['location'].title(),url=wild_dict[wildid].get('url',None))
+                if len(listmsg) + len(newmsg) < constants.MAX_MESSAGE_LENGTH:
+                    listmsg += newmsg
+                else:
+                    listmsg_list.append(listmsg)
+                    listmsg = newmsg
+                wildctr += 1
             except discord.errors.NotFound:
                 continue
-    if wildmsg:
-        listmsg = _(' **Here are the active wild reports for {location}**\n{wildmsg}').format(location=loc.capitalize(),wildmsg=wildmsg)
-    else:
-        listmsg = _(" There are no active wild pokemon. Report one with **!wild <pokemon> <location>**")
-    return listmsg
+    if wildctr == 0:
+        listmsg = "There are no active wild pokemon. Report one with **!wild <pokemon> <location>**"
+    listmsg_list.append(listmsg)
+    return listmsg_list
 
 @_list.command()
 @checks.allowwildreport()
@@ -7623,31 +7954,12 @@ async def wilds(ctx):
         await msg.delete()
         await ctx.message.delete()
         return
-    listmsg = await _wildlist(ctx)
-    await ctx.channel.send(embed=discord.Embed(colour=ctx.guild.me.colour, description=listmsg))
+    listmsg_list = await _wildlist(ctx)
+    for listmsg in listmsg_list:
+        await ctx.channel.send(embed=discord.Embed(colour=ctx.guild.me.colour, description=listmsg))
 
 async def _wildlist(ctx):
-    return await _get_listing_message('wild', ctx.message.channel)
-
-@Meowth.command(hidden=True)
-async def dm_queue_test(ctx):
-    global dm_queue
-    for i in range(1,4):
-        for j in range(1,11):
-            heapq.heappush(dm_queue, (i*j, ctx.author, str(j)))
-
-async def process_dm_queue():
-    global dm_queue
-    if dm_queue:
-        print('sending batch of dms')
-        asyncio.ensure_future(_send_dms(dm_queue[:5]))
-        dm_queue = dm_queue[5:]
-    await asyncio.sleep(5)
-    asyncio.ensure_future(process_dm_queue())
-
-async def _send_dms(dm_list):
-    for dm in dm_list:
-        await dm[1].send(dm[2])
+    return await _get_listing_messages('wild', ctx.message.channel)
 
 try:
     event_loop.run_until_complete(Meowth.start(config['bot_token']))

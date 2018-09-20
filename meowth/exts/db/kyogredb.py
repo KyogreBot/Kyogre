@@ -2,9 +2,11 @@ import json
 from peewee import Proxy, chunked
 from playhouse.apsw_ext import *
 from playhouse.sqlite_ext import JSONField
+from playhouse.migrate import *
 
 class KyogreDB:
     _db = Proxy()
+    _migrator = None
     @classmethod
     def start(cls, db_path):
         handle = APSWDatabase(db_path, pragmas={
@@ -20,11 +22,11 @@ class KyogreDB:
             TrainerTable, PokemonTable, SilphcardTable, 
             RegionTable, LocationRegionRelation, PokestopTable, 
             GymTable, TrainerReportRelation, QuestTable, 
-            RewardTable, ResearchTable, SightingTable, 
-            RaidBossRelation, RaidTable, SubscriptionTable,
-            TradeTable
+            ResearchTable, SightingTable, RaidBossRelation, 
+            RaidTable, SubscriptionTable, TradeTable
         ])
         cls.init()
+        cls._migrator = SqliteMigrator(cls._db)
 
     @classmethod
     def stop(cls):
@@ -52,6 +54,11 @@ class KyogreDB:
             LocationTable.get()
         except:
             LocationTable.reload_default()
+        #check quests
+        try:
+            QuestTable.get()
+        except:
+            QuestTable.reload_default()
 
 class BaseModel(Model):
     class Meta:
@@ -206,15 +213,31 @@ class TrainerReportRelation(BaseModel):
     location = ForeignKeyField(LocationTable, backref='reports', index=True)
 
 class QuestTable(BaseModel):
-    name = TextField(index=True)
+    name = TextField(unique=True)
+    reward_pool = JSONField()
 
-class RewardTable(BaseModel):
-    name = TextField(index=True)
+    @classmethod
+    def reload_default(cls):
+        if not KyogreDB._db:
+            return
+        try:
+            cls.delete()
+        except:
+            pass
+        with open('data/quest_data.json', 'r') as f:
+            quest_data = json.loads(f.read())
+        with KyogreDB._db.atomic():
+            for quest in quest_data:
+                try:
+                    name = quest['name']
+                    pool = quest['reward_pool']
+                    QuestTable.create(name=name, reward_pool=pool)
+                except:
+                    import pdb; pdb.set_trace()
 
 class ResearchTable(BaseModel):
     trainer_report = ForeignKeyField(TrainerReportRelation, backref='research')
     quest = ForeignKeyField(QuestTable, backref='reports', index=True)
-    reward = ForeignKeyField(RewardTable, backref='reports', index=True)
 
 class SightingTable(BaseModel):
     trainer_report = ForeignKeyField(TrainerReportRelation, backref='sightings')

@@ -243,9 +243,13 @@ async def ask(bot, message, user_list=None, timeout=60, *, react_list=['✅', '�
         await message.clear_reactions()
         return
 
-async def ask_list(bot, prompt, destination, choices_list, options_emoji_list, user_list=None, *, allow_edit=False):    
-    if not (choices_list and options_emoji_list):
-        return None    
+async def ask_list(bot, prompt, destination, choices_list, options_emoji_list=None, user_list=None, *, allow_edit=False):    
+    if not choices_list:
+        return None
+    if not options_emoji_list:
+        options_emoji_list = [str(i)+'\u20e3' for i in range(10)]
+    if not isinstance(user_list, list):
+        user_list = [user_list]
     next_emoji = '➡'
     next_emoji_text = '➡️'
     edit_emoji = '✏'
@@ -290,11 +294,10 @@ async def ask_list(bot, prompt, destination, choices_list, options_emoji_list, u
         if reaction.emoji == cancel_emoji:
             return None    
     def check(message):
-        if user_list and type(user_list) is __builtins__.list:
+        if user_list:
             return (message.author.id in user_list)
-        elif not user_list:
+        else:
             return (message.author.id != message.guild.me.id)
-        return message.author.id == user_list
     try:
         await destination.send("What's the custom value?")
         message = await bot.wait_for('message', check=check, timeout=60)

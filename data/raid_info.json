@@ -4,11 +4,11 @@
             "egg": "normal",
             "egg_img": "1.png",
             "pokemon": [
-                "chikorita",
-                "cyndaquil",
-                "totodile",
-                "sunkern",
-                "yanma"
+                "dratini",
+                "magikarp",
+                "bulbasaur",
+                "squirtle",
+                "charmander"
             ],
             "hatchtime": 60,
             "raidtime": 45
@@ -17,11 +17,10 @@
             "egg": "normal",
             "egg_img": "2.png",
             "pokemon": [
-                "kirlia",
-                "roselia",
-                "mawile",
-                "alolan exeggutor",
-                "pineco"
+                "electabuzz",
+                "magmar",
+                "magneton",
+                "lickitung"
             ],
             "hatchtime": 60,
             "raidtime": 45
@@ -30,11 +29,11 @@
             "egg": "rare",
             "egg_img": "3.png",
             "pokemon": [
-                "alolan raichu",
-                "donphan",
+                "alakazam",
                 "machamp",
-                "piloswine",
-                "tangela"
+                "scyther",
+                "hitmonchan",
+                "hitmonlee"
             ],
             "hatchtime": 60,
             "raidtime": 45
@@ -43,11 +42,10 @@
             "egg": "rare",
             "egg_img": "4.png",
             "pokemon": [
-                "absol",
-                "alolan marowak",
+                "golem",
                 "rhydon",
-                "tyranitar",
-                "ursaring"
+                "snorlax",
+                "lapras"
             ],
             "hatchtime": 60,
             "raidtime": 45
@@ -56,7 +54,10 @@
             "egg": "legendary",
             "egg_img": "5.png",
             "pokemon": [
-                "regirock"
+                "regirock",
+                "articuno",
+                "zapdos",
+                "moltres"
             ],
             "hatchtime": 60,
             "raidtime": 45
