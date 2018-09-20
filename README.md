@@ -2,7 +2,7 @@
 
 A Discord helper bot for Pokemon Go communities.
 
-Kyogre is a heavily modified fork of [Meowth (discordpy-v1 branch)](https://github.com/FoglyOgly/Meowth/discordpy-v1/), a Discord bot written in Python 3.6.1+ built with [discord.py v1.0.0a (rewrite branch)](https://github.com/Rapptz/discord.py/tree/rewrite)
+Kyogre is a heavily modified fork of [Meowth (discordpy-v1 branch)](https://github.com/FoglyOgly/Meowth/tree/discordpy-v1), a Discord bot written in Python 3.6.1+ built with [discord.py v1.0.0a (rewrite branch)](https://github.com/Rapptz/discord.py/tree/rewrite)
 
 ## Kyogre Features
 
