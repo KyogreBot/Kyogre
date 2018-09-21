@@ -890,31 +890,34 @@ async def message_cleanup(loop=True):
             report_delete_dict = {}
             for report_dict in report_dict_dict:
                 for reportid in report_dict_dict[report_dict].keys():
-                    if report_dict_dict[report_dict][reportid]['exp'] <= time.time():
-                        report_channel = Meowth.get_channel(report_dict_dict[report_dict][reportid]['reportchannel'])
+                    if report_dict_dict[report_dict][reportid].get('exp', 0) <= time.time():
+                        report_channel = Meowth.get_channel(report_dict_dict[report_dict][reportid].get('reportchannel'))
                         if report_channel:
                             user_report = report_dict_dict[report_dict][reportid].get('reportmessage',None)
                             if user_report:
                                 report_delete_dict[user_report] = {"action":"delete","channel":report_channel}
-                            if report_dict_dict[report_dict][reportid]['expedit'] == "delete":
-                                report_delete_dict[reportid] = {"action":report_dict_dict[report_dict][reportid]['expedit'],"channel":report_channel}
+                            if report_dict_dict[report_dict][reportid].get('expedit') == "delete":
+                                report_delete_dict[reportid] = {"action":"delete","channel":report_channel}
                             else:
-                                report_edit_dict[reportid] = {"action":report_dict_dict[report_dict][reportid]['expedit'],"channel":report_channel}
-                        del guild_dict[guildid][report_dict][reportid]
+                                report_edit_dict[reportid] = {"action":report_dict_dict[report_dict][reportid].get('expedit',"edit"),"channel":report_channel}
+                        try:
+                            del guild_dict[guildid][report_dict][reportid]
+                        except KeyError:
+                            pass
             for messageid in report_delete_dict.keys():
                 try:
                     report_message = await report_delete_dict[messageid]['channel'].get_message(messageid)
                     await report_message.delete()
                     update_ids.add(guildid)
-                except (discord.errors.NotFound, discord.errors.Forbidden, discord.errors.HTTPException):
+                except (discord.errors.NotFound, discord.errors.Forbidden, discord.errors.HTTPException, KeyError):
                     pass
             for messageid in report_edit_dict.keys():
                 try:
                     report_message = await report_edit_dict[messageid]['channel'].get_message(messageid)
-                    await report_message.edit(content=report_edit_dict[messageid]['action']['content'],embed=discord.Embed(description=report_edit_dict[messageid]['action']['embedcontent'], colour=report_message.embeds[0].colour.value))
+                    await report_message.edit(content=report_edit_dict[messageid]['action']['content'],embed=discord.Embed(description=report_edit_dict[messageid]['action'].get('embedcontent'), colour=report_message.embeds[0].colour.value))
                     await report_message.clear_reactions()
                     update_ids.add(guildid)
-                except (discord.errors.NotFound, discord.errors.Forbidden, discord.errors.HTTPException, IndexError):
+                except (discord.errors.NotFound, discord.errors.Forbidden, discord.errors.HTTPException, IndexError, KeyError):
                     pass
         # save server_dict changes after cleanup
         for id in update_ids:
@@ -7234,7 +7237,7 @@ async def lobby_countdown(ctx):
         pass
     await _edit_party(ctx.channel, ctx.author)
     guild_dict[ctx.guild.id]['raidchannel_dict'][ctx.channel.id]['trainer_dict'] = ctx.trainer_dict
-    regions = guild_dict[channel.guild.id]['raidchannel_dict'][channel.id].get('regions', None)
+    regions = guild_dict[ctx.channel.guild.id]['raidchannel_dict'][ctx.channel.id].get('regions', None)
     if regions:
         await _update_listing_channels(ctx.guild, 'raid', edit=True, regions=regions)
 
@@ -7479,8 +7482,8 @@ async def _get_raid_listing_messages(channel, region=None):
         #output += _('\t{interestcount} interested, {comingcount} coming, {herecount} here, {lobbycount} in the lobby.{start_str}\n').format(raidchannel=rchan.mention, interestcount=ctx_maybecount, comingcount=ctx_comingcount, herecount=ctx_herecount, lobbycount=ctx_lobbycount, start_str=start_str)
         return output
     
-    def process_category(category_title, category_list):
-        listmsg += f"**{category_title}:**\n"
+    def process_category(listmsg_list, category_title, category_list):
+        listmsg = f"**{category_title}:**\n"
         for r in category_list:
             new_msg = list_output(r)
             if len(listmsg) + len(new_msg) < constants.MAX_MESSAGE_LENGTH:
@@ -7490,17 +7493,18 @@ async def _get_raid_listing_messages(channel, region=None):
                 listmsg = f"**{category_title}:** (continued)\n"
                 listmsg += new_msg
         listmsg += '\n'
+        return listmsg
 
     if activeraidnum:
         listmsg += _("**Here's the current channels for {0}**\n\n").format(cty.capitalize())
         if raid_dict:
-            process_category("Active Raids", [r for (r, __) in sorted(raid_dict.items(), key=itemgetter(1))])
+            listmsg += process_category(listmsg_list, "Active Raids", [r for (r, __) in sorted(raid_dict.items(), key=itemgetter(1))])
         if egg_dict:
-            process_category("Raid Eggs", [r for (r, __) in sorted(egg_dict.items(), key=itemgetter(1))])
+            listmsg += process_category(listmsg_list, "Raid Eggs", [r for (r, __) in sorted(egg_dict.items(), key=itemgetter(1))])
         if exraid_list and not listing_enabled:
-            process_category("EX Raids", exraid_list)
+            listmsg += process_category(listmsg_list, "EX Raids", exraid_list)
         if event_list and not listing_enabled:
-            process_category("Meetups", event_list)
+            listmsg += process_category(listmsg_list, "Meetups", event_list)
     if activeraidnum == 0:
         listmsg = _('No active raids! Report one with **!raid <name> <location> [weather] [timer]**.')
     listmsg_list.append(listmsg)
