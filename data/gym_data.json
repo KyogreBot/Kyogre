@@ -305,7 +305,7 @@
         "region": "whitecenter",
         "guild": "471452588127289347,471174283133976598"
     },
-    "True North": {
+    "true North": {
         "coordinates": "47.516597,-122.34551",
         "ex_eligible": false,
         "region": "whitecenter",
@@ -696,8 +696,8 @@
         "guild": "471452588127289347,471174283133976598"
     },
     "Starbucks 212th": {
-        "coordinates": "47.41283",-122.25013",
-        "ex_eligible": True,
+        "coordinates": "47.41283,-122.25013",
+        "ex_eligible": true,
         "region": "kent",
         "guild": "471452588127289347,471174283133976598"
     },
@@ -2082,38 +2082,38 @@
         "guild": "471452588127289347,471174283133976598"
     },
     "Starbucks Southcenter Mall": {
-        "coordinates": "47.458867",-122.257792",
-        "ex_eligible": True,
+        "coordinates": "47.458867,-122.257792",
+        "ex_eligible": true,
         "region": "tukwila",
         "guild": "471452588127289347,471174283133976598"
     },
     "Starbucks Rainier Beach": {
-        "coordinates": "47.521027",-122.26802",
-        "ex_eligible": True,
+        "coordinates": "47.521027,-122.26802",
+        "ex_eligible": true,
         "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
     "Starbucks Landing Target": {
-        "coordinates": "47.496483",-122.200356",
-        "ex_eligible": True,
+        "coordinates": "47.496483,-122.200356",
+        "ex_eligible": true,
         "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
     "Starbucks Union Ave": {
-        "coordinates": "47.48895467",-122.1631391",
-        "ex_eligible": True,
+        "coordinates": "47.48895467,-122.1631391",
+        "ex_eligible": true,
         "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
     "Starbucks DT Renton Safeway": {
-        "coordinates": "47.480233",-122.214421",
-        "ex_eligible": True,
+        "coordinates": "47.480233,-122.214421",
+        "ex_eligible": true,
         "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
     "Starbucks Benson Fred Meyer": {
-        "coordinates": "47.442903",-122.199249",
-        "ex_eligible": True,
+        "coordinates": "47.442903,-122.199249",
+        "ex_eligible": true,
         "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
@@ -3144,199 +3144,199 @@
         "guild": "471452588127289347,471174283133976598"
     },
     "279th Street Park": {
-        "coordinates": "47.351896",-122.008777",
+        "coordinates": "47.351896,-122.008777",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Cedar River Trail": {
-        "coordinates": "47.398708",-122.043297",
+        "coordinates": "47.398708,-122.043297",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Climbing Apparatus": {
-        "coordinates": "47.369714",-122.131259",
+        "coordinates": "47.369714,-122.131259",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Covington Community Church": {
-        "coordinates": "47.357248",-122.107975",
+        "coordinates": "47.357248,-122.107975",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Covington Funeral Chapel": {
-        "coordinates": "47.357728",-122.134523",
+        "coordinates": "47.357728,-122.134523",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Covington Library": {
-        "coordinates": "47.358898",-122.122009",
+        "coordinates": "47.358898,-122.122009",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Crosspointe Community Church": {
-        "coordinates": "47.366521",-122.123114",
+        "coordinates": "47.366521,-122.123114",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Elephant Touchless Covington": {
-        "coordinates": "47.357309",-122.116633",
+        "coordinates": "47.357309,-122.116633",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Elk Run Golf Course": {
-        "coordinates": "47.354609",-122.037909",
+        "coordinates": "47.354609,-122.037909",
         "ex_eligible": true,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Foss Roundabout": {
-        "coordinates": "47.372722",-122.122535",
+        "coordinates": "47.372722,-122.122535",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Foxwood": {
-        "coordinates": "47.372554",-122.108234",
+        "coordinates": "47.372554,-122.108234",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Green Rocket Ship Water Tower": {
-        "coordinates": "47.390505",-122.013039",
+        "coordinates": "47.390505,-122.013039",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Hope Fellowship": {
-        "coordinates": "47.357542",-122.059731",
+        "coordinates": "47.357542,-122.059731",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Jenkins Creek Park": {
-        "coordinates": "47.362474",-122.095658",
+        "coordinates": "47.362474,-122.095658",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Lake Wilderness Arboretum Kiosk": {
-        "coordinates": "47.380202",-122.037984",
+        "coordinates": "47.380202,-122.037984",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Lower Floor Bus Stop": {
-        "coordinates": "47.365165",-122.019015",
+        "coordinates": "47.365165,-122.019015",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Maple Valley Church of Jesus Christ of Latter Day Saints": {
-        "coordinates": "47.360889",-122.025943",
+        "coordinates": "47.360889,-122.025943",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Maple Valley Creative Arts Center": {
-        "coordinates": "47.393497",-122.044485",
+        "coordinates": "47.393497,-122.044485",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Maple Valley Lake Wilderness Arboretum": {
-        "coordinates": "47.379837",-122.042399",
+        "coordinates": "47.379837,-122.042399",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Maple Valley Library": {
-        "coordinates": "47.380153",-122.048896",
+        "coordinates": "47.380153,-122.048896",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Maple Valley Presbyterian Church": {
-        "coordinates": "47.396882",-122.047317",
+        "coordinates": "47.396882,-122.047317",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Maple Woods Welcome Fountain": {
-        "coordinates": "47.353749",-122.016489",
+        "coordinates": "47.353749,-122.016489",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Mountain Vineyard Christian Fellowship": {
-        "coordinates": "47.357467",-122.089428",
+        "coordinates": "47.357467,-122.089428",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Playground at 231st Pl SE": {
-        "coordinates": "47.347605",-122.032817",
+        "coordinates": "47.347605,-122.032817",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Real Life Church": {
-        "coordinates": "47.366576",-122.102428",
+        "coordinates": "47.366576,-122.102428",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Red Bike Rack": {
-        "coordinates": "47.358221",-122.099892",
+        "coordinates": "47.358221,-122.099892",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Rustic Metal Yard Art": {
-        "coordinates": "47.354067",-122.122739",
+        "coordinates": "47.354067,-122.122739",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Sculpture At Lake Wilderness Park": {
-        "coordinates": "47.377351",-122.038839",
+        "coordinates": "47.377351,-122.038839",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Secluded Picnic Spot On The Soos": {
-        "coordinates": "47.370136",-122.143189",
+        "coordinates": "47.370136,-122.143189",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Soos Creek Trail": {
-        "coordinates": "47.38343",-122.139073",
+        "coordinates": "47.38343,-122.139073",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Soos Creek Trail": {
-        "coordinates": "47.386188",-122.143279",
+        "coordinates": "47.386188,-122.143279",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "St George Episcopal Memorial Garden": {
-        "coordinates": "47.384204",-122.04893",
+        "coordinates": "47.384204,-122.04893",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
     "Starbucks Covington": {
-        "coordinates": "47.358418",-122.11726",
+        "coordinates": "47.358418,-122.11726",
         "ex_eligible": true,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
@@ -3372,7 +3372,7 @@
         "guild": "471452588127289347,471174283133976598"
     },
     "Welcome to Lake Wilderness Park": {
-        "coordinates": "47.375901",-122.040312",
+        "coordinates": "47.375901,-122.040312",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
