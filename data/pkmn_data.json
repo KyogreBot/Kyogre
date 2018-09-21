@@ -2614,7 +2614,7 @@
         "name": "natu",
         "legendary": false,
         "mythical": false,
-        "shiny": false,
+        "shiny": true,
         "alolan": false,
         "types": {
             "default": [
@@ -2629,7 +2629,7 @@
         "name": "xatu",
         "legendary": false,
         "mythical": false,
-        "shiny": false,
+        "shiny": true,
         "alolan": false,
         "types": {
             "default": [
@@ -2817,7 +2817,7 @@
         "name": "sunkern",
         "legendary": false,
         "mythical": false,
-        "shiny": false,
+        "shiny": true,
         "alolan": false,
         "types": {
             "default": [
@@ -2831,7 +2831,7 @@
         "name": "sunflora",
         "legendary": false,
         "mythical": false,
-        "shiny": false,
+        "shiny": true,
         "alolan": false,
         "types": {
             "default": [
@@ -3005,7 +3005,7 @@
         "name": "pineco",
         "legendary": false,
         "mythical": false,
-        "shiny": false,
+        "shiny": true,
         "alolan": false,
         "types": {
             "default": [
@@ -3019,7 +3019,7 @@
         "name": "forretress",
         "legendary": false,
         "mythical": false,
-        "shiny": false,
+        "shiny": true,
         "alolan": false,
         "types": {
             "default": [
@@ -3078,7 +3078,7 @@
         "name": "snubbull",
         "legendary": false,
         "mythical": false,
-        "shiny": false,
+        "shiny": true,
         "alolan": false,
         "types": {
             "default": [
@@ -3092,7 +3092,7 @@
         "name": "granbull",
         "legendary": false,
         "mythical": false,
-        "shiny": false,
+        "shiny": true,
         "alolan": false,
         "types": {
             "default": [
@@ -3356,7 +3356,7 @@
         "name": "houndour",
         "legendary": false,
         "mythical": false,
-        "shiny": false,
+        "shiny": true,
         "alolan": false,
         "types": {
             "default": [
@@ -3371,7 +3371,7 @@
         "name": "houndoom",
         "legendary": false,
         "mythical": false,
-        "shiny": false,
+        "shiny": true,
         "alolan": false,
         "types": {
             "default": [
@@ -5628,7 +5628,7 @@
         "id": 385,
         "name": "jirachi",
         "legendary": false,
-        "mythical": false,
+        "mythical": true,
         "shiny": false,
         "alolan": false,
         "types": {
@@ -5643,7 +5643,7 @@
         "id": 386,
         "name": "deoxys",
         "legendary": false,
-        "mythical": false,
+        "mythical": true,
         "shiny": false,
         "alolan": false,
         "types": {
@@ -5652,7 +5652,7 @@
                 "Psychic"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 387,
