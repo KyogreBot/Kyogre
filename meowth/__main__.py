@@ -1316,19 +1316,19 @@ async def exit(ctx):
 async def kban(ctx, *, user: str = '', reason: str = ''):
     guild = ctx.guild
     author = ctx.author
-        try:
-            trainer = await converter.convert(ctx, user)
-            trainer_id= trainer.id
-        except:
-            return await channel.send("Please provide a user name when using this command.")   
-    trainer = guild_dict[guild.id]['trainers'][trainer_id]
-    if trainer:
-        trainer['is_banned'] = True
-        if reason:
-            if trainer['ban_reason']:
-                trainer['ban_reason'].append(reason)
-            else:
-                trainer['ban_reason'] = [reason]
+    converter = commands.MemberConverter()
+    try:
+        trainer = await converter.convert(ctx, user)
+        trainer_id= trainer.id
+    except:
+        return await channel.send("Please provide a user name when using this command.")   
+    trainer = guild_dict[guild.id]['trainers'].setdefault(trainer_id,{})
+    trainer['is_banned'] = True
+    if reason:
+        if 'ban_reason' in trainer:
+            trainer['ban_reason'].append(reason)
+        else:
+            trainer['ban_reason'] = [reason]
     else:
         return await channel.send("Unable to find a user by that name.")
 
@@ -1337,12 +1337,13 @@ async def kban(ctx, *, user: str = '', reason: str = ''):
 async def kunban(ctx, *, user: str = ''):
     guild = ctx.guild
     author = ctx.author
-        try:
-            trainer = await converter.convert(ctx, user)
-            trainer_id= trainer.id
-        except:
-            return await channel.send("Please provide a user name when using this command.")   
-    trainer = guild_dict[guild.id]['trainers'][trainer_id]
+    converter = commands.MemberConverter()
+    try:
+        trainer = await converter.convert(ctx, user)
+        trainer_id= trainer.id
+    except:
+        return await channel.send("Please provide a user name when using this command.")   
+    trainer = guild_dict[guild.id]['trainers'].get(trainer_id, None)
     if trainer:
         trainer['is_banned'] = False
     else:

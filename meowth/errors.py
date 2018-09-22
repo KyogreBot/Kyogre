@@ -117,6 +117,10 @@ class TradeSetCheckFail(CommandError):
     'Exception raised checks.tradeset fails'
     pass
 
+class UserBanned(CommandError):
+    'Exception raised checks.is_good_standing fails'
+    pass
+
 async def delete_error(message, error):
     try:
         await message.delete()
@@ -492,5 +496,11 @@ def custom_error_handling(bot, logger):
             error = await ctx.channel.send(msg)
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
+        elif isinstance(error,UserBanned):
+            message = ctx.message
+            author = message.author
+            author.send("Your ability to use the bot has been disabled. If you believe this is an error, please contact a mod or admin.")
+            await asyncio.sleep(2)
+            await message.delete()
         else:
             logger.exception(type(error).__name__, exc_info=error)
