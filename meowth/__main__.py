@@ -4860,6 +4860,8 @@ async def _eggtoraid(entered_raid, raid_channel, author=None):
                 continue
     trainers = ' ' + ', '.join(trainer_list) if trainer_list else ''
     await raid_channel.send(content=_("{roletest}Trainers{trainer}: The raid egg has just hatched into a {pokemon} raid!\nIf you couldn't before, you're now able to update your status with **!coming** or **!here**. If you've changed your plans, use **!cancel**.").format(roletest=roletest,trainer=trainers, pokemon=entered_raid.title()), embed=raid_embed)
+    raid_details = {'pokemon': pkmn, 'tier': pkmn.raid_level, 'ex-eligible': eggdetails['ex_eligible'], 'location': eggdetails['name'], 'regions': eggdetails['regions']}
+    await _send_notifications_async('raid', raid_details, raid_channel, [author] if author else [])
     for field in oldembed.fields:
         t = _('team')
         s = _('status')
