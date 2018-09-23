@@ -499,7 +499,7 @@ def custom_error_handling(bot, logger):
         elif isinstance(error,UserBanned):
             message = ctx.message
             author = message.author
-            author.send("Your ability to use the bot has been disabled. If you believe this is an error, please contact a mod or admin.")
+            await author.send("Your ability to use the bot has been disabled. If you believe this is an error, please contact a mod or admin.")
             await asyncio.sleep(2)
             await message.delete()
         else:

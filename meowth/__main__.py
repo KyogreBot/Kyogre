@@ -1319,12 +1319,12 @@ async def kban(ctx, *, user: str = '', reason: str = ''):
     converter = commands.MemberConverter()
     try:
         trainer = await converter.convert(ctx, user)
-        trainer_id= trainer.id
+        trainer_id = trainer.id
     except:
         return await channel.send("Please provide a user name when using this command.")   
     trainer = guild_dict[guild.id]['trainers'].setdefault(trainer_id,{})
     trainer['is_banned'] = True
-    if reason:
+    if trainer:
         if 'ban_reason' in trainer:
             trainer['ban_reason'].append(reason)
         else:
@@ -1340,7 +1340,7 @@ async def kunban(ctx, *, user: str = ''):
     converter = commands.MemberConverter()
     try:
         trainer = await converter.convert(ctx, user)
-        trainer_id= trainer.id
+        trainer_id = trainer.id
     except:
         return await channel.send("Please provide a user name when using this command.")   
     trainer = guild_dict[guild.id]['trainers'].get(trainer_id, None)
