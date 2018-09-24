@@ -1347,13 +1347,7 @@ async def kban(ctx, *, user: str = '', reason: str = ''):
         return await channel.send("Please provide a user name when using this command.")   
     trainer = guild_dict[guild.id]['trainers'].setdefault(trainer_id,{})
     trainer['is_banned'] = True
-    if trainer:
-        if 'ban_reason' in trainer:
-            trainer['ban_reason'].append(reason)
-        else:
-            trainer['ban_reason'] = [reason]
-    else:
-        return await channel.send("Unable to find a user by that name.")
+    trainer['ban_reason'] = trainer.get('ban_reason', []).append(reason)
 
 @Meowth.command()
 @commands.has_permissions(manage_guild=True)
@@ -4318,7 +4312,7 @@ async def _wild_internal(message, content):
         return
     channel_regions = _get_channel_regions(message.channel, 'wild')
     rgx = r'\s*((100(\s*%)?|perfect)(\s*ivs?\b)?)\s*'
-    content, count = re.subn(rgx, '', content.strip())
+    content, count = re.subn(rgx, '', content.strip(), flags=re.I)
     is_perfect = count > 0
     entered_wild, wild_details = content.split(' ', 1)
     pkmn = Pokemon.get_pokemon(Meowth, entered_wild if entered_wild.isdigit() else content)
@@ -4327,7 +4321,7 @@ async def _wild_internal(message, content):
     wild_number = pkmn.id
     wild_img_url = pkmn.img_url
     expiremsg = _('**This {pokemon} has despawned!**').format(pokemon=pkmn.full_name)
-    wild_details = content.lower().replace(pkmn.name.lower(), '').strip()
+    wild_details = re.sub(pkmn.name.lower(), '', wild_details, flags=re.I)
     wild_gmaps_link = ''
     locations = get_all_locations(message.guild.id, channel_regions)
     if locations and not ('http' in wild_details or '/maps' in wild_details):
@@ -4336,11 +4330,11 @@ async def _wild_internal(message, content):
             wild_gmaps_link = location.maps_url
             wild_details = location.name
     if not wild_gmaps_link:
-        wild_gmaps_link = create_gmaps_query(wild_details, message.channel, type="wild")
         if 'http' in wild_details or '/maps' in wild_details:
+            wild_gmaps_link = create_gmaps_query(wild_details, message.channel, type="wild")
             wild_details = 'Custom Map Pin'
         else:
-            wild_details = wild_details.title()
+            return await message.channel.send("Please use the name of an existing pokestop or gym, or include a valid Google Maps link.")
     wild_embed = discord.Embed(title=_('Click here for my directions to the wild {pokemon}!').format(pokemon=pkmn.full_name), description=_("Ask {author} if my directions aren't perfect!").format(author=message.author.name), url=wild_gmaps_link, colour=message.guild.me.colour)
     wild_embed.add_field(name=_('**Details:**'), value=_('{emoji}{pokemon} ({pokemonnumber}) {type}').format(emoji='💯' if is_perfect else '',pokemon=pkmn.full_name, pokemonnumber=str(wild_number), type=''.join(types_to_str(message.guild, pkmn.types))), inline=False)
     wild_embed.set_thumbnail(url=wild_img_url)
@@ -4369,7 +4363,7 @@ async def _wild_internal(message, content):
     guild_dict[message.guild.id]['wildreport_dict'] = wild_dict
     wild_reports = guild_dict[message.guild.id].setdefault('trainers',{}).setdefault(message.author.id,{}).setdefault('wild_reports',0) + 1
     guild_dict[message.guild.id]['trainers'][message.author.id]['wild_reports'] = wild_reports
-    wild_details = {'pokemon': pkmn, 'perfect': is_perfect, 'location': wild_details}
+    wild_details = {'pokemon': pkmn, 'perfect': is_perfect, 'location': wild_details, 'regions': channel_regions}
     await _update_listing_channels(message.guild, 'wild', edit=False, regions=channel_regions)
     await _send_notifications_async('wild', wild_details, message.channel, [message.author.id])
 
@@ -4432,7 +4426,7 @@ async def _raid_internal(message, content):
     elif raid_pokemon.is_exraid:
         await message.channel.send(_("The Pokemon {pokemon} only appears in EX Raids! Use **!exraid** to report one!").format(pokemon=str(raid_pokemon).capitalize()))
         return
-    new_content = content.split(raid_pokemon.species)[-1]
+    new_content = ' '.join(content.split()[len(raid_pokemon.full_name.split()):])
     raid_split = new_content.strip().split()
     if len(raid_split) == 0:
         await message.channel.send(_('Give more details when reporting! Usage: **!raid <pokemon name> <location>**'))
@@ -5243,7 +5237,11 @@ async def research(ctx, *, details = None):
         guild_dict[guild.id]['questreport_dict'] = research_dict
         research_reports = guild_dict[ctx.guild.id].setdefault('trainers',{}).setdefault(author.id,{}).setdefault('research_reports',0) + 1
         guild_dict[ctx.guild.id]['trainers'][author.id]['research_reports'] = research_reports
-        await _update_listing_channels(guild, 'research', edit=False, regions=_get_channel_regions(channel, 'research'))
+        await _update_listing_channels(guild, 'research', edit=False, regions=regions)
+        if 'encounter' in reward.lower():
+            pokemon = reward.rsplit(maxsplit=1)[0]
+            research_details = {'pokemon': [Pokemon.get_pokemon(Meowth, p) for p in re.split(r'\s*,\s*', pokemon)], 'location': location, 'regions': regions}
+            await _send_notifications_async('research', research_details, channel, [message.author.id])
     else:
         research_embed.clear_fields()
         research_embed.add_field(name=_('**Research Report Cancelled**'), value=_("Your report has been cancelled because you {error}! Retry when you're ready.").format(error=error), inline=False)
@@ -5579,22 +5577,25 @@ async def _send_notifications_async(type, details, new_channel, exclusions=[]):
     # group targets by trainer
     trainers = set([s.trainer for s in results])
     target_dict = {t: [s.target for s in results if s.trainer == t] for t in trainers}
+    regions = set(details.get('regions', []))
+    ex_eligible = details.get('ex-eligible', None)
+    tier = details.get('tier', None)
+    perfect = details.get('perfect', None)
+    pokemon_list = details.get('pokemon', [])
+    if not isinstance(pokemon_list, list):
+        pokemon_list = [pokemon_list]
+    location = details.get('location', None)
+    region_dict = guild_dict[guild.id]['configure_dict'].get('regions', None)
     outbound_dict = {}
     # build final dict
     for trainer in target_dict:
         if trainer in exclusions:
             continue
-        regions = details.get('regions', None)
-        region_dict = guild_dict[guild.id]['configure_dict'].get('regions', None)
         if region_dict and region_dict.get('enabled', False):
             matched_regions = [n for n, o in region_dict.get('info', {}).items() if o['role'] in [r.name for r in guild.get_member(trainer).roles]]
-            if regions and set(regions).isdisjoint(matched_regions):
+            if regions and regions.isdisjoint(matched_regions):
                 continue
         targets = target_dict[trainer]
-        ex_eligible = details.get('ex-eligible', None)
-        tier = details.get('tier', None)
-        perfect = details.get('perfect', None)
-        pokemon = details.get('pokemon', None)
         descriptors = []
         target_matched = False
         if 'ex-eligible' in targets and ex_eligible:
@@ -5603,11 +5604,11 @@ async def _send_notifications_async(type, details, new_channel, exclusions=[]):
         if tier and tier in targets:
             target_matched = True
             descriptors.append('level {level}'.format(level=details['tier']))
-        if pokemon:
-            pkmn_adj = ''
-            if perfect and 'perfect' in targets:
-                target_matched = True
-                pkmn_adj = 'perfect '
+        pkmn_adj = ''
+        if perfect and 'perfect' in targets:
+            target_matched = True
+            pkmn_adj = 'perfect '
+        for pokemon in pokemon_list:
             if pokemon.name in targets:
                 target_matched = True
             descriptors.append(pkmn_adj + pokemon.name)
@@ -5615,28 +5616,25 @@ async def _send_notifications_async(type, details, new_channel, exclusions=[]):
             continue
         description = ', '.join(descriptors)
         start = 'An' if re.match(r'^[aeiou]', description, re.I) else 'A'
-        message = '**New {title_type}**! {start} {description} {type} at {location} has been reported! For more details, go to the {mention} channel!'.format(title_type=type.title(), start=start, description=description, type=type, location=details['location'], mention=new_channel.mention)
+        message = '**New {title_type}**! {start} {description} {type} at {location} has been reported! For more details, go to the {mention} channel!'.format(title_type=type.title(), start=start, description=description, type=type, location=location, mention=new_channel.mention)
         outbound_dict[trainer] = {'discord_obj':guild.get_member(trainer), 'message':message}
-    if type == 'raid':
-        return await _generate_raid_notification_async(new_channel, outbound_dict)
-    # send DMs
-    for __, trainer in outbound_dict.items():
-        await trainer['discord_obj'].send(trainer['message'])
+    role_name = sanitize_name(f"{type} {pokemon.full_name} {location}".title())
+    return await _generate_role_notification_async(role_name, new_channel, outbound_dict)
 
-async def _generate_raid_notification_async(raid_channel, outbound_dict):
+async def _generate_role_notification_async(role_name, channel, outbound_dict):
     '''Generates and handles a temporary role notification in the new raid channel'''
-    guild = raid_channel.guild
+    guild = channel.guild
     # generate new role
-    temp_role = await guild.create_role(name=raid_channel.name, hoist=False, mentionable=True)
+    temp_role = await guild.create_role(name=role_name, hoist=False, mentionable=True)
     for __, trainer in outbound_dict.items():
         await trainer['discord_obj'].add_roles(temp_role)
     # send notification message in channel
     __, obj = next(iter(outbound_dict.items()))
     message = obj['message']
-    msg_obj = await raid_channel.send(f'{temp_role.mention} {message}')
+    msg_obj = await channel.send(f'{temp_role.mention} {message}')
     await asyncio.sleep(300)
-    await msg_obj.delete()
     await temp_role.delete()
+    await msg_obj.delete()
 
 @Meowth.command(name="refresh_listings", hidden=True)
 @commands.has_permissions(manage_guild=True)

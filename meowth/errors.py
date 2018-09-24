@@ -465,7 +465,7 @@ def custom_error_handling(bot, logger):
             error = await ctx.channel.send(msg)
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
-        elif isinstance(error,WildReportChannelCheckFail):
+        elif isinstance(error, WildReportChannelCheckFail):
             guild = ctx.guild
             msg = _('Please use **{prefix}{cmd_name}** in ').format(cmd_name=ctx.invoked_with, prefix=prefix)
             city_channels = bot.guild_dict[guild.id]['configure_dict']['wild']['report_channels']
@@ -482,7 +482,7 @@ def custom_error_handling(bot, logger):
             error = await ctx.channel.send(msg)
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
-        elif isinstance(error,RegionChangeCheckFail):
+        elif isinstance(error, RegionChangeCheckFail):
             guild = ctx.guild
             msg = _('Please use **{prefix}{cmd_name}** in ').format(cmd_name=ctx.invoked_with, prefix=prefix)
             city_channels = bot.guild_dict[guild.id]['configure_dict']['regions']['command_channels']
@@ -496,10 +496,9 @@ def custom_error_handling(bot, logger):
             error = await ctx.channel.send(msg)
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
-        elif isinstance(error,UserBanned):
+        elif isinstance(error, UserBanned):
             message = ctx.message
-            author = message.author
-            await author.send("Your ability to use the bot has been disabled. If you believe this is an error, please contact a mod or admin.")
+            await message.author.send("Your ability to use the bot has been disabled. If you believe this is an error, please contact a mod or admin.")
             await asyncio.sleep(2)
             await message.delete()
         else:

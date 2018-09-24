@@ -69,7 +69,7 @@ class Pokemon():
         'defense', 'attack', 'speed'
     ]
     _stat_forms = [
-        'sunny', 'rainy', 'snowy', 'defense', 'attack', 'speed'
+        'sunny', 'rainy', 'snowy', 'defense', 'attack', 'speed', 'normal'
     ]
     _prefix_forms = _form_list
     _form_dict = {
@@ -255,16 +255,6 @@ class Pokemon():
     #     key = "max_cp_w" if weather_boost else "max_cp"
     #     return self.bot.raid_pokemon[self.name][key] if self.is_raid else None
 
-    def role(self, guild=None):
-        """:class:`discord.Role` or :obj:`None` : Returns the role for
-        this Pokemon
-        """
-        if not guild:
-            guild = self.guild
-        if not guild:
-            return None
-        return discord.utils.get(guild.roles, name=self.name)
-
     def set_guild(self, guild):
         """:class:`discord.Guild` or :obj:`None` : Sets the relevant Guild"""
         self.guild = guild
@@ -329,70 +319,6 @@ class Pokemon():
             else:
                 type_eff_dict['low'].append(t)
         return type_eff_dict
-
-    @classmethod
-    async def convert(cls, ctx, argument):
-        """Returns a pokemon that matches the value
-        of the argument that's being converted.
-
-        It first will check if it's a valid ID, and if not, will perform
-        a fuzzymatch against the list of Pokemon names.
-
-        Returns
-        --------
-        :class:`Pokemon` or :class:`dict`
-            If there was a close or exact match, it will return a valid
-            :class:`Pokemon`.
-            If the match is lower than 80% likeness, it will return a
-            :class:`dict` with the following keys:
-                * ``suggested`` - Next best guess based on likeness.
-                * ``original`` - Original value of argument provided.
-
-        Raises
-        -------
-        :exc:`discord.ext.commands.BadArgument`
-            The argument didn't match a Pokemon ID or name.
-        """
-        argument = argument.lower()
-        if 'shiny' in argument.lower():
-            shiny = True
-            argument = argument.replace('shiny','').strip()
-        else:
-            shiny = False
-        if 'alolan' in argument.lower():
-            alolan = True
-            argument = argument.replace('alolan', '').strip()
-        else:
-            alolan = False
-        form_list = Pokemon._form_list
-        f = next((x for x in form_list if x in argument.lower()), None)
-        if f:
-            form = f.strip()
-            argument = argument.replace(f, '').strip()
-        else:
-            form = None
-        
-        p_obj = Pokemon.find_obj(argument)
-        if not p_obj:
-            pkmn_list = [p for p in Pokemon._pkmn_dict]
-            match, score = utils.get_match(pkmn_list, argument)
-        else:
-            match = p_obj['name']
-            score = 100
-
-        if match:
-            if score >= 80:
-                result = cls(ctx.bot, match, ctx.guild, shiny=shiny, alolan=alolan, form=form)
-            else:
-                result = {
-                    'suggested' : match,
-                    'original'   : argument
-                }
-
-        if not result:
-            raise commands.errors.BadArgument(
-                'Pokemon "{}" not valid'.format(argument))
-        return result
     
     @classmethod
     def find_obj(cls, pkmn):

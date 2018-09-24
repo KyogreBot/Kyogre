@@ -54,10 +54,7 @@
             "egg": "legendary",
             "egg_img": "5.png",
             "pokemon": [
-                "regirock",
-                "articuno",
-                "zapdos",
-                "moltres"
+                "mewtwo"
             ],
             "hatchtime": 60,
             "raidtime": 45
@@ -66,7 +63,7 @@
             "egg": "EX",
             "egg_img": "EX.png",
             "pokemon": [
-                "mewtwo"
+                "deoxys"
             ],
             "hatchtime": 14,
             "raidtime": 45
