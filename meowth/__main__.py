@@ -1085,6 +1085,7 @@ async def on_member_join(member):
         return
 
 @Meowth.event
+@checks.good_standing()
 async def on_message(message):
     # TODO get rid of this garbage, why tf is raid processing here
     if message.guild != None:
@@ -1171,6 +1172,7 @@ async def on_message_delete(message):
             guild_dict[guild.id]['raidchannel_dict'][channel.id]['logs'] = logs
 
 @Meowth.event
+@checks.good_standing()
 async def on_raw_reaction_add(payload):
     channel = Meowth.get_channel(payload.channel_id)
     try:
@@ -1331,6 +1333,44 @@ async def exit(ctx):
     await ctx.channel.send(_('Shutting down...'))
     Meowth._shutdown_mode = 0
     await Meowth.logout()
+
+@Meowth.command()
+@commands.has_permissions(manage_guild=True)
+async def kban(ctx, *, user: str = '', reason: str = ''):
+    guild = ctx.guild
+    author = ctx.author
+    converter = commands.MemberConverter()
+    try:
+        trainer = await converter.convert(ctx, user)
+        trainer_id = trainer.id
+    except:
+        return await channel.send("Please provide a user name when using this command.")   
+    trainer = guild_dict[guild.id]['trainers'].setdefault(trainer_id,{})
+    trainer['is_banned'] = True
+    if trainer:
+        if 'ban_reason' in trainer:
+            trainer['ban_reason'].append(reason)
+        else:
+            trainer['ban_reason'] = [reason]
+    else:
+        return await channel.send("Unable to find a user by that name.")
+
+@Meowth.command()
+@commands.has_permissions(manage_guild=True)
+async def kunban(ctx, *, user: str = ''):
+    guild = ctx.guild
+    author = ctx.author
+    converter = commands.MemberConverter()
+    try:
+        trainer = await converter.convert(ctx, user)
+        trainer_id = trainer.id
+    except:
+        return await channel.send("Please provide a user name when using this command.")   
+    trainer = guild_dict[guild.id]['trainers'].get(trainer_id, None)
+    if trainer:
+        trainer['is_banned'] = False
+    else:
+        return await channel.send("Unable to find a user by that name.")
 
 @Meowth.group(name='region', case_insensitive=True)
 @checks.allowregion()

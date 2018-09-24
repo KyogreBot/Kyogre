@@ -24,6 +24,16 @@ def is_dev_or_owner():
             return False
     return commands.check(predicate)
 
+def is_good_standing(ctx):
+    guild = ctx.guild
+    if not guild:
+        return False
+    author = ctx.author
+    trainer = guild_dict[guild.id]['trainers'][author.id]
+    if not trainer:
+        return True
+    return not trainer.get('is_banned', False)
+
 def check_permissions(ctx, perms):
     if not perms:
         return False
@@ -383,6 +393,13 @@ def citychannel():
         if check_citychannel(ctx):
             return True
         raise errors.CityChannelCheckFail()
+    return commands.check(predicate)
+
+def good_standing():
+    def predicate(ctx):
+        if is_good_standing(ctx):
+            return True
+        raise errors.UserBanned()
     return commands.check(predicate)
 
 def raidchannel():
