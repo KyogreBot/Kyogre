@@ -5948,6 +5948,7 @@ async def _timerset(raidchannel, exptime):
         await reportmsg.edit(content=reportmsg.content,embed=embed)
     except discord.errors.NotFound:
         pass
+    await _update_listing_channels(raidchannel.guild, 'raid', edit=True, regions=guild_dict[guild.id]['raidchannel_dict'][raidchannel.id].get('regions', None))
     raidchannel = Meowth.get_channel(raidchannel.id)
     event_loop.create_task(expiry_check(raidchannel))
 
