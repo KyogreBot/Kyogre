@@ -400,12 +400,23 @@ class Trading:
 
     @commands.command()
     @checks.allowtrade()
-    async def trade(self, ctx, *, offer: Pokemon):
+    async def trade(self, ctx, *, offer):
         """Create a trade listing."""
+
+        pkmn_convert = functools.partial(Pokemon.get_pokemon, ctx)
+
+        pkmn = pkmn_convert(offer)
+
+        if not pkmn:
+            response = await ctx.send(f"{offer} is not a valid pokemon!")
+            await asyncio.sleep(5)
+            await ctx.message.delete()
+            await response.delete()
+            return
 
         want_ask = await ctx.send(
             f"{ctx.author.display_name}, what Pokemon are you willing to accept "
-            f"in exchange for {str(offer)}?")
+            f"in exchange for {str(pkmn)}?")
 
         def check(m):
             return m.author == ctx.author and m.channel == ctx.channel
@@ -421,13 +432,11 @@ class Trading:
         await want_ask.delete()
         await want_reply.delete()
 
-        pkmn_convert = functools.partial(Pokemon.get_pokemon, ctx)
-
         wants = map(str.strip, wants)
         wants = map(pkmn_convert, wants)
         wants = [str(want) for want in wants]
 
-        await Trade.create_trade(ctx, wants, offer)
+        await Trade.create_trade(ctx, wants, pkmn)
 
 
 def setup(bot):
