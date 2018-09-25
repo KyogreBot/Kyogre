@@ -4293,6 +4293,13 @@ async def _sub_list(ctx, *, content=None):
 """
 Reporting
 """
+def check_existing_raid_report(guild, location):
+    report_dict = guild_dict[guild.id]['raidchannel_dict']
+    return any([True for report in report_dict.values() if report['gym'].name.lower() == location.name.lower()])
+
+def check_existing_research_report(guild, location):
+    report_dict = guild_dict[guild.id]['questreport_dict']
+    return any([True for report in report_dict.values() if report['location'].lower() == location.name.lower()])
 
 @Meowth.command(name="wild", aliases=['w'])
 @checks.allowwildreport()
@@ -4475,6 +4482,8 @@ async def _raid_internal(message, content):
         gym = await location_match_prompt(message.channel, message.author.id, raid_details, gyms)
         if not gym:
             return await message.channel.send(_("I couldn't find a gym named '{0}'. Try again using the exact gym name!").format(raid_details))
+        if check_existing_raid_report(message.guild, gym):
+            return await message.channel.send(f"A raid has already been reported for {gym.name}")
         raid_details = gym.name
         raid_gmaps_link = gym.maps_url
         regions = [gym.region]
@@ -4636,6 +4645,8 @@ async def _raidegg(message, content):
         gym = await location_match_prompt(message.channel, message.author.id, raid_details, gyms)
         if not gym:
             return await message.channel.send(_("I couldn't find a gym named '{0}'. Try again using the exact gym name!").format(raid_details))
+        if check_existing_raid_report(message.guild, gym):
+            return await message.channel.send(f"A raid has already been reported for {gym.name}")
         raid_details = gym.name
         raid_gmaps_link = gym.maps_url
         regions = [gym.region]
@@ -5062,9 +5073,7 @@ async def _invite(ctx):
     guild = ctx.guild
     await channel.trigger_typing()
     exraidlist = ''
-    exraid_dict = {
-
-    }
+    exraid_dict = {}
     exraidcount = 0
     rc_dict = bot.guild_dict[guild.id]['raidchannel_dict']
     for channelid in rc_dict:
@@ -5141,7 +5150,9 @@ async def research(ctx, *, details = None):
             if stops:
                 stop = await location_match_prompt(channel, author.id, location, stops)
                 if not stop:
-                    return await message.channel.send(_("I couldn't find a pokestop named '{0}'. Try again using the exact pokestop name!").format(location))
+                    return await channel.send(_("I couldn't find a pokestop named '{0}'. Try again using the exact pokestop name!").format(location))
+                if check_existing_research_report(guild, stop):
+                    return await channel.send(f"A quest has already been reported for {stop.name}")
                 location = stop.name
                 loc_url = stop.maps_url
                 regions = [stop.region]
@@ -5179,6 +5190,8 @@ async def research(ctx, *, details = None):
                     stop = await location_match_prompt(channel, author.id, location, stops)
                     if not stop:
                         return await message.channel.send(_("I couldn't find a pokestop named '{0}'. Try again using the exact pokestop name!").format(location))
+                    if check_existing_research_report(guild, stop):
+                        return await channel.send(f"A quest has already been reported for {stop.name}")
                     location = stop.name
                     loc_url = stop.maps_url
                     regions = [stop.region]
