@@ -293,10 +293,10 @@ def do_template(message, author, guild):
     return (msg, not_found)
 
 async def ask(message, destination, user_list=None, *, react_list=['✅', '❎']):
-    if user_list and type(user_list) != __builtins__.list:
+    if user_list and not isinstance(user_list, list):
         user_list = [user_list]
     def check(reaction, user):
-        if user_list and type(user_list) is __builtins__.list:
+        if user_list and isinstance(user_list, list):
             return (user.id in user_list) and (reaction.message.id == message.id) and (reaction.emoji in react_list)
         elif not user_list:
             return (user.id != message.guild.me.id) and (reaction.message.id == message.id) and (reaction.emoji in react_list)
@@ -314,7 +314,7 @@ async def ask(message, destination, user_list=None, *, react_list=['✅', '❎']
         return    
 
 @Meowth.command(name='gym')
-async def gym(ctx, *, name):
+async def _gym(ctx, *, name):
     message = ctx.message
     channel = ctx.channel
     guild = ctx.guild
@@ -324,6 +324,8 @@ async def gym(ctx, *, name):
         return await channel.send(_("No gym found with name '{0}'. Try again using the exact gym name!").format(name))
     else:
         gym_embed = discord.Embed(title=_('Click here for directions to {0}!'.format(gym.name)), url=gym.maps_url, colour=guild.me.colour)
+        gym_info = _("**Name:** {name}\n**Region:** {region}\n**Notes:** {notes}").format(name=gym.name, notes="_EX Eligible Gym_" if gym.ex_eligible else "N/A", region=gym.region.title())
+        gym_embed.add_field(name=_('**Gym Information**'), value=gym_info, inline=False)
         return await channel.send(content="", embed=gym_embed)
 
 def get_gyms(guild_id, regions=None):
@@ -646,8 +648,8 @@ async def expire_channel(channel):
                 new_name = e if e not in channel.name else ''
                 new_name += channel.name
                 await channel.edit(name=new_name)
-                await channel.send(_('This channel timer has expired! The channel has been deactivated and will be deleted in 5 minutes.\nTo reactivate the channel, use **!timerset** to set the timer again.'))
-            delete_time = (guild_dict[guild.id]['raidchannel_dict'][channel.id]['exp'] + (5 * 60)) - time.time()
+                await channel.send(_('This channel timer has expired! The channel has been deactivated and will be deleted in 1 minute.\nTo reactivate the channel, use **!timerset** to set the timer again.'))
+            delete_time = (guild_dict[guild.id]['raidchannel_dict'][channel.id]['exp'] + (1 * 60)) - time.time()
             raidtype = _("event") if guild_dict[guild.id]['raidchannel_dict'][channel.id].get('meetup',False) else _(" raid")
             expiremsg = _('**This {pokemon}{raidtype} has expired!**').format(
                 pokemon=guild_dict[channel.guild.id]['raidchannel_dict'][channel.id]['pokemon'].capitalize(), raidtype=raidtype)
@@ -779,8 +781,8 @@ async def channel_cleanup(loop=True):
                                 logger.info(
                                     log_str + ' - 15+ MIN EXPIRY NONACTIVE EGG')
                                 continue
-                            # and if it has been expired for longer than 5 minutes already
-                        elif guilddict_chtemp[guildid]['raidchannel_dict'][channelid]['exp'] < (time.time() - (5 * 60)):
+                            # and if it has been expired for longer than 1 minute already
+                        elif guilddict_chtemp[guildid]['raidchannel_dict'][channelid]['exp'] < (time.time() - (1 * 60)):
                                 # list the channel to be removed from save data
                             dict_channel_delete.append(channelid)
                                 # and list the channel to be deleted in discord
@@ -1337,34 +1339,41 @@ async def exit(ctx):
 @Meowth.command()
 @commands.has_permissions(manage_guild=True)
 async def kban(ctx, *, user: str = '', reason: str = ''):
-    guild = ctx.guild
-    author = ctx.author
     converter = commands.MemberConverter()
     try:
         trainer = await converter.convert(ctx, user)
         trainer_id = trainer.id
     except:
-        return await channel.send("Please provide a user name when using this command.")   
-    trainer = guild_dict[guild.id]['trainers'].setdefault(trainer_id,{})
+        return await ctx.channel.send("User not found.")   
+    trainer = guild_dict[ctx.guild.id]['trainers'].setdefault(trainer_id,{})
     trainer['is_banned'] = True
-    trainer['ban_reason'] = trainer.get('ban_reason', []).append(reason)
+    ban_reason = trainer.get('ban_reason')
+    if not ban_reason:
+        ban_reason = []
+    elif not isinstance(ban_reason, list):
+        ban_reason = [ban_reason]
+    trainer['ban_reason'] = ban_reason.append(reason)
+    try:
+        await ctx.message.add_reaction('\u2705')
+    except:
+        pass
 
 @Meowth.command()
 @commands.has_permissions(manage_guild=True)
 async def kunban(ctx, *, user: str = ''):
-    guild = ctx.guild
-    author = ctx.author
+    channel = ctx.channel
     converter = commands.MemberConverter()
     try:
         trainer = await converter.convert(ctx, user)
         trainer_id = trainer.id
     except:
-        return await channel.send("Please provide a user name when using this command.")   
-    trainer = guild_dict[guild.id]['trainers'].get(trainer_id, None)
-    if trainer:
-        trainer['is_banned'] = False
-    else:
-        return await channel.send("Unable to find a user by that name.")
+        return await channel.send("User not found.")   
+    trainer = guild_dict[ctx.guild.id]['trainers'].get(trainer_id, None)
+    trainer['is_banned'] = False
+    try:
+        await ctx.message.add_reaction('\u2705')
+    except:
+        pass
 
 @Meowth.group(name='region', case_insensitive=True)
 @checks.allowregion()
@@ -4905,7 +4914,7 @@ async def _eggtoraid(entered_raid, raid_channel, author=None):
                 continue
     trainers = ' ' + ', '.join(trainer_list) if trainer_list else ''
     await raid_channel.send(content=_("{roletest}Trainers{trainer}: The raid egg has just hatched into a {pokemon} raid!\nIf you couldn't before, you're now able to update your status with **!coming** or **!here**. If you've changed your plans, use **!cancel**.").format(roletest=roletest,trainer=trainers, pokemon=entered_raid.title()), embed=raid_embed)
-    raid_details = {'pokemon': pkmn, 'tier': pkmn.raid_level, 'ex-eligible': eggdetails['ex_eligible'], 'location': eggdetails['name'], 'regions': eggdetails['regions']}
+    raid_details = {'pokemon': pkmn, 'tier': pkmn.raid_level, 'ex-eligible': False if eggdetails['gym'] is None else eggdetails['gym'].ex_eligible, 'location': eggdetails['address'], 'regions': eggdetails['regions']}
     await _send_notifications_async('raid', raid_details, raid_channel, [author] if author else [])
     for field in oldembed.fields:
         t = _('team')
@@ -5636,13 +5645,15 @@ async def _send_notifications_async(type, details, new_channel, exclusions=[]):
 
 async def _generate_role_notification_async(role_name, channel, outbound_dict):
     '''Generates and handles a temporary role notification in the new raid channel'''
+    if len(outbound_dict) == 0:
+        return
     guild = channel.guild
     # generate new role
     temp_role = await guild.create_role(name=role_name, hoist=False, mentionable=True)
-    for __, trainer in outbound_dict.items():
+    for trainer in outbound_dict.values():
         await trainer['discord_obj'].add_roles(temp_role)
     # send notification message in channel
-    __, obj = next(iter(outbound_dict.items()))
+    obj = next(iter(outbound_dict.values()))
     message = obj['message']
     msg_obj = await channel.send(f'{temp_role.mention} {message}')
     await asyncio.sleep(300)
@@ -6745,7 +6756,7 @@ async def weather(ctx, *, weather):
 Status Management
 """
 
-status_parse_rgx = r'^(\d+)$|^(\d+(?:[, ]+))?([\dimv ,]+)?(?:[, ]*)([a-zA-Z ,]+)?$'
+status_parse_rgx = r'^(\d+)$|^(\d+(?:[, ]+))?([\dimvu ,]+)?(?:[, ]*)([a-zA-Z ,]+)?$'
 status_parser = re.compile(status_parse_rgx)
 
 async def _parse_teamcounts(ctx, teamcounts, trainer_dict, egglevel):
@@ -7015,16 +7026,14 @@ async def _here(channel, author, count, party, entered_interest=None):
 async def _party_status(ctx, total, teamcounts):
     channel = ctx.channel
     author = ctx.author
-    for role in ctx.author.roles:
-        if role.name.lower() == 'mystic':
-            my_team = 'mystic'
-            break
-        elif role.name.lower() == 'valor':
-            my_team = 'valor'
-            break
-        elif role.name.lower() == 'instinct':
-            my_team = 'instinct'
-            break
+    trainer_dict = guild_dict[channel.guild.id]['raidchannel_dict'][channel.id]['trainer_dict'].get(author.id, {})
+    roles = [r.name.lower() for r in author.roles]
+    if 'mystic' in roles:
+        my_team = 'mystic'
+    elif 'valor' in roles:
+        my_team = 'valor'
+    elif 'instinct' in roles:
+        my_team = 'instinct'
     else:
         my_team = 'unknown'
     if not teamcounts:
@@ -7055,6 +7064,10 @@ async def _party_status(ctx, total, teamcounts):
         'u': unknown,
         'g': unknown,
     }
+    if not teamcounts and total >= trainer_dict.get('count', 0):
+        trainer_party = trainer_dict.get('party', {})
+        for team in trainer_party:
+            team_aliases[team][1] += trainer_party[team]
     regx = re.compile('([a-zA-Z]+)([0-9]+)|([0-9]+)([a-zA-Z]+)')
     for count in teamcounts:
         if count.isdigit():
@@ -7532,7 +7545,7 @@ async def _get_raid_listing_messages(channel, region=None):
                 expirytext = _(' - Starts: {expiry}{is_assumed}').format(expiry=end.strftime(_('%B %d at %I:%M %p (%H:%M)')), is_assumed=assumed_str)
         else:
             expirytext = _(' - Expiry: {expiry}{is_assumed}').format(expiry=end.strftime(_('%I:%M %p (%H:%M)')), is_assumed=assumed_str)
-        output += _('\t{raidchannel}{expiry_text} ({interestcount}/{comingcount}/{herecount}/{lobbycount})\n').format(raidchannel=rchan.mention, expiry_text=expirytext, interestcount=ctx_maybecount, comingcount=ctx_comingcount, herecount=ctx_herecount, lobbycount=ctx_lobbycount)
+        output += _('\t{raidchannel}{expiry_text} ({total_count} players)\n').format(raidchannel=rchan.mention, expiry_text=expirytext, total_count=sum([ctx_maybecount, ctx_comingcount, ctx_herecount, ctx_lobbycount]))
         #output += _('\t{interestcount} interested, {comingcount} coming, {herecount} here, {lobbycount} in the lobby.{start_str}\n').format(raidchannel=rchan.mention, interestcount=ctx_maybecount, comingcount=ctx_comingcount, herecount=ctx_herecount, lobbycount=ctx_lobbycount, start_str=start_str)
         return output
     
