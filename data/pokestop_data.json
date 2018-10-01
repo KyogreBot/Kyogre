@@ -1819,12 +1819,17 @@
         "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
-    "Claremont playground": {
+    "Clairmont Neighborhood Playground": {
         "coordinates": "47.49536,-122.14344",
         "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
-    "Sunset Community Garden  47.50004 -122.18671Maplewood Park": {
+    "Sunset Community Garden": {  
+        "coordinates": "47.50004,-122.18671",
+        "region": "renton",
+        "guild": "471452588127289347,471174283133976598"
+    },
+    "Maplewood Park": {
         "coordinates": "47.47801,-122.14588",
         "region": "renton",
         "guild": "471452588127289347,471174283133976598"
@@ -2316,6 +2321,11 @@
     },
     "Renton's Veterans Memorial Park": {
         "coordinates": "47.47989,-122.20391",
+        "region": "renton",
+        "guild": "471452588127289347,471174283133976598"
+    },
+    "Alki Saloon": {
+        "coordinates": "47.479589,-122.204335",
         "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
@@ -3289,7 +3299,7 @@
         "region": null,
         "guild": "471452588127289347,471174283133976598"
     },
-    "Claremont playground  47.49536 -122.14344Marazzi Wheel": {
+    "Marazzi Wheel": {
         "coordinates": "47.44245,-122.3019",
         "region": "tukwila",
         "guild": "471452588127289347,471174283133976598"
@@ -4309,7 +4319,12 @@
         "region": "desmoines",
         "guild": "471452588127289347,471174283133976598"
     },
-    "Evergreen Wings West  47.43455 -122.30911Green Tree Park": {
+    "Evergreen Wings West": {  
+        "coordinates": "47.43455,-122.30911",
+        "region": "desmoines",
+        "guild": "471452588127289347,471174283133976598"
+    },
+    "Green Tree Park": {
         "coordinates": "47.40885,-122.18087",
         "region": "kent",
         "guild": "471452588127289347,471174283133976598"
@@ -6339,7 +6354,12 @@
         "region": "kent",
         "guild": "471452588127289347,471174283133976598"
     },
-    "Morrill Meadows Off-Leash Dog Area  47.37982 -122.19694Kingdom Hall of Jehovah's Witnesses": {
+    "Morrill Meadows Off-Leash Dog Area": {
+      "coordinate": "47.37982,-122.19694",
+      "region": "kent",
+      "guild": "471452588127289347,471174283133976598"
+    },
+    "Kingdom Hall of Jehovah's Witnesses": {
         "coordinates": "47.35703,-122.31341",
         "region": "desmoines",
         "guild": "471452588127289347,471174283133976598"

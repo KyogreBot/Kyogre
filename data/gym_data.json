@@ -1931,12 +1931,6 @@
         "region": "kent",
         "guild": "471452588127289347,471174283133976598"
     },
-    "?Sprint?": {
-        "coordinates": "47.45842,-122.260985",
-        "ex_eligible": false,
-        "region": "tukwila",
-        "guild": "471452588127289347,471174283133976598"
-    },
     "Tukwila Trail Head #1": {
         "coordinates": "47.471017,-122.255504",
         "ex_eligible": false,
@@ -2015,8 +2009,8 @@
         "region": "tukwila",
         "guild": "471452588127289347,471174283133976598"
     },
-    "Mushroom": {
-        "coordinates": "47.458351,-122.259867",
+    "Southcenter Mural": {
+        "coordinates": "47.458695,-122.259294",
         "ex_eligible": false,
         "region": "tukwila",
         "guild": "471452588127289347,471174283133976598"
@@ -2057,7 +2051,7 @@
         "region": "tukwila",
         "guild": "471452588127289347,471174283133976598"
     },
-    "Sprint1": {
+    "Sprint - Not in mall": {
         "coordinates": "47.446335,-122.261561",
         "ex_eligible": true,
         "region": "tukwila",
@@ -2069,8 +2063,8 @@
         "region": "tukwila",
         "guild": "471452588127289347,471174283133976598"
     },
-    "Sprint2": {
-        "coordinates": "47.4582453,-122.2569322",
+    "Sprint - In the mall": {
+        "coordinates": "47.458863,-122.256617",
         "ex_eligible": true,
         "region": "tukwila",
         "guild": "471452588127289347,471174283133976598"
@@ -2573,7 +2567,7 @@
         "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
-    "sprint": {
+    "Sprint Renton Highlands": {
         "coordinates": "47.488829,-122.155423",
         "ex_eligible": true,
         "region": "renton",
@@ -3119,18 +3113,6 @@
         "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
-    "womp womp": {
-        "coordinates": "47.5074814,-122.2150546",
-        "ex_eligible": false,
-        "region": "renton",
-        "guild": "471452588127289347,471174283133976598"
-    },
-    "sprint highlands": {
-        "coordinates": "47.4888133,-122.1560126",
-        "ex_eligible": false,
-        "region": "renton",
-        "guild": "471452588127289347,471174283133976598"
-    },
     "saint andrew presbyterian church": {
         "coordinates": "47.500188,-122.17064",
         "ex_eligible": false,
@@ -3317,17 +3299,19 @@
         "region": "covington",
         "guild": "471452588127289347,471174283133976598"
     },
-    "Soos Creek Trail": {
+    "Lower Soos Creek Trail": {
         "coordinates": "47.38343,-122.139073",
         "ex_eligible": false,
-        "region": "covington",
-        "guild": "471452588127289347,471174283133976598"
+        "region": "kent",
+        "guild": "471452588127289347,471174283133976598",
+        "notes": "Limited parking and somewhat dangerous getting in and out of traffic when driving there."
     },
-    "Soos Creek Trail": {
+    "Upper Soos Creek Trail": {
         "coordinates": "47.386188,-122.143279",
         "ex_eligible": false,
-        "region": "covington",
-        "guild": "471452588127289347,471174283133976598"
+        "region": "kent",
+        "guild": "471452588127289347,471174283133976598",
+        "notes": "If you're driving there, forget about it. No parking and dangerous corner."
     },
     "St George Episcopal Memorial Garden": {
         "coordinates": "47.384204,-122.04893",
