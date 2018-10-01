@@ -41,35 +41,101 @@ class Tutorial:
                 read_messages=True)
             }
 
-    async def want_tutorial(self, ctx, config):
-        report_channels = config['want']['report_channels']
+    async def sub_tutorial(self, ctx, config):
+        report_channels = config['subscriptions']['report_channels']['report_channels']
         report_channels.append(ctx.tutorial_channel.id)
 
         await ctx.tutorial_channel.send(
-            f"This server utilizes the **{ctx.prefix}want** command to help "
-            "members receive push notifications about Pokemon they want! "
-            "I create Discord roles for each Pokemon that people want, "
-            "and @mentioning these roles will send a notification to "
-            f"anyone who **{ctx.prefix}want**-ed that Pokemon!\n"
-            f"Try the {ctx.prefix}want command!\n"
-            f"Ex: `{ctx.prefix}want unown`")
+            "Using Kyogre bot, you can *subscribe* for push notifications "
+            "when someone reports wild Pokemon spawns, particular raid bosses, "
+            "or research encounters that you're interested!\n"
+            f"The **{ctx.prefix}sub add** command adds a subscription.\n"
+            f"Try it out now, use the **{ctx.prefix}sub** command "
+            "followed by one of these options `wild, raid, research` "
+            "and then the name of the Pokemon you want\n"
+            f"Ex: `{ctx.prefix}sub add raid machamp`")
 
         try:
-            await self.wait_for_cmd(ctx.tutorial_channel, ctx.author, 'want')
+            await self.wait_for_cmd(ctx.tutorial_channel, ctx.author, 'sub add')
 
             # acknowledge and wait a second before continuing
             await ctx.tutorial_channel.send("Great job!")
-            await asyncio.sleep(1)
+            await asyncio.sleep(2)
 
         # if no response for 5 minutes, close tutorial
         except asyncio.TimeoutError:
             await ctx.tutorial_channel.send(
-                f"You took too long to complete the **{ctx.prefix}want** "
+                f"You took too long to complete the **{ctx.prefix}sub add** "
                 "command! This channel will be deleted in ten seconds.")
             await asyncio.sleep(10)
             await ctx.tutorial_channel.delete()
 
             return False
+
+        await ctx.tutorial_channel.send(
+            "You can check what you've subscribed to at any time "
+            f"using **{ctx.prefix}sub list** and you will receive "
+            "a message listing all of your subscriptions\n"
+            "If you only want to see subscriptions of a particular "
+            "type you can specify that type as well.\n"
+            f"For example: **{ctx.prefix}sub list raid**\n"
+            f"Or: **{ctx.prefix}sub list raid, research**\n"
+            "Give it a try now!")
+
+        try:
+            await self.wait_for_cmd(ctx.tutorial_channel, ctx.author, 'sub list')
+
+            # acknowledge and wait a second before continuing
+            await ctx.tutorial_channel.send("Great job!")
+            await asyncio.sleep(2)
+
+        # if no response for 5 minutes, close tutorial
+        except asyncio.TimeoutError:
+            await ctx.tutorial_channel.send(
+                f"You took too long to complete the **{ctx.prefix}sub list** "
+                "command! This channel will be deleted in ten seconds.")
+            await asyncio.sleep(10)
+            await ctx.tutorial_channel.delete()
+
+            return False
+
+        await ctx.tutorial_channel.send(
+            "If you no longer wish to receive notifications for a "
+            "particular subscription, you can remove it using "
+            f"**{ctx.prefix}sub remove** along with the type "
+            "and Pokemon name, just like when you added it.\n"
+            f"For example: `{ctx.prefix}sub remove raid machamp`\n"
+            "Give it a try now!")
+
+        try:
+            await self.wait_for_cmd(ctx.tutorial_channel, ctx.author, 'sub remove')
+
+            # acknowledge and wait a second before continuing
+            await ctx.tutorial_channel.send("Great job!")
+            await asyncio.sleep(2)
+
+        # if no response for 5 minutes, close tutorial
+        except asyncio.TimeoutError:
+            await ctx.tutorial_channel.send(
+                f"You took too long to complete the **{ctx.prefix}sub remove** "
+                "command! This channel will be deleted in ten seconds.")
+            await asyncio.sleep(10)
+            await ctx.tutorial_channel.delete()
+
+            return False
+
+        await ctx.tutorial_channel.send(
+            "Now you know all about how to subscribe to notifications "
+            "for the Pokemon you want! Here's a quick recap:\n"
+            f"Use **{ctx.prefix}sub add** to add a new subscription\n"
+            f"Use **{ctx.prefix}sub remove** to remove a subscription\n"
+            f"Use **{ctx.prefix}sub list** to see your subscriptions\n"
+            "Available subscription types are:\n"
+            "`raid, research, wild, pokemon` (the last one covers "
+            "pokemon reported in any of the other ways)\n"
+            "You can see all of the options for this command by "
+            f"using **{ctx.prefix}help subscribe**")
+        await asyncio.sleep(10)
 
         # clean up by removing tutorial from report channel config
         finally:
@@ -82,13 +148,14 @@ class Tutorial:
         report_channels[ctx.tutorial_channel.id] = 'test'
 
         await ctx.tutorial_channel.send(
-            f"This server utilizes the **{ctx.prefix}wild** command to "
-            "report wild spawns! When you use it, I will send a message "
-            "summarizing the report and containing a link to my best "
-            "guess of the spawn location. If the reported Pokemon has "
-            "an associated role on the server, I will @mention the role "
-            "in my message! Your report must contain the name of the "
-            "Pokemon followed by its location. "
+            "When you come across a rare spawn in the wild, "
+            f"use the **{ctx.prefix}wild** command to report it! "
+            "If the spawn is near a Pokestop or Gym, provide the name. "
+            "Otherwise provide a map pin if possible or the most "
+            "accurate description you can of the location. The bot will "
+            "send a message summarizing the report and containing a link "
+            "to the spawn location. Your report must contain the name of "
+            "the Pokemon followed by its location. \n"
             "Try reporting a wild spawn!\n"
             f"Ex: `{ctx.prefix}wild magikarp some park`")
 
@@ -141,11 +208,12 @@ class Tutorial:
             return
 
         await tutorial_channel.send(
-            f"This server utilizes the **{prefix}raid** command to "
-            "report raids! When you use it, I will send a message "
-            "summarizing the report and create a text channel for "
-            "coordination. \n"
-            "The report must contain, in this order: The Pokemon (if an "
+            "When you spot a raid, you can report it to Kyogre using "
+            f"the **{prefix}raid** command! When you make a report, "
+            "Kyogre sends a message summarizing the report and creates "
+            "a text channel for coordination. Kyogre also maintains a "
+            "list of all currently active raids.\n"
+            "Your report must contain, in this order: The Pokemon (if an "
             "active raid) or raid level (if an egg), and the location;\n"
             "the report may optionally contain the weather (see "
             f"**{prefix}help weather** for accepted options) and the "
@@ -153,7 +221,8 @@ class Tutorial:
             "report) \n\n"
             "Try reporting a raid!\n"
             f"Ex: `{prefix}raid magikarp local church cloudy 42`\n"
-            f"`{prefix}raid 3 local church sunny 27`")
+            f"`{prefix}raid machamp local park`"
+            f"`{prefix}raid 3 local church 27`")
 
         try:
             while True:
@@ -356,12 +425,13 @@ class Tutorial:
         report_channels[ctx.tutorial_channel.id] = 'test'
 
         await ctx.tutorial_channel.send(
-            f"This server utilizes the **{ctx.prefix}research** command to "
-            "report field research tasks! There are two ways to use this "
-            f"command: **{ctx.prefix}research** will start an interactive "
-            "session where I will prompt you for the task, location, and "
-            "reward of the research task. You can also use "
-            f"**{ctx.prefix}research <pokestop>, <task>, <reward>** to "
+            "When you find a useful research task, you can report it "
+            f"using the **{ctx.prefix}research** command! "
+            "There are two ways to use this command:\n"
+            f"**{ctx.prefix}research** will start an interactive "
+            "session where the bot prompts you for the task and location "
+            "of the research task.\n Or you can use "
+            f"**{ctx.prefix}research <pokestop>, <task>** to "
             "submit the report all at once.\n\n"
             f"Try it out by typing `{ctx.prefix}research`")
 
@@ -391,7 +461,7 @@ class Tutorial:
 
     async def team_tutorial(self, ctx):
         await ctx.tutorial_channel.send(
-            f"This server utilizes the **{ctx.prefix}team** command to "
+            f"This server uses the **{ctx.prefix}team** command to "
             "allow members to select which Pokemon Go team they belong "
             f"to! Type `{ctx.prefix}team mystic` for example if you are in "
             "Team Mystic.")
@@ -455,8 +525,8 @@ class Tutorial:
         try:
 
             # start want tutorial
-            if 'want' in enabled:
-                completed = await self.want_tutorial(ctx, cfg)
+            if 'sub' in enabled:
+                completed = await self.sub_tutorial(ctx, cfg)
                 if not completed:
                     return
 
@@ -513,8 +583,8 @@ class Tutorial:
             await ctx.tutorial_channel.delete()
 
     @tutorial.command()
-    @checks.feature_enabled('want')
-    async def want(self, ctx):
+    @checks.feature_enabled('sub')
+    async def sub(self, ctx):
         """Launches an tutorial session for the want feature.
 
         Kyogre will create a private channel and initiate a
@@ -548,7 +618,7 @@ class Tutorial:
             "Let's get started!")
 
         try:
-            await self.want_tutorial(ctx, cfg)
+            await self.sub_tutorial(ctx, cfg)
             await ctx.tutorial_channel.send(
                 f"This concludes the Kyogre tutorial! "
                 "This channel will be deleted in ten seconds.")
