@@ -1262,7 +1262,7 @@
     "Petrovitsky Park": {
         "coordinates": "47.441533,-122.120511",
         "ex_eligible": true,
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
     "Clark Lake Park North Entrance": {
@@ -1334,7 +1334,7 @@
     "Black Bear": {
         "coordinates": "47.43087,-122.19647",
         "ex_eligible": false,
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
     "Playground1": {
@@ -1406,7 +1406,7 @@
     "Echo Quarry Trail": {
         "coordinates": "47.440593,-122.097241",
         "ex_eligible": false,
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
     "Kent Valley Bird Sancuary 1": {
@@ -1436,7 +1436,7 @@
     "MUGS BUGS": {
         "coordinates": "47.44076,-122.219469",
         "ex_eligible": false,
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
     "Kent Chinese Alliance Church": {
@@ -1472,7 +1472,7 @@
     "VMC Shrubbery": {
         "coordinates": "47.440939,-122.215396",
         "ex_eligible": false,
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
     "Untamed": {
@@ -1598,7 +1598,7 @@
     "NW Life Church": {
         "coordinates": "47.430463,-122.165951",
         "ex_eligible": false,
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
     "Russell Road Park": {
@@ -1646,7 +1646,7 @@
     "Fairwood Water Tower": {
         "coordinates": "47.434022,-122.188119",
         "ex_eligible": false,
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
     "Peter Saar's Sawmill Site": {
@@ -1670,7 +1670,7 @@
     "Cedar Grove Road Natural Area": {
         "coordinates": "47.438522,-122.066384",
         "ex_eligible": false,
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
     "Rock Creek Fountains": {
@@ -1742,7 +1742,7 @@
     "Community Park Entrance": {
         "coordinates": "47.434041,-122.110792",
         "ex_eligible": false,
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
     "Green River Canoe": {
@@ -1826,7 +1826,7 @@
     "Rainier Christian Center": {
         "coordinates": "47.437609,-122.11692",
         "ex_eligible": false,
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
     "Kentbrook Playground": {
@@ -1862,7 +1862,7 @@
     "Mor Water Fountain": {
         "coordinates": "47.440459,-122.229084",
         "ex_eligible": false,
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
     "Flying Geese": {
@@ -1892,7 +1892,7 @@
     "Lake Youngs Trailhead Park": {
         "coordinates": "47.439004,-122.119961",
         "ex_eligible": false,
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
     "Stormwater Storage Pond": {
