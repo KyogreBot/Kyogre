@@ -4303,8 +4303,8 @@ async def _sub_list(ctx, *, content=None):
 Reporting
 """
 def check_existing_raid_report(guild, location):
-    report_dict = guild_dict[guild.id]['raidchannel_dict']
-    return any([True for report in report_dict.values() if report['gym'].name.lower() == location.name.lower()])
+    report_dict = guild_dict[guild.id]['raidchannel_dict']    
+    return any([report[channelid] for report in report_dict.values() if report['gym'].name.lower() == location.name.lower()])
 
 def check_existing_research_report(guild, location):
     report_dict = guild_dict[guild.id]['questreport_dict']
@@ -4491,8 +4491,9 @@ async def _raid_internal(message, content):
         gym = await location_match_prompt(message.channel, message.author.id, raid_details, gyms)
         if not gym:
             return await message.channel.send(_("I couldn't find a gym named '{0}'. Try again using the exact gym name!").format(raid_details))
-        if check_existing_raid_report(message.guild, gym):
-            return await message.channel.send(f"A raid has already been reported for {gym.name}")
+        raid_channel = check_existing_raid_report(message.guild, gym)
+        if raid_channel:
+            return await message.channel.send(f"A raid has already been reported for {gym.name}. Coordinate in {raid_channel}")
         raid_details = gym.name
         raid_gmaps_link = gym.maps_url
         regions = [gym.region]
