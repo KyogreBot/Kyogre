@@ -1699,7 +1699,7 @@
         "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
-    "Kingdom Hall Of Jehovah's Witnesses": {
+    "Kingdom Hall Of Jehovah's Witnesses - Renton": {
         "coordinates": "47.50264,-122.15683",
         "region": "renton",
         "guild": "471452588127289347,471174283133976598"
@@ -1824,7 +1824,7 @@
         "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
-    "Sunset Community Garden": {  
+    "Sunset Community Garden": {
         "coordinates": "47.50004,-122.18671",
         "region": "renton",
         "guild": "471452588127289347,471174283133976598"
@@ -2489,7 +2489,7 @@
         "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
-    "Maplewood Park": {
+    "Maplewood Park2": {
         "coordinates": "47.47544,-122.17344",
         "region": "renton",
         "guild": "471452588127289347,471174283133976598"
@@ -2799,7 +2799,7 @@
         "region": "tukwila",
         "guild": "471452588127289347,471174283133976598"
     },
-    "Guante de B\u00c3\u00a9isbol": {
+    "Guante de Beisbol": {
         "coordinates": "47.47793,-122.26863",
         "region": "tukwila",
         "guild": "471452588127289347,471174283133976598"
@@ -2844,7 +2844,7 @@
         "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
-    "Pok\u00c3\u00a9mon Center": {
+    "Pokemon Center": {
         "coordinates": "47.45851,-122.25765",
         "region": "tukwila",
         "guild": "471452588127289347,471174283133976598"
@@ -3081,11 +3081,6 @@
     },
     "The Firebird": {
         "coordinates": "47.47983,-122.20698",
-        "region": "renton",
-        "guild": "471452588127289347,471174283133976598"
-    },
-    "Sunset Community Garden": {
-        "coordinates": "47.50004,-122.18671",
         "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
@@ -4319,7 +4314,7 @@
         "region": "desmoines",
         "guild": "471452588127289347,471174283133976598"
     },
-    "Evergreen Wings West": {  
+    "Evergreen Wings West": {
         "coordinates": "47.43455,-122.30911",
         "region": "desmoines",
         "guild": "471452588127289347,471174283133976598"
@@ -5369,7 +5364,7 @@
         "region": "kent",
         "guild": "471452588127289347,471174283133976598"
     },
-    "Get $100 In Pok\u00c3\u00a9Coins Free": {
+    "Get $100 In PokeCoins Free": {
         "coordinates": "47.39312,-122.29685",
         "region": "desmoines",
         "guild": "471452588127289347,471174283133976598"
@@ -6249,7 +6244,7 @@
         "region": "kent",
         "guild": "471452588127289347,471174283133976598"
     },
-    "Boost Pok\u00c3\u00a9Stop": {
+    "Boost PokeStop - Des Moines": {
         "coordinates": "47.3716,-122.30061",
         "region": "desmoines",
         "guild": "471452588127289347,471174283133976598"
@@ -6355,11 +6350,11 @@
         "guild": "471452588127289347,471174283133976598"
     },
     "Morrill Meadows Off-Leash Dog Area": {
-      "coordinate": "47.37982,-122.19694",
-      "region": "kent",
-      "guild": "471452588127289347,471174283133976598"
+        "coordinates": "47.37982,-122.19694",
+        "region": "kent",
+        "guild": "471452588127289347,471174283133976598"
     },
-    "Kingdom Hall of Jehovah's Witnesses": {
+    "Kingdom Hall of Jehovah's Witnesses - Des Moines": {
         "coordinates": "47.35703,-122.31341",
         "region": "desmoines",
         "guild": "471452588127289347,471174283133976598"
@@ -8439,7 +8434,7 @@
         "region": "burien",
         "guild": "471452588127289347,471174283133976598"
     },
-    "Kingdom Hall of Jehovah's Witnesses": {
+    "Kingdom Hall of Jehovah's Witnesses - Burien": {
         "coordinates": "47.45329,-122.33226",
         "region": "burien",
         "guild": "471452588127289347,471174283133976598"
@@ -8849,7 +8844,7 @@
         "region": "burien",
         "guild": "471452588127289347,471174283133976598"
     },
-    "Boost Pok\u00e9Stop": {
+    "Boost PokeStop - Tukwila": {
         "coordinates": "47.47401,-122.28521",
         "region": "tukwila",
         "guild": "471452588127289347,471174283133976598"
