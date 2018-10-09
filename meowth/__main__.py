@@ -7505,6 +7505,7 @@ async def _get_raid_listing_messages(channel, region=None):
         end = now + datetime.timedelta(seconds=rc_d[r]['exp'] - time.time())
         output = ''
         start_str = ''
+        t_emoji=''
         ctx_herecount = 0
         ctx_comingcount = 0
         ctx_maybecount = 0
@@ -7527,11 +7528,13 @@ async def _get_raid_listing_messages(channel, region=None):
         starttime = rc_d[r].get('starttime',None)
         meetup = rc_d[r].get('meetup',{})
         if starttime and starttime > now and not meetup:
-            start_str = _(' Next group: **{}**').format(starttime.strftime(_('%I:%M %p (%H:%M)')))
+            start_str = _(' **Starts**: *{}*').format(starttime.strftime(_('%I:%M%p')))
         else:
             starttime = False
         if rc_d[r]['egglevel'].isdigit() and (int(rc_d[r]['egglevel']) > 0):
             expirytext = _(' - Hatches: {expiry}{is_assumed}').format(expiry=end.strftime(_('%I:%M %p (%H:%M)')), is_assumed=assumed_str)
+            t_emojis={1:'1️⃣', 2:'2️⃣', 3:'3️⃣', 4:'4️⃣', 5:'5️⃣'}
+            t_emoji = t_emojis[int(rc_d[r]['egglevel'])]
         elif ((rc_d[r]['egglevel'] == 'EX') or (rc_d[r]['type'] == 'exraid')) and not meetup:
             expirytext = _(' - Hatches: {expiry}{is_assumed}').format(expiry=end.strftime(_('%B %d at %I:%M %p (%H:%M)')), is_assumed=assumed_str)
         elif meetup:
@@ -7545,8 +7548,8 @@ async def _get_raid_listing_messages(channel, region=None):
             if not meetupstart and not meetupend:
                 expirytext = _(' - Starts: {expiry}{is_assumed}').format(expiry=end.strftime(_('%B %d at %I:%M %p (%H:%M)')), is_assumed=assumed_str)
         else:
-            expirytext = _(' - Expiry: {expiry}{is_assumed}').format(expiry=end.strftime(_('%I:%M %p (%H:%M)')), is_assumed=assumed_str)
-        output += _('\t{raidchannel}{expiry_text} ({total_count} players)\n').format(raidchannel=rchan.mention, expiry_text=expirytext, total_count=sum([ctx_maybecount, ctx_comingcount, ctx_herecount, ctx_lobbycount]))
+            expirytext = _(' - **Expires**: {expiry}{is_assumed}').format(expiry=end.strftime(_('%I:%M%p')), is_assumed=assumed_str)
+            output += _('\t{tier}{raidchannel}{expiry_text} ({interestcount}/{comingcount}/{herecount}/{lobbycount}) {starttime}\n').format(tier=t_emoji,raidchannel=rchan.mention, expiry_text=expirytext, interestcount=ctx_maybecount, comingcount=ctx_comingcount, herecount=ctx_herecount, lobbycount=ctx_lobbycount, starttime=start_str)
         #output += _('\t{interestcount} interested, {comingcount} coming, {herecount} here, {lobbycount} in the lobby.{start_str}\n').format(raidchannel=rchan.mention, interestcount=ctx_maybecount, comingcount=ctx_comingcount, herecount=ctx_herecount, lobbycount=ctx_lobbycount, start_str=start_str)
         return output
     
@@ -7564,7 +7567,7 @@ async def _get_raid_listing_messages(channel, region=None):
         return listmsg
 
     if activeraidnum:
-        listmsg += _("**Here's the current channels for {0}**\n\n").format(cty.capitalize())
+        listmsg += _("**Current eggs and raids reported in {0}**\n\n").format(cty.capitalize())
         if raid_dict:
             listmsg += process_category(listmsg_list, "Active Raids", [r for (r, __) in sorted(raid_dict.items(), key=itemgetter(1))])
         if egg_dict:
