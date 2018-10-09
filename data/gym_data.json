@@ -3298,14 +3298,14 @@
         "ex_eligible": false,
         "region": "kent",
         "guild": "471452588127289347,471174283133976598",
-        "notes": "Limited parking and somewhat dangerous getting in and out of traffic when driving there."
+        "notes": ["Limited parking and somewhat dangerous getting in and out of traffic when driving there."]
     },
     "Upper Soos Creek Trail": {
         "coordinates": "47.386188,-122.143279",
         "ex_eligible": false,
         "region": "kent",
         "guild": "471452588127289347,471174283133976598",
-        "notes": "If you're driving there, forget about it. No parking and dangerous corner."
+        "notes": ["If you're driving there, forget about it. No parking and dangerous corner."]
     },
     "St George Episcopal Memorial Garden": {
         "coordinates": "47.384204,-122.04893",

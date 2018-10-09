@@ -42,7 +42,7 @@ class Tutorial:
             }
 
     async def sub_tutorial(self, ctx, config):
-        report_channels = config['subscriptions']['report_channels']['report_channels']
+        report_channels = config['subscriptions']['report_channels']
         report_channels.append(ctx.tutorial_channel.id)
 
         await ctx.tutorial_channel.send(
@@ -124,6 +124,10 @@ class Tutorial:
 
             return False
 
+        # clean up by removing tutorial from report channel config
+        finally:
+            report_channels.remove(ctx.tutorial_channel.id)
+
         await ctx.tutorial_channel.send(
             "Now you know all about how to subscribe to notifications "
             "for the Pokemon you want! Here's a quick recap:\n"
@@ -136,10 +140,6 @@ class Tutorial:
             "You can see all of the options for this command by "
             f"using **{ctx.prefix}help subscribe**")
         await asyncio.sleep(10)
-
-        # clean up by removing tutorial from report channel config
-        finally:
-            report_channels.remove(ctx.tutorial_channel.id)
 
         return True
 
