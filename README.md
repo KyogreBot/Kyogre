@@ -149,3 +149,14 @@ python3 launcher.py -d
 ```bash
 python3 launcher.py -r
 ```
+
+### Running the docker image
+```bash
+docker build -t kyogre .
+
+docker run -d \
+--name kyogre \
+-v ${CONFIG_FULL_PATH}:/src/config.json \
+-v ${KYOGRE_DB_FULL_PATH}:/data/kyogre.db \
+kyogre
+```
