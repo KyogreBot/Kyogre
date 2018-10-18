@@ -426,7 +426,7 @@
     },
     {
         "id": 29,
-        "name": "nidoran\u00e2\u2122\u20ac",
+        "name": "nidoran female",
         "legendary": false,
         "mythical": false,
         "shiny": false,
@@ -469,7 +469,7 @@
     },
     {
         "id": 32,
-        "name": "nidoran\u00e2\u2122\u201a",
+        "name": "nidoran male",
         "legendary": false,
         "mythical": false,
         "shiny": false,
@@ -5666,7 +5666,7 @@
                 "Grass"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 388,
@@ -5680,7 +5680,7 @@
                 "Grass"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 389,
@@ -5695,7 +5695,7 @@
                 "Ground"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 390,
@@ -5709,7 +5709,7 @@
                 "Fire"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 391,
@@ -5724,7 +5724,7 @@
                 "Fighting"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 392,
@@ -5739,7 +5739,7 @@
                 "Fighting"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 393,
@@ -5753,7 +5753,7 @@
                 "Water"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 394,
@@ -5767,7 +5767,7 @@
                 "Water"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 395,
@@ -5782,7 +5782,7 @@
                 "Steel"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 396,
@@ -5797,7 +5797,7 @@
                 "Flying"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 397,
@@ -5812,7 +5812,7 @@
                 "Flying"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 398,
@@ -5827,7 +5827,7 @@
                 "Flying"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 399,
@@ -5841,7 +5841,7 @@
                 "Normal"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 400,
@@ -5856,7 +5856,7 @@
                 "Water"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 401,
@@ -5870,7 +5870,7 @@
                 "Bug"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 402,
@@ -5884,7 +5884,7 @@
                 "Bug"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 403,
@@ -5898,7 +5898,7 @@
                 "Electric"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 404,
@@ -5912,7 +5912,7 @@
                 "Electric"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 405,
@@ -5926,7 +5926,7 @@
                 "Electric"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 406,
@@ -6102,7 +6102,7 @@
                 "Electric"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 418,
@@ -6245,7 +6245,7 @@
                 "Normal"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 428,
@@ -6259,7 +6259,7 @@
                 "Normal"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 429,
@@ -6448,7 +6448,7 @@
                 "Flying"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 442,
@@ -6536,7 +6536,7 @@
                 "Fighting"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 448,
@@ -6551,7 +6551,7 @@
                 "Steel"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 449,
@@ -6653,7 +6653,7 @@
                 "Grass"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 456,
@@ -9741,7 +9741,7 @@
     },
     {
         "id": 669,
-        "name": "flab\u00c3\u00a9b\u00c3\u00a9",
+        "name": "flabebe",
         "legendary": false,
         "mythical": false,
         "shiny": false,
@@ -11672,7 +11672,7 @@
         "id": 801,
         "name": "magearna",
         "legendary": false,
-        "mythical": false,
+        "mythical": true,
         "shiny": false,
         "alolan": false,
         "types": {
@@ -11687,7 +11687,7 @@
         "id": 802,
         "name": "marshadow",
         "legendary": false,
-        "mythical": false,
+        "mythical": true,
         "shiny": false,
         "alolan": false,
         "types": {
@@ -11697,5 +11697,79 @@
             ]
         },
         "released": false
+    },
+    {
+        "id": 803,
+        "name": "poipole",
+        "legendary": false,
+        "mythical": false,
+        "shiny": false,
+        "alolan": false,
+        "types": {
+            "default": [
+                "Poison"
+            ]
+        },
+        "released": false
+    },
+    {
+        "id": 804,
+        "name": "naganadel",
+        "legendary": false,
+        "mythical": false,
+        "shiny": false,
+        "alolan": false,
+        "types": {
+            "default": [
+                "Poison",
+                "Dragon"
+            ]
+        },
+        "released": false
+    },
+    {
+        "id": 805,
+        "name": "stakataka",
+        "legendary": false,
+        "mythical": false,
+        "shiny": false,
+        "alolan": false,
+        "types": {
+            "default": [
+                "Rock",
+                "Steel"
+            ]
+        },
+        "released": false
+    },
+    {
+        "id": 806,
+        "name": "blacephalon",
+        "legendary": false,
+        "mythical": false,
+        "shiny": false,
+        "alolan": false,
+        "types": {
+            "default": [
+                "Fire",
+                "Ghost"
+            ]
+        },
+        "released": false
+    },
+    {
+        "id": 807,
+        "name": "zeraora",
+        "legendary": false,
+        "mythical": true,
+        "shiny": false,
+        "alolan": false,
+        "types": {
+            "default": [
+                "Electric"
+            ]
+        },
+        "released": false
     }
+    
 ]
