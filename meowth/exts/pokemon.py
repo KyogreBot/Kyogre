@@ -350,6 +350,7 @@ class Pokemon():
             detected_forms.append(c)
             argument = argument.replace(c, '').strip()
 
+        # this logic will fail for pokemon with multiple word name (e.g. Tapu Koko et al)
         arg_split = argument.split()
         if len(arg_split) > 1:
             argument = arg_split[0]

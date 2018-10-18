@@ -4344,7 +4344,7 @@ async def _wild_internal(message, content):
     entered_wild, wild_details = content.split(' ', 1)
     pkmn = Pokemon.get_pokemon(Meowth, entered_wild if entered_wild.isdigit() else content)
     if not pkmn:
-        return
+        return await message.channel.send("Unable to find that pokemon. Please check the name and try again!")
     wild_number = pkmn.id
     wild_img_url = pkmn.img_url
     expiremsg = _('**This {pokemon} has despawned!**').format(pokemon=pkmn.full_name)

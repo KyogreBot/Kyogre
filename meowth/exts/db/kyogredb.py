@@ -74,7 +74,7 @@ class TeamTable(BaseModel):
         if not KyogreDB._db:
             return
         try:
-            cls.delete()
+            cls.delete().execute()
         except:
             pass
         with open('config.json', 'r') as f:
@@ -109,7 +109,7 @@ class PokemonTable(BaseModel):
         if not KyogreDB._db:
             return
         try:
-            cls.delete()
+            cls.delete().execute()
         except:
             pass
         with open('data/pkmn_data.json', 'r') as f:
@@ -133,7 +133,7 @@ class RegionTable(BaseModel):
         if not KyogreDB._db:
             return
         try:
-            cls.delete()
+            cls.delete().execute()
         except:
             pass
         with open('data/region_data.json', 'r') as f:
@@ -163,7 +163,7 @@ class LocationTable(BaseModel):
         if not KyogreDB._db:
             return
         try:
-            cls.delete()
+            cls.delete().execute()
         except:
             pass
         def create_location(name, data):
@@ -228,7 +228,7 @@ class QuestTable(BaseModel):
         if not KyogreDB._db:
             return
         try:
-            cls.delete()
+            cls.delete().execute()
         except:
             pass
         with open('data/quest_data.json', 'r') as f:
