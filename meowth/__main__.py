@@ -4667,8 +4667,8 @@ async def _raidegg(message, content):
         gym = await location_match_prompt(message.channel, message.author.id, raid_details, gyms)
         if not gym:
             return await message.channel.send(_("I couldn't find a gym named '{0}'. Try again using the exact gym name!").format(raid_details))
-        raid_channel_ids = get_existing_Raid(message.guild, gym)
-        if raid_chanel_ids:
+        raid_channel_ids = get_existing_raid(message.guild, gym)
+        if raid_channel_ids:
             raid_channel = Meowth.get_channel(raid_channel_ids[0])
             return await message.channel.send(f"A raid has already been reported for {gym.name}. Coordinate in {raid_channel.mention}")
         raid_details = gym.name
@@ -5356,6 +5356,173 @@ async def _prompt_reward(ctx, quest, reward_type=None):
             return
         return f"{quantity} {reward_type.title()}"
 
+@Meowth.command(aliases=['event'])
+@checks.allowmeetupreport()
+async def meetup(ctx, *, location:commands.clean_content(fix_channel_mentions=True)=""):
+    """Report an upcoming event.
+
+    Usage: !meetup <location>
+    Meowth will insert the details (really just everything after the species name) into a
+    Google maps link and post the link to the same channel the report was made in.
+
+    Finally, Meowth will create a separate channel for the report, for the purposes of organizing the event."""
+    await _meetup(ctx, location)
+
+async def _meetup(ctx, location):
+    message = ctx.message
+    channel = message.channel
+    timestamp = (message.created_at + datetime.timedelta(hours=guild_dict[message.channel.guild.id]['configure_dict']['settings']['offset'])).strftime(_('%I:%M %p (%H:%M)'))
+    event_split = location.split()
+    if len(event_split) <= 0:
+        await channel.send(_('Give more details when reporting! Usage: **!meetup <location>**'))
+        return
+    raid_details = ' '.join(event_split)
+    raid_details = raid_details.strip()
+    raid_gmaps_link = create_gmaps_query(raid_details, message.channel, type="meetup")
+    raid_channel_name = _('meetup-')
+    raid_channel_name += sanitize_name(raid_details)
+    raid_channel_category = get_category(message.channel,"EX", category_type="meetup")
+    raid_channel = await message.guild.create_text_channel(raid_channel_name, overwrites=dict(message.channel.overwrites), category=raid_channel_category)
+    ow = raid_channel.overwrites_for(raid_channel.guild.default_role)
+    ow.send_messages = True
+    try:
+        await raid_channel.set_permissions(raid_channel.guild.default_role, overwrite = ow)
+    except (discord.errors.Forbidden, discord.errors.HTTPException, discord.errors.InvalidArgument):
+        pass
+    raid_img_url = 'https://raw.githubusercontent.com/klords/Kyogre/master/images/misc/meetup.png?cache=0'
+    raid_embed = discord.Embed(title=_('Click here for directions to the event!'), url=raid_gmaps_link, colour=message.guild.me.colour)
+    raid_embed.add_field(name=_('**Event Location:**'), value=raid_details, inline=True)
+    raid_embed.add_field(name='\u200b', value='\u200b', inline=True)
+    raid_embed.add_field(name=_('**Event Starts:**'), value=_('Set with **!starttime**'), inline=True)
+    raid_embed.add_field(name=_('**Event Ends:**'), value=_('Set with **!timerset**'), inline=True)
+    raid_embed.set_footer(text=_('Reported by {author} - {timestamp}').format(author=message.author.display_name, timestamp=timestamp), icon_url=message.author.avatar_url_as(format=None, static_format='jpg', size=32))
+    raid_embed.set_thumbnail(url=raid_img_url)
+    raidreport = await channel.send(content=_('Meetup reported by {member}! Details: {location_details}. Coordinate in {raid_channel}').format(member=message.author.display_name, location_details=raid_details, raid_channel=raid_channel.mention), embed=raid_embed)
+    await asyncio.sleep(1)
+    raidmsg = _("Meetup reported by {member} in {citychannel}! Details: {location_details}. Coordinate here!\n\nTo update your status, choose from the following commands: **!maybe**, **!coming**, **!here**, **!cancel**. If you are bringing more than one trainer/account, add in the number of accounts total, teams optional, on your first status update.\nExample: `!coming 5 2m 2v 1i`\n\nTo see the list of trainers who have given their status:\n**!list interested**, **!list coming**, **!list here** or use just **!list** to see all lists. Use **!list teams** to see team distribution.\n\nSometimes I'm not great at directions, but I'll correct my directions if anybody sends me a maps link or uses **!location new <address>**. You can see the location of the event by using **!location**\n\nYou can set the start time with **!starttime <MM/DD HH:MM AM/PM>** (you can also omit AM/PM and use 24-hour time) and access this with **!starttime**.\nYou can set the end time with **!timerset <MM/DD HH:MM AM/PM>** and access this with **!timer**.\n\nThis channel will be deleted five minutes after the timer expires.").format(member=message.author.display_name, citychannel=message.channel.mention, location_details=raid_details)
+    raidmessage = await raid_channel.send(content=raidmsg, embed=raid_embed)
+    await raidmessage.pin()
+    guild_dict[message.guild.id]['raidchannel_dict'][raid_channel.id] = {
+        'reportcity': channel.id,
+        'trainer_dict': {},
+        'exp': time.time() + (((60 * 60) * 24) * raid_info['raid_eggs']['EX']['hatchtime']),
+        'manual_timer': False,
+        'active': True,
+        'raidmessage': raidmessage.id,
+        'raidreport': raidreport.id,
+        'address': raid_details,
+        'type': 'egg',
+        'pokemon': '',
+        'egglevel': 'EX',
+        'meetup': {'start':None, 'end':None}
+    }
+    now = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[raid_channel.guild.id]['configure_dict']['settings']['offset'])
+    await raid_channel.send(content=_('Hey {member}, if you can, set the time that the event starts with **!starttime <date and time>** and also set the time that the event ends using **!timerset <date and time>**.').format(member=message.author.mention))
+    event_loop.create_task(expiry_check(raid_channel))
+
+async def _send_notifications_async(type, details, new_channel, exclusions=[]):
+    valid_types = ['raid', 'research', 'wild', 'nest']
+    if type not in valid_types:
+        return
+    guild = new_channel.guild
+    # get trainers
+    try:
+        results = (SubscriptionTable
+                        .select(SubscriptionTable.trainer, SubscriptionTable.target)
+                        .join(TrainerTable, on=(SubscriptionTable.trainer == TrainerTable.snowflake))
+                        .where((SubscriptionTable.type == type) | (SubscriptionTable.type == 'pokemon'))
+                        .where(TrainerTable.guild == guild.id)).execute()
+    except:
+        return
+    # group targets by trainer
+    trainers = set([s.trainer for s in results])
+    target_dict = {t: [s.target for s in results if s.trainer == t] for t in trainers}
+    regions = set(details.get('regions', []))
+    ex_eligible = details.get('ex-eligible', None)
+    tier = details.get('tier', None)
+    perfect = details.get('perfect', None)
+    pokemon_list = details.get('pokemon', [])
+    if not isinstance(pokemon_list, list):
+        pokemon_list = [pokemon_list]
+    location = details.get('location', None)
+    region_dict = guild_dict[guild.id]['configure_dict'].get('regions', None)
+    outbound_dict = {}
+    # build final dict
+    for trainer in target_dict:
+        if trainer in exclusions:
+            continue
+        if region_dict and region_dict.get('enabled', False):
+            matched_regions = [n for n, o in region_dict.get('info', {}).items() if o['role'] in [r.name for r in guild.get_member(trainer).roles]]
+            if regions and regions.isdisjoint(matched_regions):
+                continue
+        targets = target_dict[trainer]
+        descriptors = []
+        target_matched = False
+        if 'ex-eligible' in targets and ex_eligible:
+            target_matched = True
+            descriptors.append('ex-eligible')
+        if tier and tier in targets:
+            target_matched = True
+            descriptors.append('level {level}'.format(level=details['tier']))
+        pkmn_adj = ''
+        if perfect and 'perfect' in targets:
+            target_matched = True
+            pkmn_adj = 'perfect '
+        for pokemon in pokemon_list:
+            if pokemon.name in targets:
+                target_matched = True
+            full_name = pkmn_adj + pokemon.name
+            descriptors.append(full_name)
+        if not target_matched:
+            continue
+        description = ', '.join(descriptors)
+        start = 'An' if re.match(r'^[aeiou]', description, re.I) else 'A'
+        message = '**New {title_type}**! {start} {description} {type} at {location} has been reported! For more details, go to the {mention} channel!'.format(title_type=type.title(), start=start, description=description, type=type, location=location, mention=new_channel.mention)
+        outbound_dict[trainer] = {'discord_obj':guild.get_member(trainer), 'message':message}
+    pokemon_names = ' '.join([p.name for p in pokemon_list])
+    role_name = sanitize_name(f"{type} {pokemon_names} {location}".title())
+    return await _generate_role_notification_async(role_name, new_channel, outbound_dict)
+
+async def _generate_role_notification_async(role_name, channel, outbound_dict):
+    '''Generates and handles a temporary role notification in the new raid channel'''
+    if len(outbound_dict) == 0:
+        return
+    guild = channel.guild
+    # generate new role
+    temp_role = await guild.create_role(name=role_name, hoist=False, mentionable=True)
+    for trainer in outbound_dict.values():
+        await trainer['discord_obj'].add_roles(temp_role)
+    # send notification message in channel
+    obj = next(iter(outbound_dict.values()))
+    message = obj['message']
+    msg_obj = await channel.send(f'{temp_role.mention} {message}')
+    async def cleanup():
+        await asyncio.sleep(300)
+        await temp_role.delete()
+        await msg_obj.delete()
+    asyncio.ensure_future(cleanup())
+
+"""
+Data Management Commands
+"""
+
+@Meowth.group(name="reports")
+@commands.has_permissions(manage_guild=True)
+async def _reports(ctx):
+    """Report data management command"""
+    if ctx.invoked_subcommand == None:
+        raise commands.BadArgument()
+
+@_reports.command(name="list", aliases=["ls"])
+async def _reports_list(ctx, *, type, regions=''):
+    """Lists the current active reports of the specified type, optionally for one or more regions"""
+    valid_types = ['raid', 'research']
+    channel = ctx.channel
+    type = type.lower()
+    if type not in valid_types:
+        await channel.send(f"'{type}' is either invalid or unsupported. Please use one of the following: {', '.join(valid_types)}")
+    await ctx.channel.send(f"This is a {type} listing")
+
 @Meowth.group(name="quest")
 async def _quest(ctx):
     """Quest data management command"""
@@ -5531,151 +5698,6 @@ async def _rewards_remove(ctx, *, info):
     quest.save()
     await channel.send("Successfully removed reward from pool")
 
-@Meowth.command(aliases=['event'])
-@checks.allowmeetupreport()
-async def meetup(ctx, *, location:commands.clean_content(fix_channel_mentions=True)=""):
-    """Report an upcoming event.
-
-    Usage: !meetup <location>
-    Meowth will insert the details (really just everything after the species name) into a
-    Google maps link and post the link to the same channel the report was made in.
-
-    Finally, Meowth will create a separate channel for the report, for the purposes of organizing the event."""
-    await _meetup(ctx, location)
-
-async def _meetup(ctx, location):
-    message = ctx.message
-    channel = message.channel
-    timestamp = (message.created_at + datetime.timedelta(hours=guild_dict[message.channel.guild.id]['configure_dict']['settings']['offset'])).strftime(_('%I:%M %p (%H:%M)'))
-    event_split = location.split()
-    if len(event_split) <= 0:
-        await channel.send(_('Give more details when reporting! Usage: **!meetup <location>**'))
-        return
-    raid_details = ' '.join(event_split)
-    raid_details = raid_details.strip()
-    raid_gmaps_link = create_gmaps_query(raid_details, message.channel, type="meetup")
-    raid_channel_name = _('meetup-')
-    raid_channel_name += sanitize_name(raid_details)
-    raid_channel_category = get_category(message.channel,"EX", category_type="meetup")
-    raid_channel = await message.guild.create_text_channel(raid_channel_name, overwrites=dict(message.channel.overwrites), category=raid_channel_category)
-    ow = raid_channel.overwrites_for(raid_channel.guild.default_role)
-    ow.send_messages = True
-    try:
-        await raid_channel.set_permissions(raid_channel.guild.default_role, overwrite = ow)
-    except (discord.errors.Forbidden, discord.errors.HTTPException, discord.errors.InvalidArgument):
-        pass
-    raid_img_url = 'https://raw.githubusercontent.com/klords/Kyogre/master/images/misc/meetup.png?cache=0'
-    raid_embed = discord.Embed(title=_('Click here for directions to the event!'), url=raid_gmaps_link, colour=message.guild.me.colour)
-    raid_embed.add_field(name=_('**Event Location:**'), value=raid_details, inline=True)
-    raid_embed.add_field(name='\u200b', value='\u200b', inline=True)
-    raid_embed.add_field(name=_('**Event Starts:**'), value=_('Set with **!starttime**'), inline=True)
-    raid_embed.add_field(name=_('**Event Ends:**'), value=_('Set with **!timerset**'), inline=True)
-    raid_embed.set_footer(text=_('Reported by {author} - {timestamp}').format(author=message.author.display_name, timestamp=timestamp), icon_url=message.author.avatar_url_as(format=None, static_format='jpg', size=32))
-    raid_embed.set_thumbnail(url=raid_img_url)
-    raidreport = await channel.send(content=_('Meetup reported by {member}! Details: {location_details}. Coordinate in {raid_channel}').format(member=message.author.display_name, location_details=raid_details, raid_channel=raid_channel.mention), embed=raid_embed)
-    await asyncio.sleep(1)
-    raidmsg = _("Meetup reported by {member} in {citychannel}! Details: {location_details}. Coordinate here!\n\nTo update your status, choose from the following commands: **!maybe**, **!coming**, **!here**, **!cancel**. If you are bringing more than one trainer/account, add in the number of accounts total, teams optional, on your first status update.\nExample: `!coming 5 2m 2v 1i`\n\nTo see the list of trainers who have given their status:\n**!list interested**, **!list coming**, **!list here** or use just **!list** to see all lists. Use **!list teams** to see team distribution.\n\nSometimes I'm not great at directions, but I'll correct my directions if anybody sends me a maps link or uses **!location new <address>**. You can see the location of the event by using **!location**\n\nYou can set the start time with **!starttime <MM/DD HH:MM AM/PM>** (you can also omit AM/PM and use 24-hour time) and access this with **!starttime**.\nYou can set the end time with **!timerset <MM/DD HH:MM AM/PM>** and access this with **!timer**.\n\nThis channel will be deleted five minutes after the timer expires.").format(member=message.author.display_name, citychannel=message.channel.mention, location_details=raid_details)
-    raidmessage = await raid_channel.send(content=raidmsg, embed=raid_embed)
-    await raidmessage.pin()
-    guild_dict[message.guild.id]['raidchannel_dict'][raid_channel.id] = {
-        'reportcity': channel.id,
-        'trainer_dict': {},
-        'exp': time.time() + (((60 * 60) * 24) * raid_info['raid_eggs']['EX']['hatchtime']),
-        'manual_timer': False,
-        'active': True,
-        'raidmessage': raidmessage.id,
-        'raidreport': raidreport.id,
-        'address': raid_details,
-        'type': 'egg',
-        'pokemon': '',
-        'egglevel': 'EX',
-        'meetup': {'start':None, 'end':None}
-    }
-    now = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[raid_channel.guild.id]['configure_dict']['settings']['offset'])
-    await raid_channel.send(content=_('Hey {member}, if you can, set the time that the event starts with **!starttime <date and time>** and also set the time that the event ends using **!timerset <date and time>**.').format(member=message.author.mention))
-    event_loop.create_task(expiry_check(raid_channel))
-
-async def _send_notifications_async(type, details, new_channel, exclusions=[]):
-    valid_types = ['raid', 'research', 'wild', 'nest']
-    if type not in valid_types:
-        return
-    guild = new_channel.guild
-    # get trainers
-    try:
-        results = (SubscriptionTable
-                        .select(SubscriptionTable.trainer, SubscriptionTable.target)
-                        .join(TrainerTable, on=(SubscriptionTable.trainer == TrainerTable.snowflake))
-                        .where((SubscriptionTable.type == type) | (SubscriptionTable.type == 'pokemon'))
-                        .where(TrainerTable.guild == guild.id)).execute()
-    except:
-        return
-    # group targets by trainer
-    trainers = set([s.trainer for s in results])
-    target_dict = {t: [s.target for s in results if s.trainer == t] for t in trainers}
-    regions = set(details.get('regions', []))
-    ex_eligible = details.get('ex-eligible', None)
-    tier = details.get('tier', None)
-    perfect = details.get('perfect', None)
-    pokemon_list = details.get('pokemon', [])
-    if not isinstance(pokemon_list, list):
-        pokemon_list = [pokemon_list]
-    location = details.get('location', None)
-    region_dict = guild_dict[guild.id]['configure_dict'].get('regions', None)
-    outbound_dict = {}
-    # build final dict
-    for trainer in target_dict:
-        if trainer in exclusions:
-            continue
-        if region_dict and region_dict.get('enabled', False):
-            matched_regions = [n for n, o in region_dict.get('info', {}).items() if o['role'] in [r.name for r in guild.get_member(trainer).roles]]
-            if regions and regions.isdisjoint(matched_regions):
-                continue
-        targets = target_dict[trainer]
-        descriptors = []
-        target_matched = False
-        if 'ex-eligible' in targets and ex_eligible:
-            target_matched = True
-            descriptors.append('ex-eligible')
-        if tier and tier in targets:
-            target_matched = True
-            descriptors.append('level {level}'.format(level=details['tier']))
-        pkmn_adj = ''
-        if perfect and 'perfect' in targets:
-            target_matched = True
-            pkmn_adj = 'perfect '
-        for pokemon in pokemon_list:
-            if pokemon.name in targets:
-                target_matched = True
-            full_name = pkmn_adj + pokemon.name
-            descriptors.append(full_name)
-        if not target_matched:
-            continue
-        description = ', '.join(descriptors)
-        start = 'An' if re.match(r'^[aeiou]', description, re.I) else 'A'
-        message = '**New {title_type}**! {start} {description} {type} at {location} has been reported! For more details, go to the {mention} channel!'.format(title_type=type.title(), start=start, description=description, type=type, location=location, mention=new_channel.mention)
-        outbound_dict[trainer] = {'discord_obj':guild.get_member(trainer), 'message':message}
-    pokemon_names = ' '.join([p.name for p in pokemon_list])
-    role_name = sanitize_name(f"{type} {pokemon_names} {location}".title())
-    return await _generate_role_notification_async(role_name, new_channel, outbound_dict)
-
-async def _generate_role_notification_async(role_name, channel, outbound_dict):
-    '''Generates and handles a temporary role notification in the new raid channel'''
-    if len(outbound_dict) == 0:
-        return
-    guild = channel.guild
-    # generate new role
-    temp_role = await guild.create_role(name=role_name, hoist=False, mentionable=True)
-    for trainer in outbound_dict.values():
-        await trainer['discord_obj'].add_roles(temp_role)
-    # send notification message in channel
-    obj = next(iter(outbound_dict.values()))
-    message = obj['message']
-    msg_obj = await channel.send(f'{temp_role.mention} {message}')
-    async def cleanup():
-        await asyncio.sleep(300)
-        await temp_role.delete()
-        await msg_obj.delete()
-    asyncio.ensure_future(cleanup())
 
 @Meowth.command(name="refresh_listings", hidden=True)
 @commands.has_permissions(manage_guild=True)
@@ -7522,7 +7544,8 @@ async def _get_raid_listing_messages(channel, region=None):
         end = now + datetime.timedelta(seconds=rc_d[r]['exp'] - time.time())
         output = ''
         start_str = ''
-        t_emoji=''
+        t_emoji = ''
+        ex_eligibility = ''
         ctx_herecount = 0
         ctx_comingcount = 0
         ctx_maybecount = 0
@@ -7569,7 +7592,10 @@ async def _get_raid_listing_messages(channel, region=None):
         boss = Pokemon.get_pokemon(Meowth, rc_d[r].get('pokemon', ''))
         if not t_emoji and boss:
             t_emoji = str(boss.raid_level) + '\u20e3'
-        output += _('\t{tier}{raidchannel}{expiry_text} ({total_count} players){starttime}\n').format(tier=t_emoji,raidchannel=rchan.mention, expiry_text=expirytext, total_count=sum([ctx_maybecount, ctx_comingcount, ctx_herecount, ctx_lobbycount]), starttime=start_str)
+        gym = rc_d[r].get('gym', None)
+        if gym:
+            ex_eligibility = ' *EX-Eligible*' if gym.ex_eligible else ''
+        output += _('\t{tier}{raidchannel}{ex_eligibility}{expiry_text} ({total_count} players){starttime}\n').format(tier=t_emoji, raidchannel=rchan.mention, ex_eligibility=ex_eligibility, expiry_text=expirytext, total_count=sum([ctx_maybecount, ctx_comingcount, ctx_herecount, ctx_lobbycount]), starttime=start_str)
         return output
     
     def process_category(listmsg_list, category_title, category_list):

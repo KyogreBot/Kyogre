@@ -12,7 +12,6 @@ class Tutorial:
         self.bot = bot
 
     async def wait_for_cmd(self, tutorial_channel, newbie, command_name):
-
         # build check relevant to command
         def check(c):
             if not c.channel == tutorial_channel:
@@ -56,7 +55,7 @@ class Tutorial:
             f"Ex: `{ctx.prefix}sub add raid machamp`")
 
         try:
-            await self.wait_for_cmd(ctx.tutorial_channel, ctx.author, 'sub add')
+            await self.wait_for_cmd(ctx.tutorial_channel, ctx.author, 'add')
 
             # acknowledge and wait a second before continuing
             await ctx.tutorial_channel.send("Great job!")
@@ -83,7 +82,7 @@ class Tutorial:
             "Give it a try now!")
 
         try:
-            await self.wait_for_cmd(ctx.tutorial_channel, ctx.author, 'sub list')
+            await self.wait_for_cmd(ctx.tutorial_channel, ctx.author, 'list')
 
             # acknowledge and wait a second before continuing
             await ctx.tutorial_channel.send("Great job!")
@@ -108,7 +107,7 @@ class Tutorial:
             "Give it a try now!")
 
         try:
-            await self.wait_for_cmd(ctx.tutorial_channel, ctx.author, 'sub remove')
+            await self.wait_for_cmd(ctx.tutorial_channel, ctx.author, 'remove')
 
             # acknowledge and wait a second before continuing
             await ctx.tutorial_channel.send("Great job!")
@@ -525,7 +524,7 @@ class Tutorial:
         try:
 
             # start want tutorial
-            if 'sub' in enabled:
+            if 'subscriptions' in enabled:
                 completed = await self.sub_tutorial(ctx, cfg)
                 if not completed:
                     return
@@ -583,9 +582,9 @@ class Tutorial:
             await ctx.tutorial_channel.delete()
 
     @tutorial.command()
-    @checks.feature_enabled('sub')
+    @checks.feature_enabled('subscriptions')
     async def sub(self, ctx):
-        """Launches an tutorial session for the want feature.
+        """Launches a tutorial session for the subscription feature.
 
         Kyogre will create a private channel and initiate a
         conversation that walks you through the various commands
@@ -629,7 +628,7 @@ class Tutorial:
     @tutorial.command()
     @checks.feature_enabled('wild')
     async def wild(self, ctx):
-        """Launches an tutorial session for the wild feature.
+        """Launches a tutorial session for the wild feature.
 
         Kyogre will create a private channel and initiate a
         conversation that walks you through wild command."""
@@ -672,7 +671,7 @@ class Tutorial:
     @tutorial.command()
     @checks.feature_enabled('raid')
     async def raid(self, ctx):
-        """Launches an tutorial session for the raid feature.
+        """Launches a tutorial session for the raid feature.
 
         Kyogre will create a private channel and initiate a
         conversation that walks you through the raid commands."""
@@ -715,7 +714,7 @@ class Tutorial:
     @tutorial.command()
     @checks.feature_enabled('research')
     async def research(self, ctx):
-        """Launches an tutorial session for the research feature.
+        """Launches a tutorial session for the research feature.
 
         Kyogre will create a private channel and initiate a
         conversation that walks you through the research command."""
@@ -758,7 +757,7 @@ class Tutorial:
     @tutorial.command()
     @checks.feature_enabled('team')
     async def team(self, ctx):
-        """Launches an tutorial session for the team feature.
+        """Launches a tutorial session for the team feature.
 
         Kyogre will create a private channel and initiate a
         conversation that walks you through the team command."""
