@@ -3069,6 +3069,16 @@
         "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
+    "US Post Office Renton": {
+        "coordinates": "47.479091,-122.206341",
+        "region": "renton",
+        "guild": "471452588127289347,471174283133976598"
+    },
+    "Donkey Run Away from the Mines": {
+        "coordinates": "47.478326,-122.206879",
+        "region": "renton",
+        "guild": "471452588127289347,471174283133976598"
+    },
     "Waterline Surfer Bus Stop Art Installation": {
         "coordinates": "47.47303,-122.20824",
         "region": "renton",
@@ -3099,7 +3109,7 @@
         "region": "kent",
         "guild": "471452588127289347,471174283133976598"
     },
-    "New Life Church": {
+    "New Life Church kent": {
         "coordinates": "47.38549,-122.20057",
         "region": "kent",
         "guild": "471452588127289347,471174283133976598"
@@ -3276,6 +3286,16 @@
     },
     "Fire Pit": {
         "coordinates": "47.46534,-122.06804",
+        "region": "renton",
+        "guild": "471452588127289347,471174283133976598"
+    },
+    "New Life Church Sign": {
+        "coordinates": "47.465089,-122.137779",
+        "region": "renton",
+        "guild": "471452588127289347,471174283133976598"
+    },
+    "new life church renton": {
+        "coordinates": "47.46256,-122.139261",
         "region": "renton",
         "guild": "471452588127289347,471174283133976598"
     },
