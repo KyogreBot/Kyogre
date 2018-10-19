@@ -7,3 +7,4 @@ python-Levenshtein
 aiohttp
 peewee
 apsw
+PyNaCl
