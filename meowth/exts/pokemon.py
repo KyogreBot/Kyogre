@@ -131,9 +131,9 @@ class Pokemon():
         name = self.species.title()
         if self.form:
             if self.form in Pokemon._prefix_forms:
-                name = self.form.title() + name
+                name = f'{self.form.title()} {name}'
             else:
-                name = name + self.form.title()
+                name = f'{name} {self.form.title()}'
         if self.alolan:
             name = f'Alolan {name}' 
         if self.shiny:
