@@ -89,7 +89,7 @@ class Trade:
             icon=Trade.icon_url,
             fields={
                 "Wants":'\n'.join(wants),
-                "Offers": str(offered_pokemon)
+                "Offers": offered_pokemon.full_name
                 },
             inline=True,
             footer=lister.display_name,
@@ -104,8 +104,8 @@ class Trade:
             msg_colour=0x63b2f7,
             icon=Trade.icon_url,
             fields={
-                "You Offered": str(listed_pokemon),
-                "They Offer": str(offer)
+                "You Offered": listed_pokemon.full_name,
+                "They Offer": offer.full_name
                 },
             inline=True,
             footer=trader.display_name,
@@ -122,7 +122,7 @@ class Trade:
 
         offer_str = ("{lister} offers a {pkmn} up for trade!"
                      "").format(lister=ctx.author.display_name,
-                                pkmn=offered_pokemon)
+                                pkmn=offered_pokemon.full_name)
 
         instructions = "React to this message to make an offer!"
         cancel_inst = ("{lister} may cancel the trade with :stop_button:"
@@ -170,8 +170,9 @@ class Trade:
         return [Pokemon.get_pokemon(ctx, want) for want in self._data['wanted_pokemon']]
 
     async def make_offer(self, trader_id, pkmn):
+        pkmn = Pokemon.get_pokemon(self.bot, pkmn)
         offered_pokemon = await self.offered_pokemon()
-        self.offers[trader_id] = str(pkmn)
+        self.offers[trader_id] = pkmn.full_name
         trader = self.guild.get_member(trader_id)
         offer_embed = self.make_offer_embed(trader, offered_pokemon, pkmn)
 
@@ -179,7 +180,7 @@ class Trade:
             ("{} offers to trade their {} for your {}! "
              "React with :white_check_mark: to accept the offer or "
              ":negative_squared_cross_mark: to reject it!").format(
-                 trader.display_name, pkmn, offered_pokemon),
+                 trader.display_name, pkmn.full_name, offered_pokemon.full_name),
             embed=offer_embed)
 
         reaction, __ = await utils.ask(self.bot, offermsg, timeout=None)
@@ -208,9 +209,9 @@ class Trade:
             "completed! To reject or cancel this offer, react with "
             ":stop_button:").format(
                 self.lister.display_name,
-                offered_pokemon,
+                offered_pokemon.full_name,
                 trader.display_name,
-                offer)
+                offer.full_name)
 
         special_check = [
             offered_pokemon.shiny,
@@ -240,7 +241,7 @@ class Trade:
                 try:
                     await reject.send((
                         "{} accepted a competing offer for their {}."
-                        "").format(self.lister.display_name, offered_pokemon))
+                        "").format(self.lister.display_name, offered_pokemon.full_name))
                 except discord.HTTPException:
                     pass
 
@@ -301,7 +302,7 @@ class Trade:
                 trader.display_name, self.offers[offer_id]))
 
         offer_str = "{lister} offers a {pkmn} up for trade!".format(
-            lister=self.lister.display_name, pkmn=offered_pokemon)
+            lister=self.lister.display_name, pkmn=offered_pokemon.full_name)
 
         instructions = "React to this message to make an offer!"
         cancel_inst = "{lister} may cancel the trade with :stop_button:".format(
@@ -325,10 +326,10 @@ class Trade:
 
         await trader.send(
             "{} rejected your offer for their {}.".format(
-                self.lister.display_name, offered_pokemon))
+                self.lister.display_name, offered_pokemon.full_name))
 
         offer_str = "{lister} offers a {pkmn} up for trade!".format(
-            lister=self.lister.display_name, pkmn=offered_pokemon)
+            lister=self.lister.display_name, pkmn=offered_pokemon.full_name)
 
         instructions = "React to this message to make an offer!"
         cancel_inst = "{lister} may cancel the trade with :stop_button:".format(
@@ -352,7 +353,7 @@ class Trade:
 
             await reject.send(
                 "{} canceled their trade offer of {}".format(
-                    self.lister.display_name, offered_pokemon))
+                    self.lister.display_name, offered_pokemon.full_name))
 
         await self.close_trade()
 
@@ -416,7 +417,7 @@ class Trading:
 
         want_ask = await ctx.send(
             f"{ctx.author.display_name}, what Pokemon are you willing to accept "
-            f"in exchange for {str(pkmn)}?")
+            f"in exchange for {pkmn.full_name}?")
 
         def check(m):
             return m.author == ctx.author and m.channel == ctx.channel
@@ -434,7 +435,7 @@ class Trading:
 
         wants = map(str.strip, wants)
         wants = map(pkmn_convert, wants)
-        wants = [str(want) for want in wants]
+        wants = [want.full_name for want in wants]
 
         await Trade.create_trade(ctx, wants, pkmn)
 
