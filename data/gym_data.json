@@ -2117,7 +2117,19 @@
         "region": "renton",
         "guild": "387717261487505411,471452588127289347"
     },
-    "Skyway Water Tower": {
+    "Skyway Park Bowl": {
+        "coordinates": "47.496909,-122.246047",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "387717261487505411,471452588127289347"
+    },
+    "Skyway Water Tower west": {
+        "coordinates": "47.492409,-122.248894",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "387717261487505411,471452588127289347"
+    },
+    "Skyway Water Tower east": {
         "coordinates": "47.490119,-122.230399",
         "ex_eligible": false,
         "region": "renton",
@@ -2216,7 +2228,7 @@
     "Skyway Library": {
         "coordinates": "47.490429,-122.238499",
         "ex_eligible": false,
-        "region": "tukwila",
+        "region": "renton",
         "guild": "387717261487505411,471452588127289347"
     },
     "Historic Site of Crestview School (1958-1976)": {
@@ -2228,7 +2240,7 @@
     "King County Fireman Statue": {
         "coordinates": "47.491398,-122.238126",
         "ex_eligible": false,
-        "region": "tukwila",
+        "region": "renton",
         "guild": "387717261487505411,471452588127289347"
     },
     "Days Inn Fountain": {
@@ -2357,10 +2369,28 @@
         "region": "tukwila",
         "guild": "387717261487505411,471452588127289347"
     },
-    "Alajawan Brown Memorial": {
+    "Stained Glass Cross": {
         "coordinates": "47.487415,-122.257871",
         "ex_eligible": false,
-        "region": "tukwila",
+        "region": "renton",
+        "guild": "387717261487505411,471452588127289347"
+    },
+    "St. Luke's Lutheran Church": {
+        "coordinates": "47.503895,-122.265224",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "387717261487505411,471452588127289347"
+    },
+    "Alajawan Brown Memorial": {
+        "coordinates": "47.502477,-122.238368",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "387717261487505411,471452588127289347"
+    },
+    "Wat Lao Mixayaram": {
+        "coordinates": "47.502477,-122.238368",
+        "ex_eligible": false,
+        "region": "renton",
         "guild": "387717261487505411,471452588127289347"
     },
     "The Glow Towers": {
@@ -2384,7 +2414,7 @@
     "Skyway Outdoor Cinema Mural": {
         "coordinates": "47.490209,-122.237803",
         "ex_eligible": false,
-        "region": "tukwila",
+        "region": "renton",
         "guild": "387717261487505411,471452588127289347"
     },
     "Cascade Community Pavillion": {
