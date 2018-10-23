@@ -138,7 +138,7 @@ class Trade:
 
         trade = cls(
             ctx.bot, ctx.author.id, trade_msg.id, ctx.channel.id, ctx.guild.id,
-            wanted_pokemon, offered_pokemon
+            wanted_pokemon, offered_pokemon.full_name
         )
 
         ctx.bot.add_listener(trade.on_raw_reaction_add)
@@ -170,7 +170,6 @@ class Trade:
         return [Pokemon.get_pokemon(ctx, want) for want in self._data['wanted_pokemon']]
 
     async def make_offer(self, trader_id, pkmn):
-        pkmn = Pokemon.get_pokemon(self.bot, pkmn)
         offered_pokemon = await self.offered_pokemon()
         self.offers[trader_id] = pkmn.full_name
         trader = self.guild.get_member(trader_id)
