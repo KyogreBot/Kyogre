@@ -2093,7 +2093,7 @@
         "region": "renton",
         "guild": "471452588127289347"
     },
-    "Starbucks Union Ave": {
+    "Starbucks Renton Highlands": {
         "coordinates": "47.48895467,-122.1631391",
         "ex_eligible": true,
         "region": "renton",
@@ -2104,6 +2104,12 @@
         "ex_eligible": true,
         "region": "renton",
         "guild": "471452588127289347"
+    },
+    "Renton Sign": {
+        "coordinates": "47.467857,-122.233971",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "387717261487505411,471174283133976598"
     },
     "Starbucks Benson Fred Meyer": {
         "coordinates": "47.442903,-122.199249",
@@ -2171,14 +2177,20 @@
         "region": "tukwila",
         "guild": "471452588127289347"
     },
-    "Tukwila Pool": {
+    "Tukwila Pool 1": {
         "coordinates": "47.474265,-122.277658",
         "ex_eligible": false,
         "region": "tukwila",
         "guild": "471452588127289347"
     },
-    "Sweet Bones BBQ": {
-        "coordinates": "47.484477,-122.271168",
+    "Tukwila Pool 2": {
+        "coordinates": "47.474726,-122.277964",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "387717261487505411,471174283133976598"
+    },
+    "Foster Landing at Foster Homestead": {
+        "coordinates": "47.482126,-122.267457",
         "ex_eligible": false,
         "region": "tukwila",
         "guild": "471452588127289347"
@@ -2869,7 +2881,7 @@
     },
     "Cedar River Trail Public Gazebo": {
         "coordinates": "47.476165,-122.179815",
-        "ex_eligible": false,
+        "ex_eligible": true,
         "region": "renton",
         "guild": "471452588127289347"
     },
@@ -3143,8 +3155,8 @@
         "region": "covington",
         "guild": "471452588127289347"
     },
-    "Covington Community Church": {
-        "coordinates": "47.357248,-122.107975",
+    "Covington Post Office": {
+        "coordinates": "47.359774,-122.110653",
         "ex_eligible": false,
         "region": "covington",
         "guild": "471452588127289347"

@@ -485,6 +485,61 @@ class Tutorial:
 
         return True
 
+    async def region_tutorial(self, ctx):
+        await ctx.tutorial_channel.send(
+            f"On this server you can use the **{ctx.prefix}region** command to "
+            f"join and leave regions. Use **{ctx.prefix}region join** to list "
+            f"the regions available to join"
+            "Try it now:\n"
+            f"`{ctx.prefix}region join `")
+
+        try:
+            await self.wait_for_cmd(
+                ctx.tutorial_channel, ctx.author, 'join')
+
+            # acknowledge and wait a second before continuing
+            await ctx.tutorial_channel.send("Great job!")
+            await asyncio.sleep(1)
+
+        await ctx.tutorial_channel.send(
+            f"Once you've chosen a region to join, use **{ctx.prefix}region join** <region> "
+            f"to join.\n "
+            "Try it now:\n"
+            f"`{ctx.prefix}region join renton`")
+
+        try:
+            await self.wait_for_cmd(
+                ctx.tutorial_channel, ctx.author, 'join')
+
+            # acknowledge and wait a second before continuing
+            await ctx.tutorial_channel.send("Great job!")
+            await asyncio.sleep(1)
+
+        await ctx.tutorial_channel.send(
+            f"If you ever decide to leave a region, use **{ctx.prefix}region leave** <region> "
+            f"to join.\n "
+            "Try it now:\n"
+            f"`{ctx.prefix}region leave renton`")
+
+        try:
+            await self.wait_for_cmd(
+                ctx.tutorial_channel, ctx.author, 'leave')
+
+            # acknowledge and wait a second before continuing
+            await ctx.tutorial_channel.send("Great job!")
+            await asyncio.sleep(1)
+
+        # if no response for 5 minutes, close tutorial
+        except asyncio.TimeoutError:
+            await ctx.tutorial_channel.send(
+                f"You took too long to use the **{ctx.prefix}region** command! "
+                "This channel will be deleted in ten seconds.")
+            await asyncio.sleep(10)
+            await ctx.tutorial_channel.delete()
+            return False
+
+        return True
+
     @commands.group(invoke_without_command=True)
     async def tutorial(self, ctx):
         """Launches an interactive tutorial session for Kyogre.
@@ -523,7 +578,13 @@ class Tutorial:
 
         try:
 
-            # start want tutorial
+            # start region tutorial
+            if 'regions' in enabled:
+                completed = await self.region_tutorial(ctx)
+                if not completed:
+                    return
+
+            # start subscription tutorial
             if 'subscriptions' in enabled:
                 completed = await self.sub_tutorial(ctx, cfg)
                 if not completed:
@@ -567,10 +628,10 @@ class Tutorial:
                     return
 
             # start team
-            if 'team' in enabled:
-                completed = await self.team_tutorial(ctx)
-                if not completed:
-                    return
+            # if 'team' in enabled:
+            #     completed = await self.team_tutorial(ctx)
+            #     if not completed:
+            #         return
 
             # finish tutorial
             await ctx.tutorial_channel.send(
