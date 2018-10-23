@@ -199,14 +199,19 @@
         "region": "renton",
         "guild": "471452588127289347"
     },
-    "Renton Fire Department Station": {
-        "coordinates": "47.44161,-122.19649",
-        "region": "kent",
+    "Renton Fire Department Station benson": {
+        "coordinates": "47.441606,-122.196492",
+        "region": "renton",
+        "guild": "471452588127289347"
+    },
+    "Renton Fire Department Station fairwood": {
+        "coordinates": "47.442922,-122.143451",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Skyway Methodist Church": {
         "coordinates": "47.49738,-122.24689",
-        "region": null,
+        "region": renton,
         "guild": "471452588127289347"
     },
     "Wilbert Wedenoja Dedicated Bench": {
@@ -226,11 +231,6 @@
     },
     "Gitte Proctor": {
         "coordinates": "47.50474,-122.20543",
-        "region": "renton",
-        "guild": "471452588127289347"
-    },
-    "Seattle Car and Manufacturing - 1908": {
-        "coordinates": "47.48856,-122.1983",
         "region": "renton",
         "guild": "471452588127289347"
     },
@@ -4386,12 +4386,12 @@
     },
     "Lake Youngs Trail Marker": {
         "coordinates": "47.43722,-122.14375",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Nativity Church": {
         "coordinates": "47.44359,-122.15463",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Matheson Nature Preserve": {
@@ -4436,12 +4436,12 @@
     },
     "St. Thomas Orthodox Church": {
         "coordinates": "47.43397,-122.18417",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Trinity Baptist Church Bell Tower": {
         "coordinates": "47.43482,-122.1857",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "New Heights Christian Church": {
@@ -4456,7 +4456,7 @@
     },
     "Community Playground": {
         "coordinates": "47.43209,-122.18404",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Heron Painting": {
@@ -4486,7 +4486,7 @@
     },
     "September 11": {
         "coordinates": "47.44092,-122.22683",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Sun Dial": {
@@ -4501,7 +4501,7 @@
     },
     "Mossen Tree of Life": {
         "coordinates": "47.44339,-122.22557",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "The Pointe": {
@@ -4509,9 +4509,14 @@
         "region": "renton",
         "guild": "471452588127289347"
     },
+    "WSDOT Survey Monument Benson": {
+        "coordinates": "47.444013,-122.197204",
+        "region": "renton",
+        "guild": "471452588127289347"
+    },
     "Defend the Castle!": {
         "coordinates": "47.44403,-122.21925",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Right Lion": {
@@ -4636,17 +4641,17 @@
     },
     "Birth Fountain": {
         "coordinates": "47.44265,-122.21387",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Lifestream Fountain": {
         "coordinates": "47.44356,-122.21428",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Reflection Pool": {
         "coordinates": "47.44192,-122.21362",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Apogee Pub": {
@@ -4681,12 +4686,12 @@
     },
     "Boulevard Lane Park": {
         "coordinates": "47.43366,-122.17386",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Stone Fountain": {
         "coordinates": "47.44287,-122.13965",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "King County Park Boundary": {
@@ -4701,7 +4706,7 @@
     },
     "Deer Head Bus Stop": {
         "coordinates": "47.44122,-122.2133",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "WSDOT Survey Monument": {
@@ -4744,9 +4749,9 @@
         "region": "kent",
         "guild": "471452588127289347"
     },
-    "Elk Sculpture Twin Peaks  47.44206 -122.26022Metal Motorcycle": {
+    "Metal Motorcycle": {
         "coordinates": "47.43838,-122.06722",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Ponytail Ranch Sign": {
@@ -4756,12 +4761,12 @@
     },
     "Walking Trail to Shady Lake sign": {
         "coordinates": "47.43386,-122.11125",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Shady Lake Public Access Area": {
         "coordinates": "47.42804,-122.10692",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Lake Youngs Reservoir": {
@@ -4781,27 +4786,27 @@
     },
     "\"The Parks\" Neighborhood Community Park": {
         "coordinates": "47.43713,-122.11042",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Renton Christian Center": {
         "coordinates": "47.43838,-122.11809",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Lake Youngs Trail  Old Petrovitsky": {
         "coordinates": "47.43741,-122.12496",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Lake Desire Club House Sign": {
         "coordinates": "47.4403,-122.11179",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Lake Desire Community Club": {
         "coordinates": "47.43977,-122.11178",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Neptune's Soldier Sculpture": {
@@ -4816,17 +4821,17 @@
     },
     "The Playground": {
         "coordinates": "47.44092,-122.11928",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Petrovitsky Park": {
         "coordinates": "47.44121,-122.11983",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Spring Lake / Lake Desire Park - South": {
         "coordinates": "47.43688,-122.09425",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Maple Valley Presbyterian Church": {
@@ -4861,7 +4866,7 @@
     },
     "Carriage Wood Park": {
         "coordinates": "47.43812,-122.13662",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Shadow Lake Public Access Area": {
@@ -4901,7 +4906,7 @@
     },
     "Peak Trail Marker": {
         "coordinates": "47.4404,-122.09895",
-        "region": "kent",
+        "region": "renton",
         "guild": "471452588127289347"
     },
     "Nature Board   47.40746 -122.09516Jenkins Creek Park": {
