@@ -76,21 +76,26 @@ class Trade:
         return self.guild.get_member(self.lister_id)
 
     @staticmethod
-    def make_trade_embed(lister, wanted_pokemon, offered_pokemon):
+    def make_trade_embed(lister, wanted_pokemon, offered_pokemon, note=None):
         """Returns a formatted embed message with trade details."""
 
         wants = [
             f'{i+1}\u20e3: {pkmn}' for i, pkmn in enumerate(wanted_pokemon)
         ]
 
+        fields_obj = {
+                "Wants":'\n'.join(wants),
+                "Offers": offered_pokemon.full_name
+                }
+        
+        if note:
+            fields_obj["Note"] = note
+
         return utils.make_embed(
             title="Pokemon Trade - {}".format(lister.display_name),
             msg_colour=0x63b2f7,
             icon=Trade.icon_url,
-            fields={
-                "Wants":'\n'.join(wants),
-                "Offers": offered_pokemon.full_name
-                },
+            fields=fields_obj,
             inline=True,
             footer=lister.display_name,
             footer_icon=lister.avatar_url_as(format='png', size=256),
@@ -114,11 +119,11 @@ class Trade:
         )
 
     @classmethod
-    async def create_trade(cls, ctx, wanted_pokemon, offered_pokemon):
+    async def create_trade(cls, ctx, wanted_pokemon, offered_pokemon, note=None):
         """Creates a trade object and sends trade details in channel"""
 
         trade_embed = cls.make_trade_embed(
-            ctx.author, wanted_pokemon, offered_pokemon)
+            ctx.author, wanted_pokemon, offered_pokemon, note)
 
         offer_str = ("{lister} offers a {pkmn} up for trade!"
                      "").format(lister=ctx.author.display_name,
@@ -402,6 +407,7 @@ class Trading:
     @checks.allowtrade()
     async def trade(self, ctx, *, offer):
         """Create a trade listing."""
+        success_emoji = '✅'
 
         pkmn_convert = functools.partial(Pokemon.get_pokemon, ctx)
 
@@ -432,12 +438,35 @@ class Trading:
         await want_ask.delete()
         await want_reply.delete()
 
+        note = None
+
+        note_add_prompt = await ctx.send(
+            f"{ctx.author.display_name}, would you like to add a note to "
+            f"your offer posting?")
+
+        reaction, __ = await utils.ask(ctx.bot, note_add_prompt, ctx.author.id)
+        await note_add_prompt.delete()
+
+        if reaction.emoji == success_emoji:
+            note_ask = await ctx.send(
+                f"{ctx.author.display_name}, what note would you like to add?")
+            
+            try:
+                note_reply = await ctx.bot.wait_for('message', check=check, timeout=60)
+            except asyncio.TimeoutError:
+                await note_ask.delete()
+                return
+            
+            note = note_reply.content
+        
+            await note_ask.delete()
+            await note_reply.delete()
+        
         wants = map(str.strip, wants)
         wants = map(pkmn_convert, wants)
         wants = [want.full_name for want in wants]
 
-        await Trade.create_trade(ctx, wants, pkmn)
-
+        await Trade.create_trade(ctx, wants, pkmn, note)
 
 def setup(bot):
     bot.add_cog(Trading(bot))
