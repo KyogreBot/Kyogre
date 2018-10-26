@@ -485,25 +485,34 @@ class Tutorial:
 
         return True
 
-    async def region_tutorial(self, ctx):
+    async def region_tutorial(self, ctx, config):
+        report_channels = config['regions']['command_channels']
+        report_channels.append(ctx.tutorial_channel.id)
         await ctx.tutorial_channel.send(
             f"On this server you can use the **{ctx.prefix}region** command to "
             f"join and leave regions. Use **{ctx.prefix}region join** to list "
-            f"the regions available to join"
+            "the regions available to join"
             "Try it now:\n"
             f"`{ctx.prefix}region join `")
 
         try:
             await self.wait_for_cmd(
                 ctx.tutorial_channel, ctx.author, 'join')
-
             # acknowledge and wait a second before continuing
             await ctx.tutorial_channel.send("Great job!")
             await asyncio.sleep(1)
+        except asyncio.TimeoutError:
+            await ctx.tutorial_channel.send(
+                f"You took too long to use the **{ctx.prefix}region join** command! "
+                "This channel will be deleted in ten seconds.")
+            await asyncio.sleep(10)
+            report_channels.remove(ctx.tutorial_channel.id)
+            await ctx.tutorial_channel.delete()
+            return False
 
         await ctx.tutorial_channel.send(
             f"Once you've chosen a region to join, use **{ctx.prefix}region join** <region> "
-            f"to join.\n "
+            "to join.\n "
             "Try it now:\n"
             f"`{ctx.prefix}region join renton`")
 
@@ -514,10 +523,18 @@ class Tutorial:
             # acknowledge and wait a second before continuing
             await ctx.tutorial_channel.send("Great job!")
             await asyncio.sleep(1)
+        except asyncio.TimeoutError:
+            await ctx.tutorial_channel.send(
+                f"You took too long to use the **{ctx.prefix}region join** command! "
+                "This channel will be deleted in ten seconds.")
+            await asyncio.sleep(10)
+            report_channels.remove(ctx.tutorial_channel.id)
+            await ctx.tutorial_channel.delete()
+            return False
 
         await ctx.tutorial_channel.send(
             f"If you ever decide to leave a region, use **{ctx.prefix}region leave** <region> "
-            f"to join.\n "
+            "to join.\n "
             "Try it now:\n"
             f"`{ctx.prefix}region leave renton`")
 
@@ -528,16 +545,17 @@ class Tutorial:
             # acknowledge and wait a second before continuing
             await ctx.tutorial_channel.send("Great job!")
             await asyncio.sleep(1)
-
         # if no response for 5 minutes, close tutorial
         except asyncio.TimeoutError:
             await ctx.tutorial_channel.send(
-                f"You took too long to use the **{ctx.prefix}region** command! "
+                f"You took too long to use the **{ctx.prefix}region leave** command! "
                 "This channel will be deleted in ten seconds.")
             await asyncio.sleep(10)
+            report_channels.remove(ctx.tutorial_channel.id)
             await ctx.tutorial_channel.delete()
             return False
 
+        report_channels.remove(ctx.tutorial_channel.id)
         return True
 
     @commands.group(invoke_without_command=True)
@@ -580,7 +598,7 @@ class Tutorial:
 
             # start region tutorial
             if 'regions' in enabled:
-                completed = await self.region_tutorial(ctx)
+                completed = await self.region_tutorial(ctx, cfg)
                 if not completed:
                     return
 
