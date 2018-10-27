@@ -3918,6 +3918,7 @@ async def team(ctx,*,content):
                 await ctx.author.remove_roles(harmony)
             await ctx.author.add_roles(role)
             await ctx.channel.send(_('Added {member} to Team {team_name}! {team_emoji}').format(member=ctx.author.mention, team_name=role.name.capitalize(), team_emoji=parse_emoji(ctx.guild, config['team_dict'][entered_team])))
+            await ctx.author.send(_("Now that you've set your team, head to <#449654496168247296> to set up your desired regions"))
         except discord.Forbidden:
             await ctx.channel.send(_("I can't add roles!"))
 
