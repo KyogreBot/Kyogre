@@ -1416,7 +1416,7 @@ async def join(ctx, *, region_names: str = ''):
         response += f"\n\n{len(invalid_requests)} invalid roles detected:\n{', '.join(invalid_requests)}\n\n"
         response += f"Acceptable regions are: {', '.join(enabled_roles)}"
     resp = await channel.send(response)
-    await asyncio.sleep(10)
+    await asyncio.sleep(20)
     await resp.delete()
 
 @_region.command(name="leave")
@@ -1451,7 +1451,7 @@ async def _leave(ctx, *, region_names: str = ''):
         response += f"\n\n{len(invalid_requests)} invalid roles detected:\n{', '.join(invalid_requests)}\n\n"
         response += f"Acceptable regions are: {', '.join(enabled_roles)}"
     resp = await channel.send(response)
-    await asyncio.sleep(10)
+    await asyncio.sleep(20)
     await resp.delete()
                   
 def _user_region_list(action, author, enabled_roles):
@@ -1479,7 +1479,7 @@ async def _list(ctx):
     response = f"You have {len(active_roles)} active region roles:\n{', '.join(active_roles)}"
     await message.add_reaction('✅')
     resp = await channel.send(response)
-    await asyncio.sleep(15)
+    await asyncio.sleep(20)
     await resp.delete()
 
 @Meowth.group(name='set', case_insensitive=True)
@@ -4520,10 +4520,6 @@ async def _raid_internal(message, content):
     except (discord.errors.Forbidden, discord.errors.HTTPException, discord.errors.InvalidArgument):
         pass
     raid = discord.utils.get(message.guild.roles, name=raid_pokemon.species)
-    if raid == None:
-        roletest = ""
-    else:
-        roletest = _("{pokemon} - ").format(pokemon=raid.mention)
     raid_embed = discord.Embed(title=_('Click here for directions to the raid!'), url=raid_gmaps_link, colour=message.guild.me.colour)
     if gym:
         gym_info = _("**Name:** {0}\n**Notes:** {1}").format(raid_details, "_EX Eligible Gym_" if gym.ex_eligible else "N/A")
@@ -4537,7 +4533,7 @@ async def _raid_internal(message, content):
     report_embed = raid_embed
     raidreport = await message.channel.send(content=_('{pokemon} raid reported by {member}! Details: {location_details}. Coordinate in {raid_channel}').format(pokemon=str(raid_pokemon), member=message.author.display_name, location_details=raid_details, raid_channel=raid_channel.mention), embed=report_embed)
     await asyncio.sleep(1)
-    raidmsg = _("{roletest}{pokemon} raid reported by {member} in {citychannel}! Details: {location_details}. Coordinate here!\n\nClick the question mark reaction to get help on the commands that work in here.\n\nThis channel will be deleted five minutes after the timer expires.").format(roletest=roletest, pokemon=str(raid_pokemon), member=message.author.display_name, citychannel=message.channel.mention, location_details=raid_details)
+    raidmsg = _("{pokemon} raid reported by {member} in {citychannel}! Details: {location_details}. Coordinate here!\n\nClick the question mark reaction to get help on the commands that work in here.\n\nThis channel will be deleted five minutes after the timer expires.").format(pokemon=str(raid_pokemon), member=message.author.display_name, citychannel=message.channel.mention, location_details=raid_details)
     raidmessage = await raid_channel.send(content=raidmsg, embed=raid_embed)
     await raidmessage.add_reaction('\u2754')
     await raidmessage.pin()
@@ -4771,10 +4767,6 @@ async def _eggassume(args, raid_channel, author=None):
     oldembed = raid_message.embeds[0]
     raid_gmaps_link = oldembed.url
     raidrole = discord.utils.get(raid_channel.guild.roles, name=raid_pokemon.species)
-    if raidrole == None:
-        roletest = ""
-    else:
-        roletest = _("{pokemon} - ").format(pokemon=raidrole.mention)
     raid_embed = discord.Embed(title=_('Click here for directions to the coming raid!'), url=raid_gmaps_link, colour=raid_channel.guild.me.colour)
     gym = eggdetails.get('gym', None)
     if gym:
@@ -4801,7 +4793,7 @@ async def _eggassume(args, raid_channel, author=None):
         egg_report = egg_report.id
     except discord.errors.NotFound:
         egg_report = None
-    await raid_channel.send(_('{roletest}This egg will be assumed to be {pokemon} when it hatches!').format(roletest=roletest,pokemon=raid_pokemon.full_name))
+    await raid_channel.send(_('This egg will be assumed to be {pokemon} when it hatches!').format(pokemon=raid_pokemon.full_name))
     if str(egglevel) in guild_dict[raid_channel.guild.id]['configure_dict']['counters']['auto_levels']:
         ctrs_dict = await _get_generic_counters(raid_channel.guild, raid_pokemon, weather)
         ctrsmsg = "Here are the best counters for the raid boss in currently known weather conditions! Update weather with **!weather**. If you know the moveset of the boss, you can react to this message with the matching emoji and I will update the counters."
@@ -4887,10 +4879,6 @@ async def _eggtoraid(entered_raid, raid_channel, author=None):
         raidmsg = _("{pokemon} EX raid reported in {citychannel}! Details: {location_details}. Coordinate here{invitemsgstr2}!\n\nClick the question mark reaction to get help on the commands that work in here.\n\nThis channel will be deleted five minutes after the timer expires.").format(pokemon=entered_raid.capitalize(), citychannel=reportcitychannel.mention, location_details=egg_address, invitemsgstr2=invitemsgstr2)
     raid_channel_name = sanitize_name(pkmn.name.lower() + '_' + egg_address)
     raid = discord.utils.get(raid_channel.guild.roles, name=pkmn.species)
-    if raid == None:
-        roletest = ""
-    else:
-        roletest = _("{pokemon} - ").format(pokemon=raid.mention)
     raid_embed = discord.Embed(title=_('Click here for directions to the raid!'), url=raid_gmaps_link, colour=raid_channel.guild.me.colour)
     raid_embed.add_field(name=_('**Details:**'), value=_('{pokemon} ({pokemonnumber}) {type}').format(pokemon=pkmn.name, pokemonnumber=str(pkmn.id), type=types_to_str(raid_channel.guild, pkmn.types), inline=True))
     raid_embed.add_field(name=_('**Weaknesses:**'), value=_('{weakness_list}').format(weakness_list=types_to_str(raid_channel.guild, pkmn.weak_against)), inline=True)
@@ -4925,7 +4913,7 @@ async def _eggtoraid(entered_raid, raid_channel, author=None):
             except (discord.errors.NotFound, AttributeError):
                 continue
     trainers = ' ' + ', '.join(trainer_list) if trainer_list else ''
-    await raid_channel.send(content=_("{roletest}Trainers{trainer}: The raid egg has just hatched into a {pokemon} raid!\nIf you couldn't before, you're now able to update your status with **!coming** or **!here**. If you've changed your plans, use **!cancel**.").format(roletest=roletest,trainer=trainers, pokemon=entered_raid.title()), embed=raid_embed)
+    await raid_channel.send(content=_("Trainers{trainer}: The raid egg has just hatched into a {pokemon} raid!\nIf you couldn't before, you're now able to update your status with **!coming** or **!here**. If you've changed your plans, use **!cancel**.").format(trainer=trainers, pokemon=entered_raid.title()), embed=raid_embed)
     raid_details = {'pokemon': pkmn, 'tier': pkmn.raid_level, 'ex-eligible': False if eggdetails['gym'] is None else eggdetails['gym'].ex_eligible, 'location': eggdetails['address'], 'regions': eggdetails['regions']}
     await _send_notifications_async('raid', raid_details, raid_channel, [author] if author else [])
     for field in oldembed.fields:
