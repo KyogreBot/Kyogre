@@ -80,13 +80,13 @@
     "Boulevard Park Presbyterian Church": {
         "coordinates": "47.48883,-122.309035",
         "ex_eligible": false,
-        "region": "burien",
+        "region": "tukwila",
         "guild": "387717261487505411,471452588127289347"
     },
     "Fountain at SeaTac Highline Botanical Gardens": {
         "coordinates": "47.479249,-122.303475",
         "ex_eligible": true,
-        "region": "burien",
+        "region": "tukwila",
         "guild": "387717261487505411,471452588127289347"
     },
     "New Playground At Lakeview Park": {
@@ -98,7 +98,7 @@
     "Memorial Bench At Seatac Botanical Gardens": {
         "coordinates": "47.478719,-122.304054",
         "ex_eligible": false,
-        "region": "burien",
+        "region": "tukwila",
         "guild": "387717261487505411,471452588127289347"
     },
     "Eagle Scout Project": {
@@ -140,7 +140,7 @@
     "Sunset Playfield": {
         "coordinates": "47.479593,-122.312395",
         "ex_eligible": false,
-        "region": "burien",
+        "region": "tukwila",
         "guild": "387717261487505411,471452588127289347"
     },
     "Burien Eagles": {
@@ -170,7 +170,7 @@
     "North Seatac Park SW Entrance": {
         "coordinates": "47.481609,-122.313794",
         "ex_eligible": false,
-        "region": "burien",
+        "region": "tukwila",
         "guild": "387717261487505411,471452588127289347"
     },
     "Jacob Ambaum Park": {
@@ -212,7 +212,7 @@
     "Boulevard Park": {
         "coordinates": "47.488367,-122.30729",
         "ex_eligible": false,
-        "region": "burien",
+        "region": "tukwila",
         "guild": "387717261487505411,471452588127289347"
     },
     "Burien History Plaque": {
@@ -224,7 +224,7 @@
     "North SeaTac Disc Golf Course": {
         "coordinates": "47.481798,-122.307949",
         "ex_eligible": false,
-        "region": "burien",
+        "region": "tukwila",
         "guild": "387717261487505411,471452588127289347"
     },
     "Time Square Clock": {
