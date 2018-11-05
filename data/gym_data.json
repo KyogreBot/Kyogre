@@ -2927,6 +2927,12 @@
         "region": "renton",
         "guild": "387717261487505411,471452588127289347"
     },
+    "Boeing": {
+        "coordinates": "47.41921,-122.249791",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "387717261487505411,471452588127289347"
+    },
     "Mural at Cedar River Market": {
         "coordinates": "47.475164,-122.172671",
         "ex_eligible": false,
