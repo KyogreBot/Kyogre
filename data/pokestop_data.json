@@ -2604,6 +2604,11 @@
         "region": "renton",
         "guild": "387717261487505411,471174283133976598"
     },
+    "Historic Renton Hill Sign.": {
+        "coordinates": "47.478184,-122.203997",
+        "region": "renton",
+        "guild": "387717261487505411,471174283133976598"
+    },
     "Renton Clay Works - 1901": {
         "coordinates": "47.47953,-122.19779",
         "region": "renton",
@@ -4651,7 +4656,7 @@
     },
     "Elk Sculpture Twin Peaks": {
         "coordinates": "47.44206,-122.26022",
-        "region": "kent",
+        "region": "tukwila",
         "guild": "387717261487505411,471174283133976598"
     },
     "Welcome To City Of Seatac Sign": {
