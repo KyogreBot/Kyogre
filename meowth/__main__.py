@@ -3954,7 +3954,7 @@ async def leaderboard(ctx, type="total"):
     leaderboard = []
     rank = 1
     field_value = ""
-    typelist = ["total", "raids", "exraids", "wilds", "research", "eggs"]
+    typelist = ["total", "raids", "exraids", "wilds", "research", "eggs", "joined"]
     type = type.lower()
     if type not in typelist:
         await ctx.send(_("Leaderboard type not supported. Please select from: **total, raids, eggs, exraids, wilds, research**"))
@@ -3966,8 +3966,9 @@ async def leaderboard(ctx, type="total"):
         exraids = trainers[trainer].setdefault('ex_reports', 0)
         eggs = trainers[trainer].setdefault('egg_reports', 0)
         research = trainers[trainer].setdefault('research_reports', 0)
-        total_reports = raids + wilds + exraids + eggs + research
-        trainer_stats = {'trainer':trainer, 'total':total_reports, 'raids':raids, 'wilds':wilds, 'research':research, 'exraids':exraids, 'eggs':eggs}
+        joined = trainers[trainer].setdefault('raids_joined', 0)
+        total_reports = raids + wilds + exraids + eggs + research + joined
+        trainer_stats = {'trainer':trainer, 'total':total_reports, 'raids':raids, 'wilds':wilds, 'research':research, 'exraids':exraids, 'eggs':eggs, 'joined':joined}
         if trainer_stats[type] > 0 and user:
             leaderboard.append(trainer_stats)
     leaderboard = sorted(leaderboard,key= lambda x: x[type], reverse=True)[:10]
@@ -3984,6 +3985,8 @@ async def leaderboard(ctx, type="total"):
                 field_value += _("Wilds: **{wilds}** | ").format(wilds=trainer['wilds'])
             if guild_dict[ctx.guild.id]['configure_dict']['research']['enabled']:
                 field_value += _("Research: **{research}** | ").format(research=trainer['research'])
+            if guild_dict[ctx.guild.id]['configure_dict']['raid']['enabled']:
+                field_value += _("Raids Joined: **{joined}** | ").joined(research=trainer['joined'])
             embed.add_field(name=f"{rank}. {user.display_name} - {type.title()}: **{trainer[type]}**", value=field_value[:-3], inline=False)
             field_value = ""
             rank += 1
@@ -7382,6 +7385,9 @@ async def starting(ctx, team: str = ''):
                 ctx_startinglist.append(user.mention)
                 name_startinglist.append(f'**{user.display_name}**')
                 id_startinglist.append(trainer)
+        if ctx.trainer_dict[trainer]['status']['here']:
+            joined = guild_dict[ctx.guild.id].setdefault('trainers',{}).setdefault(trainer,{}).setdefault('joined',0) + 1
+            guild_dict[message.guild.id]['trainers'][trainer]['joined'] = joined
     if len(ctx_startinglist) == 0:
         starting_str = _("How can you start when there's no one waiting at this raid!?")
         await ctx.channel.send(starting_str)
