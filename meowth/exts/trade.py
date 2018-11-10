@@ -464,7 +464,7 @@ class Trading:
         
         wants = map(str.strip, wants)
         wants = map(pkmn_convert, wants)
-        wants = [want.full_name for want in wants]
+        wants = [want.full_name for want in wants if want]
 
         await Trade.create_trade(ctx, wants, pkmn, note)
 
