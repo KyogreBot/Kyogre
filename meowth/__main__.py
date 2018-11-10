@@ -8015,7 +8015,7 @@ async def _get_research_listing_messages(channel, region=None):
                 else:
                     listmsg_list.append(listmsg)
                     if current_category not in newmsg:
-                        newmsg = f"**({current_category} continued)"
+                        newmsg = f"**({current_category} continued)**"
                     listmsg = newmsg
                 questctr += 1
             except discord.errors.NotFound:
