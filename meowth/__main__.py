@@ -565,7 +565,7 @@ async def expiry_check(channel):
                                 egglevel = guild_dict[guild.id]['raidchannel_dict'][channel.id]['egglevel']
                                 if not pokemon and len(raid_info['raid_eggs'][egglevel]['pokemon']) == 1:
                                     pokemon = raid_info['raid_eggs'][egglevel]['pokemon'][0]
-                                elif not pokemon and egglevel == "5" and guild_dict[channel.guild.id]['configure_dict']['settings'].get('regional',None).lower() in raid_info['raid_eggs']["5"]['pokemon']:
+                                elif not pokemon and egglevel == "5" and guild_dict[channel.guild.id]['configure_dict']['settings'].get('regional','').lower() in raid_info['raid_eggs']["5"]['pokemon']:
                                     pokemon = str(Pokemon.get_pokemon(Meowth, guild_dict[channel.guild.id]['configure_dict']['settings']['regional']))
                                 if pokemon:
                                     logger.info(
@@ -764,7 +764,7 @@ async def channel_cleanup(loop=True):
                 if channelmatch == None:
                     # list channel for deletion from save data
                     dict_channel_delete.append(channelid)
-                    logger.info(log_str + " - DOESN'T EXIST IN DISCORD")
+                    logger.info(log_str + " - NOT IN DISCORD")
                 # otherwise, if meowth can still see the channel in discord
                 else:
                     logger.info(
@@ -4735,7 +4735,7 @@ async def _raidegg(message, content):
             await raid_channel.send(content=_('Hey {member}, if you can, set the time left until the egg hatches using **!timerset <minutes>** so others can check it with **!timer**.').format(member=message.author.mention))
         if len(raid_info['raid_eggs'][egg_level]['pokemon']) == 1:
             await _eggassume('assume ' + raid_info['raid_eggs'][egg_level]['pokemon'][0], raid_channel)
-        elif egg_level == "5" and guild_dict[raid_channel.guild.id]['configure_dict']['settings'].get('regional',None).lower() in raid_info['raid_eggs']["5"]['pokemon']:
+        elif egg_level == "5" and guild_dict[raid_channel.guild.id]['configure_dict']['settings'].get('regional','').lower() in raid_info['raid_eggs']["5"]['pokemon']:
             await _eggassume('assume ' + guild_dict[raid_channel.guild.id]['configure_dict']['settings']['regional'], raid_channel)
         event_loop.create_task(expiry_check(raid_channel))
         egg_reports = guild_dict[message.guild.id].setdefault('trainers',{}).setdefault(message.author.id,{}).setdefault('egg_reports',0) + 1
@@ -5438,10 +5438,11 @@ async def _send_notifications_async(type, details, new_channel, exclusions=[]):
     outbound_dict = {}
     # build final dict
     for trainer in target_dict:
-        if trainer in exclusions:
+        user = guild.get_member(trainer)
+        if trainer in exclusions or not user:
             continue
         if region_dict and region_dict.get('enabled', False):
-            matched_regions = [n for n, o in region_dict.get('info', {}).items() if o['role'] in [r.name for r in guild.get_member(trainer).roles]]
+            matched_regions = [n for n, o in region_dict.get('info', {}).items() if o['role'] in [r.name for r in user.roles]]
             if regions and regions.isdisjoint(matched_regions):
                 continue
         targets = target_dict[trainer]
@@ -5467,7 +5468,7 @@ async def _send_notifications_async(type, details, new_channel, exclusions=[]):
         description = ', '.join(descriptors)
         start = 'An' if re.match(r'^[aeiou]', description, re.I) else 'A'
         message = '**New {title_type}**! {start} {description} {type} at {location} has been reported! For more details, go to the {mention} channel!'.format(title_type=type.title(), start=start, description=description, type=type, location=location, mention=new_channel.mention)
-        outbound_dict[trainer] = {'discord_obj':guild.get_member(trainer), 'message':message}
+        outbound_dict[trainer] = {'discord_obj': user, 'message': message}
     pokemon_names = ' '.join([p.name for p in pokemon_list])
     role_name = sanitize_name(f"{type} {pokemon_names} {location}".title())
     return await _generate_role_notification_async(role_name, new_channel, outbound_dict)
@@ -6505,7 +6506,7 @@ async def duplicate(ctx):
         return
 
 @Meowth.command()
-async def counters(ctx, *, args = None):
+async def counters(ctx, *, args=''):
     """Simulate a Raid battle with Pokebattler.
 
     Usage: !counters [pokemon] [weather] [user]
@@ -7147,7 +7148,7 @@ async def _edit_party(channel, author=None):
         for entry in raid_info['raid_eggs'][egglevel]['pokemon']:
             p = Pokemon.get_pokemon(Meowth, entry)
             boss_list.append(p)
-            boss_dict[p.name] = {"type": types_to_str(channel.guild.id, p.types), "total": 0}
+            boss_dict[p.name] = {"type": types_to_str(channel.guild, p.types), "total": 0}
     channel_dict = {"mystic":0,"valor":0,"instinct":0,"unknown":0,"maybe":0,"coming":0,"here":0,"total":0,"boss":0}
     team_list = ["mystic","valor","instinct","unknown"]
     status_list = ["maybe","coming","here"]
