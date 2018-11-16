@@ -3986,7 +3986,7 @@ async def leaderboard(ctx, type="total"):
             if guild_dict[ctx.guild.id]['configure_dict']['research']['enabled']:
                 field_value += _("Research: **{research}** | ").format(research=trainer['research'])
             if guild_dict[ctx.guild.id]['configure_dict']['raid']['enabled']:
-                field_value += _("Raids Joined: **{joined}** | ").format(research=trainer['joined'])
+                field_value += _("Raids Joined: **{joined}** | ").format(joined=trainer['joined'])
             embed.add_field(name=f"{rank}. {user.display_name} - {type.title()}: **{trainer[type]}**", value=field_value[:-3], inline=False)
             field_value = ""
             rank += 1
