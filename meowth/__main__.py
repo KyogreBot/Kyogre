@@ -4306,6 +4306,39 @@ async def _sub_list(ctx, *, content=None):
     await response.delete()
     await message.delete()
 
+@_sub.command(name="adminlist", aliases=["alist"])
+@commands.has_permissions(manage_guild=True)
+async def _sub_adminlist(ctx, *, trainer=None):
+    message = ctx.message
+    channel = message.channel
+    author = message.author
+    response_msg = ''
+
+    if not trainer:
+        response_msg = "Please provide a trainer id"
+        response = await channel.send(response_msg)
+        await asyncio.sleep(10)
+        await response.delete()
+        await message.delete()
+        return
+
+    await message.add_reaction('✅')
+    results = (SubscriptionTable
+            .select(SubscriptionTable.type, SubscriptionTable.target)
+            .join(TrainerTable, on=(SubscriptionTable.trainer == TrainerTable.snowflake))
+            .where(SubscriptionTable.trainer == trainer)
+            .where(TrainerTable.guild == ctx.guild.id))
+
+    results = results.execute()
+    subscriptions = {t: [s.target for s in results if s.type == t] for t in types}
+    
+    for sub in subscriptions:
+        subscription_msg += '**{category}**:\n\t{subs}\n\n'.format(category=sub.title(),subs='\n\t'.join(subscriptions[sub]))
+    if subscription_msg:
+        listmsg = _("Listing subscriptions for user with id {id}\n").format(id=trainer)
+        listmsg += _('Current subscriptions are:\n\n{subscriptions}').format(subscriptions=subscription_msg)
+    await author.send(listmsg)
+
 """
 Reporting
 """
