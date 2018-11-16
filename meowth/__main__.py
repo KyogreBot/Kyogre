@@ -7387,7 +7387,7 @@ async def starting(ctx, team: str = ''):
                 id_startinglist.append(trainer)
         if ctx.trainer_dict[trainer]['status']['here']:
             joined = guild_dict[ctx.guild.id].setdefault('trainers',{}).setdefault(trainer,{}).setdefault('joined',0) + 1
-            guild_dict[message.guild.id]['trainers'][trainer]['joined'] = joined
+            guild_dict[ctx.guild.id]['trainers'][trainer]['joined'] = joined
     if len(ctx_startinglist) == 0:
         starting_str = _("How can you start when there's no one waiting at this raid!?")
         await ctx.channel.send(starting_str)
