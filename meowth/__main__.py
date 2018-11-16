@@ -1398,7 +1398,7 @@ async def join(ctx, *, region_names: str = ''):
     response = ""
     region_info_dict = guild_dict[guild.id]['configure_dict']['regions']['info']
     enabled_roles = set([r.get('role', None) for r in region_info_dict.values()])
-    requested_roles = set([r for r in re.split(r'\s*,\s*', region_names.lower().strip()) if r])
+    requested_roles = set([r for r in re.split(r'\s*,\s*', region_names.lower().replace(" ", "")) if r])
     if not requested_roles:
         return await channel.send(_user_region_list("join", author, enabled_roles))
     valid_requests = requested_roles & enabled_roles
@@ -1477,6 +1477,7 @@ async def _list(ctx):
     user_roles = set([r.name for r in author.roles])
     active_roles = user_roles & enabled_roles
     response = f"You have {len(active_roles)} active region roles:\n{', '.join(active_roles)}"
+    response += f" Regions available to join are: {', '.join(set(active_roles).difference(enabled_roles)) or 'N/A'}"
     await message.add_reaction('✅')
     resp = await channel.send(response)
     await asyncio.sleep(20)
