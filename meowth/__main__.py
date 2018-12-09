@@ -4034,11 +4034,24 @@ def _get_subscription_command_error(content, subscription_types):
     
     return error_message
 
-def _parse_subscription_content(content):
+async def _parse_subscription_content(content, message = None):
     sub_list = []
     error_list = []
     raid_level_list = [str(n) for n in list(range(1, 6))]
     sub_type, target = content.split(' ', 1)
+
+    if sub_type == 'gym':
+        if message:
+            channel = message.channel
+            guild = message.guild
+            trainer = message.author.id
+            gyms = get_gyms(guild.id)
+            if gyms:
+                gym = await location_match_prompt(channel, trainer, target, gyms)
+            if not gym:
+                return await channel.send(_("No gym found with name '{0}'. Try again using the exact gym name!").format(target))
+            sub_list.append((sub_type, gym.name, gym.name))
+            return sub_list, error_list
 
     if sub_type == 'wild':
         perfect_pattern = r'((100(\s*%)?|perfect)(\s*ivs?\b)?)'
@@ -4066,7 +4079,7 @@ def _parse_subscription_content(content):
             for match in matches:
                 target.remove(match)
             sub_list.append((sub_type, 'ex-eligible', entry))
-        
+    
     for name in target:
         pkmn = Pokemon.get_pokemon(Meowth, name)
         if pkmn:
@@ -4092,7 +4105,7 @@ async def _sub_add(ctx, *, content):
     matching the details of your subscription.
     
     Valid types are: pokemon, raid, research, wild, and nest"""
-    subscription_types = ['pokemon','raid','research','wild','nest']
+    subscription_types = ['pokemon','raid','research','wild','nest','gym']
     message = ctx.message
     channel = message.channel
     guild = message.guild
@@ -4110,7 +4123,7 @@ async def _sub_add(ctx, *, content):
     error_list = []
     existing_list = []
     sub_list = []
-    candidate_list, error_list = _parse_subscription_content(content)
+    candidate_list, error_list = await _parse_subscription_content(content, message)
     guild_obj, __ = GuildTable.get_or_create(snowflake=guild.id)
     trainer_obj, __ = TrainerTable.get_or_create(snowflake=trainer, guild=guild.id)
 
@@ -4146,7 +4159,7 @@ async def _sub_remove(ctx,*,content):
 
     Usage: !sub remove <type> <target>
     You will no longer be notified of the specified target for the given event type."""
-    subscription_types = ['all','pokemon','raid','research','wild','nest']
+    subscription_types = ['all','pokemon','raid','research','wild','nest','gym']
     message = ctx.message
     channel = message.channel
     guild = message.guild
@@ -4186,20 +4199,20 @@ async def _sub_remove(ctx,*,content):
             return
         else:
             target = target.split(',')
-            for name in target:
-                pkmn = Pokemon.get_pokemon(Meowth, name)
-                if pkmn:
-                    candidate_list.append((sub_type, pkmn.name, pkmn.name))
-                else:
-                    error_list.append(name)
-            skip_parse = True
+            if sub_type == 'pokemon':
+                for name in target:
+                    pkmn = Pokemon.get_pokemon(Meowth, name)
+                    if pkmn:
+                        candidate_list.append((sub_type, pkmn.name, pkmn.name))
+                    else:
+                        error_list.append(name)
+            if sub_type != "gym":
+                skip_parse = True
     elif target == 'all':
         candidate_list.append((sub_type, target, target))
         skip_parse = True
-            
     if not skip_parse:
-        candidate_list, error_list = _parse_subscription_content(content)
-
+        candidate_list, error_list = await _parse_subscription_content(content, message)
     remove_count = 0
     for sub in candidate_list:
         s_type = sub[0]
@@ -5414,7 +5427,7 @@ async def _meetup(ctx, location):
     event_loop.create_task(expiry_check(raid_channel))
 
 async def _send_notifications_async(type, details, new_channel, exclusions=[]):
-    valid_types = ['raid', 'research', 'wild', 'nest']
+    valid_types = ['raid', 'research', 'wild', 'nest', 'gym']
     if type not in valid_types:
         return
     guild = new_channel.guild
@@ -5423,7 +5436,7 @@ async def _send_notifications_async(type, details, new_channel, exclusions=[]):
         results = (SubscriptionTable
                         .select(SubscriptionTable.trainer, SubscriptionTable.target)
                         .join(TrainerTable, on=(SubscriptionTable.trainer == TrainerTable.snowflake))
-                        .where((SubscriptionTable.type == type) | (SubscriptionTable.type == 'pokemon'))
+                        .where((SubscriptionTable.type == type) | (SubscriptionTable.type == 'pokemon') | (SubscriptionTable.type == 'gym'))
                         .where(TrainerTable.guild == guild.id)).execute()
     except:
         return
@@ -5435,6 +5448,7 @@ async def _send_notifications_async(type, details, new_channel, exclusions=[]):
     tier = details.get('tier', None)
     perfect = details.get('perfect', None)
     pokemon_list = details.get('pokemon', [])
+    gym = details.get('location', None)
     if not isinstance(pokemon_list, list):
         pokemon_list = [pokemon_list]
     location = details.get('location', None)
@@ -5467,6 +5481,8 @@ async def _send_notifications_async(type, details, new_channel, exclusions=[]):
                 target_matched = True
             full_name = pkmn_adj + pokemon.name
             descriptors.append(full_name)
+        if gym in targets:
+            target_matched = True
         if not target_matched:
             continue
         description = ', '.join(descriptors)
