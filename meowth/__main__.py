@@ -1188,7 +1188,6 @@ async def on_raw_reaction_add(payload):
         user = guild.get_member(payload.user_id)
     except AttributeError:
         return
-    guild = message.guild
     if channel.id in guild_dict[guild.id]['raidchannel_dict'] and user.id != Meowth.user.id:
         if message.id == guild_dict[guild.id]['raidchannel_dict'][channel.id].get('ctrsmessage',None):
             ctrs_dict = guild_dict[guild.id]['raidchannel_dict'][channel.id]['ctrs_dict']
@@ -1222,6 +1221,124 @@ async def on_raw_reaction_add(payload):
                         despawn = _("has despawned")
                         await channel.send(f"{', '.join(wild_dict['omw'])}: {wild_dict['pokemon'].title()} {despawn}!")
                     await expire_wild(message)
+
+    questreport_dict = guild_dict[guild.id].setdefault('questreport_dict', {})
+    if message.id in questreport_dict and user.id != Meowth.user.id:
+        quest_dict = guild_dict[guild.id]['questreport_dict'].get(message.id, None)
+        if quest_dict and quest_dict['reportauthor'] == payload.user_id:
+            if str(payload.emoji) == '\u270f':
+                await modify_research_report(payload)
+            elif str(payload.emoji) == '🚫':
+                try:
+                    await message.edit(embed=discord.Embed(description="Research report cancelled", colour=message.embeds[0].colour.value))
+                    await message.clear_reactions()
+                except discord.errors.NotFound:
+                    pass
+                del questreport_dict[message.id]
+                await _refresh_listing_channels_internal(guild, "research")
+
+async def modify_research_report(payload):
+    channel = Meowth.get_channel(payload.channel_id)
+    try:
+        message = await channel.get_message(payload.message_id)
+    except (discord.errors.NotFound, AttributeError):
+        return
+    guild = message.guild
+    try:
+        user = guild.get_member(payload.user_id)
+    except AttributeError:
+        return
+    questreport_dict = guild_dict[guild.id].setdefault('questreport_dict', {})
+    research_embed = discord.Embed(colour=message.guild.me.colour).set_thumbnail(url='https://raw.githubusercontent.com/klords/Kyogre/master/images/misc/field-research.png?cache=0')
+    research_embed.set_footer(text=_('Reported by {user}').format(user=user.display_name), icon_url=user.avatar_url_as(format=None, static_format='jpg', size=32))
+    config_dict = guild_dict[guild.id]['configure_dict']
+    regions = _get_channel_regions(channel, 'research')
+    stops = None
+    stops = get_stops(guild.id, regions)
+    prompt = 'Which item would you like to modify?'
+    choices_list = ['Pokestop','Task', 'Reward']
+    prompt_msg = await channel.send(prompt)
+    match = await utils.ask_list(Meowth, prompt, channel, choices_list, user_list=user.id)
+    await prompt_msg.delete()
+    if match in choices_list:
+        if match == choices_list[0]:
+            query_msg = await channel.send("What is the correct Pokestop?")
+            try:
+                pokestopmsg = await Meowth.wait_for('message', timeout=30, check=(lambda reply: reply.author == user))
+            except asyncio.TimeoutError:
+                pokestopmsg = None
+                await pokestopmsg.delete()
+            if not pokestopmsg:
+                error = _("took too long to respond")
+            elif pokestopmsg.clean_content.lower() == "cancel":
+                error = _("cancelled the report")
+                await pokestopmsg.delete()
+            elif pokestopmsg:
+                if stops:
+                    stop = await location_match_prompt(channel, user.id, pokestopmsg.clean_content, stops)
+                    if not stop:
+                        return await channel.send(_("I couldn't find a pokestop named '{0}'. Try again using the exact pokestop name!").format(location))
+                    if get_existing_research(guild, stop):
+                        return await channel.send(f"A quest has already been reported for {stop.name}")
+                    location = stop.name
+                    loc_url = stop.maps_url
+                    questreport_dict[message.id]['location'] = location
+                    questreport_dict[message.id]['url'] = loc_url
+                    await _refresh_listing_channels_internal(guild, "research")
+                    await channel.send("Research listing updated")
+                    await pokestopmsg.delete()
+                    await query_msg.delete()
+        elif match == choices_list[1]:
+            questwait = await channel.send("What is the correct research task?")
+            try:
+                questmsg = await Meowth.wait_for('message', timeout=30, check=(lambda reply: reply.author == user))
+            except asyncio.TimeoutError:
+                questmsg = None
+            await questwait.delete()
+            if not questmsg:
+                error = _("took too long to respond")
+            elif questmsg.clean_content.lower() == "cancel":
+                error = _("cancelled the report")
+                await questmsg.delete()
+            elif questmsg:
+                quest = await _get_quest_v(channel, user.id, questmsg.clean_content)
+                reward = await _prompt_reward_v(channel, user.id, quest)
+                if not reward:
+                    error = "didn't identify the reward"
+            if not quest:
+                error = "didn't identify the quest"
+            questreport_dict[message.id]['quest'] = quest.name
+            questreport_dict[message.id]['reward'] = reward
+            await _refresh_listing_channels_internal(guild, "research")
+            await questmsg.delete()
+        elif match == choices_list[2]:
+            rewardwait = await channel.send("What is the correct reward?")
+            quest = guild_dict[guild.id]['questreport_dict'].get(message.id, None)
+            quest = await _get_quest_v(channel, user.id, quest['quest'])
+            
+            reward = await _prompt_reward_v(channel, user.id, quest)
+            if not reward:
+                error = "didn't identify the reward"
+            questreport_dict[message.id]['reward'] = reward
+            await _refresh_listing_channels_internal(guild, "research")
+            await rewardwait.delete()
+        embed = message.embeds[0]
+        embed.clear_fields()
+        location = questreport_dict[message.id]['location']
+        name = questreport_dict[message.id]['quest']
+        reward = questreport_dict[message.id]['reward']
+        embed.add_field(name=_("**Pokestop:**"),value='\n'.join(textwrap.wrap(location.title(), width=30)),inline=True)
+        embed.add_field(name=_("**Quest:**"),value='\n'.join(textwrap.wrap(name.title(), width=30)),inline=True)
+        embed.add_field(name=_("**Reward:**"),value='\n'.join(textwrap.wrap(reward.title(), width=30)),inline=True)
+        await message.edit(content=message.content,embed=embed)
+        await message.clear_reactions()
+        await asyncio.sleep(0.25)
+        await message.add_reaction('\u270f')
+        await asyncio.sleep(0.25)
+        await message.add_reaction('🚫')
+        await asyncio.sleep(0.25)
+    else:
+        return
 
 """
 Admin Commands
@@ -5249,6 +5366,11 @@ async def research(ctx, *, details = None):
         research_embed.description = _("Ask {author} if my directions aren't perfect!").format(author=author.name)
         research_embed.url = loc_url
         confirmation = await channel.send(research_msg,embed=research_embed)
+        await asyncio.sleep(0.25)
+        await confirmation.add_reaction('\u270f')
+        await asyncio.sleep(0.25)
+        await confirmation.add_reaction('🚫')
+        await asyncio.sleep(0.25)
         research_dict = copy.deepcopy(guild_dict[guild.id].get('questreport_dict',{}))
         research_dict[confirmation.id] = {
             'regions': regions,
@@ -5279,14 +5401,17 @@ async def research(ctx, *, details = None):
         await message.delete()
 
 async def _get_quest(ctx, name):
+    channel = ctx.channel
+    author = ctx.message.author.id
+    return await _get_quest_v(channel, author, name)
+
+async def _get_quest_v(channel, author, name):
     """gets a quest by name. provided name can be an id instead"""
     if not name:
         return
     id = None
     if str(name).isnumeric():
         id = int(name)
-    channel = ctx.channel
-    message = ctx.message
     try:
         query = QuestTable.select()
         if id is not None:
@@ -5300,16 +5425,19 @@ async def _get_quest(ctx, name):
     quest_names = [q.name.lower() for q in result]
     if name.lower() not in quest_names:
         candidates = utils.get_match(quest_names, name, score_cutoff=60, isPartial=True, limit=20)
-        name = await prompt_match_result(channel, message.author.id, name, candidates)
+        name = await prompt_match_result(channel, author, name, candidates)
     return next((q for q in result if q.name.lower() == name.lower()), None)
 
 async def _prompt_reward(ctx, quest, reward_type=None):
+    channel = ctx.channel
+    author = ctx.message.author.id
+    return await _prompt_reward_v(channel, author, quest, reward_type)
+
+async def _prompt_reward_v(channel, author, quest, reward_type=None):
     """prompts user for reward info selection using quest's reward pool
     can optionally specify a start point with reward_type"""
     if not quest or not quest.reward_pool:
         return
-    channel = ctx.channel
-    message = ctx.message
     if reward_type:
         if not reward_type in quest.reward_pool:
             raise ValueError("Starting point provided is invalid")
@@ -5321,7 +5449,7 @@ async def _prompt_reward(ctx, quest, reward_type=None):
             reward_type = candidates[0]
         else:
             prompt = "Please select a reward type:"
-            reward_type = await utils.ask_list(Meowth, prompt, channel, candidates, user_list=message.author.id)
+            reward_type = await utils.ask_list(Meowth, prompt, channel, candidates, user_list=author)
     if not reward_type:
         return
     target_pool = quest.reward_pool[reward_type]
@@ -5335,7 +5463,7 @@ async def _prompt_reward(ctx, quest, reward_type=None):
         else:
             candidates = [k for k in target_pool]
             prompt = "Please select an item:"
-            reward_type = await utils.ask_list(Meowth, prompt, channel, candidates, user_list=message.author.id)
+            reward_type = await utils.ask_list(Meowth, prompt, channel, candidates, user_list=author)
             if not reward_type:
                 return
             target_pool = target_pool[reward_type]
@@ -5344,7 +5472,7 @@ async def _prompt_reward(ctx, quest, reward_type=None):
     else:
         candidates = [str(q) for q in target_pool]
         prompt = "Please select the correct quantity:"
-        quantity = await utils.ask_list(Meowth, prompt, channel, candidates, user_list=message.author.id)
+        quantity = await utils.ask_list(Meowth, prompt, channel, candidates, user_list=author)
         if not quantity:
             return
         return f"{quantity} {reward_type.title()}"
@@ -5699,6 +5827,11 @@ async def _refresh_listing_channels(ctx, type, *, regions=None):
     if regions:
         regions = [r.strip() for r in regions.split(',')]
     await _update_listing_channels(ctx.guild, type, edit=True, regions=regions)
+
+async def _refresh_listing_channels_internal(guild, type, *, regions=None):
+    if regions:
+        regions = [r.strip() for r in regions.split(',')]
+    await _update_listing_channels(guild, type, edit=True, regions=regions)
 
 async def _update_listing_channels(guild, type, edit=False, regions=None):
     valid_types = ['raid', 'research', 'wild', 'nest']
