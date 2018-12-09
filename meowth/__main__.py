@@ -456,7 +456,7 @@ async def create_raid_channel(raid_type, pkmn, level, details, report_channel):
         raid_channel_overwrite_list = report_channel.overwrites
         cat = get_category(report_channel, str(pkmn.raid_level), category_type=raid_type)
     elif raid_type == "egg":
-        name = _("level-{level}-egg-").format(level=str(level))
+        name = _("level-{level}-egg_").format(level=str(level))
         raid_channel_overwrite_list = report_channel.overwrites
         cat = get_category(report_channel, str(level), category_type=raid_type)
     meowth_overwrite = (Meowth.user, discord.PermissionOverwrite(send_messages=True, read_messages=True, manage_roles=True, manage_channels=True, manage_messages=True, add_reactions=True, external_emojis=True, read_message_history=True, embed_links=True, mention_everyone=True, attach_files=True))
@@ -5715,6 +5715,7 @@ async def _refresh_listing_channels(ctx, type, *, regions=None):
     if regions:
         regions = [r.strip() for r in regions.split(',')]
     await _update_listing_channels(ctx.guild, type, edit=True, regions=regions)
+    await ctx.message.add_reaction('\u2705')
 
 async def _update_listing_channels(guild, type, edit=False, regions=None):
     valid_types = ['raid', 'research', 'wild', 'nest']
@@ -6178,14 +6179,15 @@ async def new(ctx,*,content):
     Usage: !location new <new address>
     Works only in raid channels. Changes the google map links."""
     message = ctx.message
+    channel = message.channel
     location_split = content.lower().split()
     if len(location_split) < 1:
-        await message.channel.send(_("We're missing the new location details! Usage: **!location new <new address>**"))
+        await channel.send(_("We're missing the new location details! Usage: **!location new <new address>**"))
         return
     else:
-        report_channel = Meowth.get_channel(guild_dict[message.guild.id]['raidchannel_dict'][message.channel.id]['reportcity'])
+        report_channel = Meowth.get_channel(guild_dict[message.guild.id]['raidchannel_dict'][channel.id]['reportcity'])
         if not report_channel:
-            async for m in message.channel.history(limit=500, reverse=True):
+            async for m in channel.history(limit=500, reverse=True):
                 if m.author.id == message.guild.me.id:
                     c = _('Coordinate here')
                     if c in m.content:
@@ -6193,36 +6195,40 @@ async def new(ctx,*,content):
                         break
         details = ' '.join(location_split)
         config_dict = guild_dict[message.guild.id]['configure_dict']
-        regions = _get_channel_regions(message.channel, 'raid')
+        regions = _get_channel_regions(channel, 'raid')
         gym = None
         gyms = get_gyms(message.guild.id, regions)
         if gyms:
-            gym = await location_match_prompt(report_channel, message.author.id, details, gyms)
+            gym = await location_match_prompt(channel, message.author.id, details, gyms)
             if not gym:
-                return await message.channel.send(_("I couldn't find a gym named '{0}'. Try again using the exact gym name!").format(details))
+                return await channel.send(_("I couldn't find a gym named '{0}'. Try again using the exact gym name!").format(details))
             details = gym.name
             newloc = gym.maps_url
             regions = [gym.region]
         else:
             newloc = create_gmaps_query(details, report_channel, type="raid")
-        oldraidmsg = await message.channel.get_message(guild_dict[message.guild.id]['raidchannel_dict'][message.channel.id]['raidmessage'])
-        oldreportmsg = await report_channel.get_message(guild_dict[message.guild.id]['raidchannel_dict'][message.channel.id]['raidreport'])
+        oldraidmsg = await channel.get_message(guild_dict[message.guild.id]['raidchannel_dict'][channel.id]['raidmessage'])
+        oldreportmsg = await report_channel.get_message(guild_dict[message.guild.id]['raidchannel_dict'][channel.id]['raidreport'])
         oldembed = oldraidmsg.embeds[0]
         newembed = discord.Embed(title=oldembed.title, url=newloc, colour=message.guild.me.colour)
         for field in oldembed.fields:
             t = _('team')
             s = _('status')
             if (t not in field.name.lower()) and (s not in field.name.lower()):
-                newembed.add_field(name=field.name, value=field.value, inline=field.inline)
+                if "gym" in field.name.lower():
+                    gym_info = _("**Name:** {0}\n**Notes:** {1}").format(gym.name, "_EX Eligible Gym_" if gym.ex_eligible else "N/A")
+                    newembed.add_field(name=_('**Gym:**'), value=gym_info, inline=field.inline)
+                else:
+                    newembed.add_field(name=field.name, value=field.value, inline=field.inline)
         newembed.set_footer(text=oldembed.footer.text, icon_url=oldembed.footer.icon_url)
         newembed.set_thumbnail(url=oldembed.thumbnail.url)
         otw_list = []
-        trainer_dict = copy.deepcopy(guild_dict[message.guild.id]['raidchannel_dict'][message.channel.id]['trainer_dict'])
+        trainer_dict = copy.deepcopy(guild_dict[message.guild.id]['raidchannel_dict'][channel.id]['trainer_dict'])
         for trainer in trainer_dict.keys():
             if trainer_dict[trainer]['status']['coming']:
                 user = message.guild.get_member(trainer)
                 otw_list.append(user.mention)
-        await message.channel.send(content=_('Someone has suggested a different location for the raid! Trainers {trainer_list}: make sure you are headed to the right place!').format(trainer_list=', '.join(otw_list)), embed=newembed)
+        await channel.send(content=_('Someone has suggested a different location for the raid! Trainers {trainer_list}: make sure you are headed to the right place!').format(trainer_list=', '.join(otw_list)), embed=newembed)
         for field in oldembed.fields:
             t = _('team')
             s = _('status')
@@ -6236,12 +6242,18 @@ async def new(ctx,*,content):
             await oldreportmsg.edit(new_content=oldreportmsg.content, embed=newembed, content=oldreportmsg.content)
         except:
             pass
-        temp = guild_dict[message.guild.id]['raidchannel_dict'][message.channel.id]
+        temp = guild_dict[message.guild.id]['raidchannel_dict'][channel.id]
         temp['raidmessage'] = oldraidmsg.id
         temp['raidreport'] = oldreportmsg.id
         temp['gym'] = gym
+        temp['address'] = gym.name
         temp['regions'] = regions
-        guild_dict[message.guild.id]['raidchannel_dict'][message.channel.id] = temp
+        guild_dict[message.guild.id]['raidchannel_dict'][channel.id] = temp
+        channel_name = channel.name
+        channel_prefix = channel_name.split("_")[0]
+        new_channel_name = sanitize_name(channel_prefix + "_"+ gym.name)
+        await channel.edit(name=new_channel_name)
+        await _update_listing_channels(message.guild, "raid", True)
         return
 
 @Meowth.command()
