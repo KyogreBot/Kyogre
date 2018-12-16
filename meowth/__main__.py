@@ -4445,7 +4445,11 @@ async def _raid_internal(message, content):
         elif guild_dict[message.channel.guild.id]['raidchannel_dict'][message.channel.id]['active'] == False:
             await _eggtoraid(" ".join(raid_split).lower(), message.channel, message.author)
             return
-        else:
+        ## This is a hack but it allows users to report the just hatched boss before Kyogre catches up with hatching the egg.
+        elif guild_dict[message.guild.id]['raidchannel_dict'][message.channel.id]['exp'] - 30 < datetime.datetime.now().timestamp():
+            await _eggtoraid(raid_split[0].lower(), message.channel, message.author)
+            return
+        else:            
             await message.channel.send(_('Please wait until the egg has hatched before changing it to an open raid!'))
             return
     raid_pokemon = Pokemon.get_pokemon(Meowth, content)
