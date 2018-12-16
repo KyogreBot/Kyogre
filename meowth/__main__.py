@@ -4739,7 +4739,7 @@ async def _raidegg(message, content):
             await raid_channel.send(content=_('Hey {member}, if you can, set the time left until the egg hatches using **!timerset <minutes>** so others can check it with **!timer**.').format(member=message.author.mention))
         if len(raid_info['raid_eggs'][egg_level]['pokemon']) == 1:
             await _eggassume('assume ' + raid_info['raid_eggs'][egg_level]['pokemon'][0], raid_channel)
-        elif egg_level == "5" and guild_dict[raid_channel.guild.id]['configure_dict']['settings'].get('regional','').lower() in raid_info['raid_eggs']["5"]['pokemon']:
+        elif egg_level == "5" and guild_dict[raid_channel.guild.id]['configure_dict']['settings'].get('regional',None) in raid_info['raid_eggs']["5"]['pokemon']:
             await _eggassume('assume ' + guild_dict[raid_channel.guild.id]['configure_dict']['settings']['regional'], raid_channel)
         event_loop.create_task(expiry_check(raid_channel))
         egg_reports = guild_dict[message.guild.id].setdefault('trainers',{}).setdefault(message.author.id,{}).setdefault('egg_reports',0) + 1
