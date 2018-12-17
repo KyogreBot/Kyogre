@@ -456,7 +456,7 @@ async def create_raid_channel(raid_type, pkmn, level, details, report_channel):
         raid_channel_overwrite_list = report_channel.overwrites
         cat = get_category(report_channel, str(pkmn.raid_level), category_type=raid_type)
     elif raid_type == "egg":
-        name = _("level-{level}-egg-").format(level=str(level))
+        name = _("level-{level}-egg_").format(level=str(level))
         raid_channel_overwrite_list = report_channel.overwrites
         cat = get_category(report_channel, str(level), category_type=raid_type)
     meowth_overwrite = (Meowth.user, discord.PermissionOverwrite(send_messages=True, read_messages=True, manage_roles=True, manage_channels=True, manage_messages=True, add_reactions=True, external_emojis=True, read_message_history=True, embed_links=True, mention_everyone=True, attach_files=True))
@@ -4152,11 +4152,24 @@ def _get_subscription_command_error(content, subscription_types):
     
     return error_message
 
-def _parse_subscription_content(content):
+async def _parse_subscription_content(content, message = None):
     sub_list = []
     error_list = []
     raid_level_list = [str(n) for n in list(range(1, 6))]
     sub_type, target = content.split(' ', 1)
+
+    if sub_type == 'gym':
+        if message:
+            channel = message.channel
+            guild = message.guild
+            trainer = message.author.id
+            gyms = get_gyms(guild.id)
+            if gyms:
+                gym = await location_match_prompt(channel, trainer, target, gyms)
+            if not gym:
+                return await channel.send(_("No gym found with name '{0}'. Try again using the exact gym name!").format(target))
+            sub_list.append((sub_type, gym.name, gym.name))
+            return sub_list, error_list
 
     if sub_type == 'wild':
         perfect_pattern = r'((100(\s*%)?|perfect)(\s*ivs?\b)?)'
@@ -4184,7 +4197,7 @@ def _parse_subscription_content(content):
             for match in matches:
                 target.remove(match)
             sub_list.append((sub_type, 'ex-eligible', entry))
-        
+    
     for name in target:
         pkmn = Pokemon.get_pokemon(Meowth, name)
         if pkmn:
@@ -4210,7 +4223,7 @@ async def _sub_add(ctx, *, content):
     matching the details of your subscription.
     
     Valid types are: pokemon, raid, research, wild, and nest"""
-    subscription_types = ['pokemon','raid','research','wild','nest']
+    subscription_types = ['pokemon','raid','research','wild','nest','gym']
     message = ctx.message
     channel = message.channel
     guild = message.guild
@@ -4228,7 +4241,7 @@ async def _sub_add(ctx, *, content):
     error_list = []
     existing_list = []
     sub_list = []
-    candidate_list, error_list = _parse_subscription_content(content)
+    candidate_list, error_list = await _parse_subscription_content(content, message)
     guild_obj, __ = GuildTable.get_or_create(snowflake=guild.id)
     trainer_obj, __ = TrainerTable.get_or_create(snowflake=trainer, guild=guild.id)
 
@@ -4264,7 +4277,7 @@ async def _sub_remove(ctx,*,content):
 
     Usage: !sub remove <type> <target>
     You will no longer be notified of the specified target for the given event type."""
-    subscription_types = ['all','pokemon','raid','research','wild','nest']
+    subscription_types = ['all','pokemon','raid','research','wild','nest','gym']
     message = ctx.message
     channel = message.channel
     guild = message.guild
@@ -4304,20 +4317,20 @@ async def _sub_remove(ctx,*,content):
             return
         else:
             target = target.split(',')
-            for name in target:
-                pkmn = Pokemon.get_pokemon(Meowth, name)
-                if pkmn:
-                    candidate_list.append((sub_type, pkmn.name, pkmn.name))
-                else:
-                    error_list.append(name)
-            skip_parse = True
+            if sub_type == 'pokemon':
+                for name in target:
+                    pkmn = Pokemon.get_pokemon(Meowth, name)
+                    if pkmn:
+                        candidate_list.append((sub_type, pkmn.name, pkmn.name))
+                    else:
+                        error_list.append(name)
+            if sub_type != "gym":
+                skip_parse = True
     elif target == 'all':
         candidate_list.append((sub_type, target, target))
         skip_parse = True
-            
     if not skip_parse:
-        candidate_list, error_list = _parse_subscription_content(content)
-
+        candidate_list, error_list = await _parse_subscription_content(content, message)
     remove_count = 0
     for sub in candidate_list:
         s_type = sub[0]
@@ -5547,7 +5560,7 @@ async def _meetup(ctx, location):
     event_loop.create_task(expiry_check(raid_channel))
 
 async def _send_notifications_async(type, details, new_channel, exclusions=[]):
-    valid_types = ['raid', 'research', 'wild', 'nest']
+    valid_types = ['raid', 'research', 'wild', 'nest', 'gym']
     if type not in valid_types:
         return
     guild = new_channel.guild
@@ -5556,7 +5569,7 @@ async def _send_notifications_async(type, details, new_channel, exclusions=[]):
         results = (SubscriptionTable
                         .select(SubscriptionTable.trainer, SubscriptionTable.target)
                         .join(TrainerTable, on=(SubscriptionTable.trainer == TrainerTable.snowflake))
-                        .where((SubscriptionTable.type == type) | (SubscriptionTable.type == 'pokemon'))
+                        .where((SubscriptionTable.type == type) | (SubscriptionTable.type == 'pokemon') | (SubscriptionTable.type == 'gym'))
                         .where(TrainerTable.guild == guild.id)).execute()
     except:
         return
@@ -5568,6 +5581,7 @@ async def _send_notifications_async(type, details, new_channel, exclusions=[]):
     tier = details.get('tier', None)
     perfect = details.get('perfect', None)
     pokemon_list = details.get('pokemon', [])
+    gym = details.get('location', None)
     if not isinstance(pokemon_list, list):
         pokemon_list = [pokemon_list]
     location = details.get('location', None)
@@ -5600,6 +5614,8 @@ async def _send_notifications_async(type, details, new_channel, exclusions=[]):
                 target_matched = True
             full_name = pkmn_adj + pokemon.name
             descriptors.append(full_name)
+        if gym in targets:
+            target_matched = True
         if not target_matched:
             continue
         description = ', '.join(descriptors)
@@ -5832,6 +5848,7 @@ async def _refresh_listing_channels(ctx, type, *, regions=None):
     if regions:
         regions = [r.strip() for r in regions.split(',')]
     await _update_listing_channels(ctx.guild, type, edit=True, regions=regions)
+    await ctx.message.add_reaction('\u2705')
 
 async def _refresh_listing_channels_internal(guild, type, *, regions=None):
     if regions:
@@ -6308,14 +6325,15 @@ async def new(ctx,*,content):
     Usage: !location new <new address>
     Works only in raid channels. Changes the google map links."""
     message = ctx.message
+    channel = message.channel
     location_split = content.lower().split()
     if len(location_split) < 1:
-        await message.channel.send(_("We're missing the new location details! Usage: **!location new <new address>**"))
+        await channel.send(_("We're missing the new location details! Usage: **!location new <new address>**"))
         return
     else:
-        report_channel = Meowth.get_channel(guild_dict[message.guild.id]['raidchannel_dict'][message.channel.id]['reportcity'])
+        report_channel = Meowth.get_channel(guild_dict[message.guild.id]['raidchannel_dict'][channel.id]['reportcity'])
         if not report_channel:
-            async for m in message.channel.history(limit=500, reverse=True):
+            async for m in channel.history(limit=500, reverse=True):
                 if m.author.id == message.guild.me.id:
                     c = _('Coordinate here')
                     if c in m.content:
@@ -6323,36 +6341,40 @@ async def new(ctx,*,content):
                         break
         details = ' '.join(location_split)
         config_dict = guild_dict[message.guild.id]['configure_dict']
-        regions = _get_channel_regions(message.channel, 'raid')
+        regions = _get_channel_regions(channel, 'raid')
         gym = None
         gyms = get_gyms(message.guild.id, regions)
         if gyms:
-            gym = await location_match_prompt(report_channel, message.author.id, details, gyms)
+            gym = await location_match_prompt(channel, message.author.id, details, gyms)
             if not gym:
-                return await message.channel.send(_("I couldn't find a gym named '{0}'. Try again using the exact gym name!").format(details))
+                return await channel.send(_("I couldn't find a gym named '{0}'. Try again using the exact gym name!").format(details))
             details = gym.name
             newloc = gym.maps_url
             regions = [gym.region]
         else:
             newloc = create_gmaps_query(details, report_channel, type="raid")
-        oldraidmsg = await message.channel.get_message(guild_dict[message.guild.id]['raidchannel_dict'][message.channel.id]['raidmessage'])
-        oldreportmsg = await report_channel.get_message(guild_dict[message.guild.id]['raidchannel_dict'][message.channel.id]['raidreport'])
+        oldraidmsg = await channel.get_message(guild_dict[message.guild.id]['raidchannel_dict'][channel.id]['raidmessage'])
+        oldreportmsg = await report_channel.get_message(guild_dict[message.guild.id]['raidchannel_dict'][channel.id]['raidreport'])
         oldembed = oldraidmsg.embeds[0]
         newembed = discord.Embed(title=oldembed.title, url=newloc, colour=message.guild.me.colour)
         for field in oldembed.fields:
             t = _('team')
             s = _('status')
             if (t not in field.name.lower()) and (s not in field.name.lower()):
-                newembed.add_field(name=field.name, value=field.value, inline=field.inline)
+                if "gym" in field.name.lower():
+                    gym_info = _("**Name:** {0}\n**Notes:** {1}").format(gym.name, "_EX Eligible Gym_" if gym.ex_eligible else "N/A")
+                    newembed.add_field(name=_('**Gym:**'), value=gym_info, inline=field.inline)
+                else:
+                    newembed.add_field(name=field.name, value=field.value, inline=field.inline)
         newembed.set_footer(text=oldembed.footer.text, icon_url=oldembed.footer.icon_url)
         newembed.set_thumbnail(url=oldembed.thumbnail.url)
         otw_list = []
-        trainer_dict = copy.deepcopy(guild_dict[message.guild.id]['raidchannel_dict'][message.channel.id]['trainer_dict'])
+        trainer_dict = copy.deepcopy(guild_dict[message.guild.id]['raidchannel_dict'][channel.id]['trainer_dict'])
         for trainer in trainer_dict.keys():
             if trainer_dict[trainer]['status']['coming']:
                 user = message.guild.get_member(trainer)
                 otw_list.append(user.mention)
-        await message.channel.send(content=_('Someone has suggested a different location for the raid! Trainers {trainer_list}: make sure you are headed to the right place!').format(trainer_list=', '.join(otw_list)), embed=newembed)
+        await channel.send(content=_('Someone has suggested a different location for the raid! Trainers {trainer_list}: make sure you are headed to the right place!').format(trainer_list=', '.join(otw_list)), embed=newembed)
         for field in oldembed.fields:
             t = _('team')
             s = _('status')
@@ -6366,12 +6388,18 @@ async def new(ctx,*,content):
             await oldreportmsg.edit(new_content=oldreportmsg.content, embed=newembed, content=oldreportmsg.content)
         except:
             pass
-        temp = guild_dict[message.guild.id]['raidchannel_dict'][message.channel.id]
+        temp = guild_dict[message.guild.id]['raidchannel_dict'][channel.id]
         temp['raidmessage'] = oldraidmsg.id
         temp['raidreport'] = oldreportmsg.id
         temp['gym'] = gym
+        temp['address'] = gym.name
         temp['regions'] = regions
-        guild_dict[message.guild.id]['raidchannel_dict'][message.channel.id] = temp
+        guild_dict[message.guild.id]['raidchannel_dict'][channel.id] = temp
+        channel_name = channel.name
+        channel_prefix = channel_name.split("_")[0]
+        new_channel_name = sanitize_name(channel_prefix + "_"+ gym.name)
+        await channel.edit(name=new_channel_name)
+        await _update_listing_channels(message.guild, "raid", True)
         return
 
 @Meowth.command()
