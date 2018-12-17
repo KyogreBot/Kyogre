@@ -7320,7 +7320,7 @@ async def _edit_party(channel, author=None):
                 bossstr = "{name} ({number}) {types} : **{count}**".format(name=boss.name,number=boss.id,types=boss_dict[boss.name]['type'],count=boss_dict[boss.name]['total'])
                 display_list.append(bossstr)
             elif boss_dict[boss.name]['total'] == 0:
-                bossstr = "{name} ({number}) {types}".format(name=boss.title(),number=boss.id,types=boss_dict[boss.name]['type'])
+                bossstr = "{name} ({number}) {types}".format(name=boss.name,number=boss.id,types=boss_dict[boss.name]['type'])
                 display_list.append(bossstr)
     channel_dict["total"] = channel_dict["maybe"] + channel_dict["coming"] + channel_dict["here"]
     reportchannel = Meowth.get_channel(guild_dict[channel.guild.id]['raidchannel_dict'][channel.id]['reportcity'])
