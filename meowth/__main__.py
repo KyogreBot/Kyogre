@@ -7519,16 +7519,15 @@ async def starting(ctx, team: str = ''):
                 ctx_startinglist.append(user.mention)
                 name_startinglist.append(f'**{user.display_name}**')
                 id_startinglist.append(trainer)
-                joined = guild_dict[ctx.guild.id]['trainers'][trainer].setdefault('joined',0) + 1
-                guild_dict[ctx.guild.id]['trainers'][trainer]['joined'] = joined
-            else:
-                if ctx.trainer_dict[trainer]['status']['here'] and (user.id in team_list or team == "all"):
-                    ctx.trainer_dict[trainer]['status'] = {'maybe':0, 'coming':0, 'here':0, 'lobby':count}
-                    ctx_startinglist.append(user.mention)
-                    name_startinglist.append(f'**{user.display_name}**')
-                    id_startinglist.append(trainer)
-                    joined = guild_dict[ctx.guild.id]['trainers'][trainer].setdefault('joined',0) + 1
-                    guild_dict[ctx.guild.id]['trainers'][trainer]['joined'] = joined
+        else:
+            if ctx.trainer_dict[trainer]['status']['here'] and (user.id in team_list or team == "all"):
+                ctx.trainer_dict[trainer]['status'] = {'maybe':0, 'coming':0, 'here':0, 'lobby':count}
+                ctx_startinglist.append(user.mention)
+                name_startinglist.append(f'**{user.display_name}**')
+                id_startinglist.append(trainer)
+        if ctx.trainer_dict[trainer]['status']['here']:
+            joined = guild_dict[ctx.guild.id].setdefault('trainers',{}).setdefault(trainer,{}).setdefault('joined',0) + 1
+            guild_dict[ctx.guild.id]['trainers'][trainer]['joined'] = joined
     if len(ctx_startinglist) == 0:
         starting_str = _("How can you start when there's no one waiting at this raid!?")
         await ctx.channel.send(starting_str)
