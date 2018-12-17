@@ -7498,24 +7498,25 @@ async def starting(ctx, team: str = ''):
     Usage: !starting [team]
     Works only in raid channels. Sends a message and clears the waiting list. Users who are waiting
     for a second group must reannounce with the :here: emoji or !here."""
+    channel = ctx.channel
+    guild = ctx.guild
     ctx_startinglist = []
-    id_startinglist = []
-    name_startinglist = []
     team_list = []
     ctx.team_names = ["mystic", "valor", "instinct", "unknown"]
     team = team if team and team.lower() in ctx.team_names else "all"
-    ctx.trainer_dict = copy.deepcopy(guild_dict[ctx.guild.id]['raidchannel_dict'][ctx.channel.id]['trainer_dict'])
-    if guild_dict[ctx.guild.id]['raidchannel_dict'][ctx.channel.id].get('type',None) == 'egg':
+    ctx.trainer_dict = copy.deepcopy(guild_dict[guild.id]['raidchannel_dict'][channel.id]['trainer_dict'])
+    if guild_dict[guild.id]['raidchannel_dict'][channel.id].get('type',None) == 'egg':
         starting_str = _("How can you start when the egg hasn't hatched!?")
-        await ctx.channel.send(starting_str)
+        await channel.send(starting_str)
         return
-    if guild_dict[ctx.guild.id]['raidchannel_dict'][ctx.channel.id].get('lobby',False):
+    if guild_dict[guild.id]['raidchannel_dict'][channel.id].get('lobby',False):
         starting_str = _("Please wait for the group in the lobby to enter the raid.")
-        await ctx.channel.send(starting_str)
+        await channel.send(starting_str)
         return
+    trainer_joined = False
     for trainer in ctx.trainer_dict:
         count = ctx.trainer_dict[trainer]['count']
-        user = ctx.guild.get_member(trainer)
+        user = guild.get_member(trainer)
         if team in ctx.team_names:
             if ctx.trainer_dict[trainer]['party'][team]:
                 team_list.append(user.id)
@@ -7524,36 +7525,35 @@ async def starting(ctx, team: str = ''):
             lobbycount = ctx.trainer_dict[trainer]['status']['lobby']
             if ctx.trainer_dict[trainer]['status']['here'] and (user.id in team_list):
                 ctx.trainer_dict[trainer]['status'] = {'maybe':0, 'coming':0, 'here':herecount - teamcount, 'lobby':lobbycount + teamcount}
+                trainer_joined = True
                 ctx_startinglist.append(user.mention)
-                name_startinglist.append(f'**{user.display_name}**')
-                id_startinglist.append(trainer)
         else:
             if ctx.trainer_dict[trainer]['status']['here'] and (user.id in team_list or team == "all"):
                 ctx.trainer_dict[trainer]['status'] = {'maybe':0, 'coming':0, 'here':0, 'lobby':count}
+                trainer_joined = True
                 ctx_startinglist.append(user.mention)
-                name_startinglist.append(f'**{user.display_name}**')
-                id_startinglist.append(trainer)
-        if ctx.trainer_dict[trainer]['status']['here']:
-            joined = guild_dict[ctx.guild.id].setdefault('trainers',{}).setdefault(trainer,{}).setdefault('joined',0) + 1
-            guild_dict[ctx.guild.id]['trainers'][trainer]['joined'] = joined
+        if trainer_joined:
+            joined = guild_dict[guild.id].setdefault('trainers',{}).setdefault(trainer,{}).setdefault('joined',0) + 1
+            guild_dict[guild.id]['trainers'][trainer]['joined'] = joined
+            
     if len(ctx_startinglist) == 0:
         starting_str = _("How can you start when there's no one waiting at this raid!?")
-        await ctx.channel.send(starting_str)
+        await channel.send(starting_str)
         return
-    guild_dict[ctx.guild.id]['raidchannel_dict'][ctx.channel.id]['trainer_dict'] = ctx.trainer_dict
-    starttime = guild_dict[ctx.guild.id]['raidchannel_dict'][ctx.channel.id].get('starttime',None)
+    guild_dict[guild.id]['raidchannel_dict'][channel.id]['trainer_dict'] = ctx.trainer_dict
+    starttime = guild_dict[guild.id]['raidchannel_dict'][channel.id].get('starttime',None)
     if starttime:
         timestr = _(' to start at **{}** ').format(starttime.strftime(_('%I:%M %p (%H:%M)')))
-        guild_dict[ctx.guild.id]['raidchannel_dict'][ctx.channel.id]['starttime'] = None
+        guild_dict[guild.id]['raidchannel_dict'][channel.id]['starttime'] = None
     else:
         timestr = ' '
-    starting_str = _('Starting - The group that was waiting{timestr}is starting the raid! Trainers {trainer_list}, if you are not in this group and are waiting for the next group, please respond with {here_emoji} or **!here**. If you need to ask those that just started to back out of their lobby, use **!backout**').format(timestr=timestr, trainer_list=', '.join(ctx_startinglist), here_emoji=parse_emoji(ctx.guild, config['here_id']))
-    guild_dict[ctx.guild.id]['raidchannel_dict'][ctx.channel.id]['lobby'] = {"exp":time.time() + 120, "team":team}
+    starting_str = _('Starting - The group that was waiting{timestr}is starting the raid! Trainers {trainer_list}, if you are not in this group and are waiting for the next group, please respond with {here_emoji} or **!here**. If you need to ask those that just started to back out of their lobby, use **!backout**').format(timestr=timestr, trainer_list=', '.join(ctx_startinglist), here_emoji=parse_emoji(guild, config['here_id']))
+    guild_dict[guild.id]['raidchannel_dict'][channel.id]['lobby'] = {"exp":time.time() + 120, "team":team}
     if starttime:
         starting_str += '\n\nThe start time has also been cleared, new groups can set a new start time wtih **!starttime HH:MM AM/PM** (You can also omit AM/PM and use 24-hour time!).'
-        report_channel = Meowth.get_channel(guild_dict[ctx.guild.id]['raidchannel_dict'][ctx.channel.id]['reportcity'])
-        raidmsg = await ctx.channel.get_message(guild_dict[ctx.guild.id]['raidchannel_dict'][ctx.channel.id]['raidmessage'])
-        reportmsg = await report_channel.get_message(guild_dict[ctx.guild.id]['raidchannel_dict'][ctx.channel.id]['raidreport'])
+        report_channel = Meowth.get_channel(guild_dict[guild.id]['raidchannel_dict'][channel.id]['reportcity'])
+        raidmsg = await channel.get_message(guild_dict[guild.id]['raidchannel_dict'][channel.id]['raidmessage'])
+        reportmsg = await report_channel.get_message(guild_dict[guild.id]['raidchannel_dict'][channel.id]['raidreport'])
         embed = raidmsg.embeds[0]
         embed.set_field_at(2, name=_("**Next Group**"), value=_("Set with **!starttime**"), inline=True)
         try:
@@ -7564,7 +7564,7 @@ async def starting(ctx, team: str = ''):
             await reportmsg.edit(content=reportmsg.content,embed=embed)
         except discord.errors.NotFound:
             pass
-    await ctx.channel.send(starting_str)
+    await channel.send(starting_str)
     ctx.bot.loop.create_task(lobby_countdown(ctx))
 
 @Meowth.command()
