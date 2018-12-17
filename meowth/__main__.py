@@ -6124,7 +6124,15 @@ async def _timerset(raidchannel, exptime):
     raidmsg = await raidchannel.get_message(guild_dict[guild.id]['raidchannel_dict'][raidchannel.id]['raidmessage'])
     reportmsg = await report_channel.get_message(guild_dict[guild.id]['raidchannel_dict'][raidchannel.id]['raidreport'])
     embed = raidmsg.embeds[0]
-    embed.set_field_at(3, name=embed.fields[3].name, value=endtime, inline=True)
+    index = 0
+    found = False
+    for field in embed.fields:
+        if "hatches" in field.name.lower():
+            found = True
+            break
+        index += 1
+    if found:
+        embed.set_field_at(index, name=embed.fields[index].name, value=endtime, inline=True)
     try:
         await raidmsg.edit(content=raidmsg.content,embed=embed)
     except discord.errors.NotFound:
