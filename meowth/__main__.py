@@ -4913,12 +4913,14 @@ async def _eggassume(args, raid_channel, author=None):
         raid_embed.add_field(name=_('**Gym:**'), value=gym_info, inline=False)
     raid_embed.add_field(name=_('**Details:**'), value=_('{pokemon} ({pokemonnumber}) {type}').format(pokemon=raid_pokemon.name, pokemonnumber=str(raid_pokemon.id), type=types_to_str(raid_channel.guild, raid_pokemon.types), inline=True))
     raid_embed.add_field(name=_('**Weaknesses:**'), value=_('{weakness_list}').format(weakness_list=types_to_str(raid_channel.guild, raid_pokemon.weak_against)), inline=True)
-    raid_embed.add_field(name=_('**Next Group:**'), value=oldembed.fields[2].value, inline=True)
-    raid_embed.add_field(name=_('**Hatches:**'), value=oldembed.fields[3].value, inline=True)
     for field in oldembed.fields:
-        t = _('team')
-        s = _('status')
-        if (t in field.name.lower()) or (s in field.name.lower()):
+        if "hatches" in field.name.lower():
+            raid_embed.add_field(name=_('**Hatches:**'), value=field.value, inline=True)
+        if "next group" in field.name.lower():
+            raid_embed.add_field(name=_('**Next Group:**'), value=field.value, inline=True)
+        if "team" in field.name.lower():
+            raid_embed.add_field(name=field.name, value=field.value, inline=field.inline)
+        if "status" in field.name.lower():
             raid_embed.add_field(name=field.name, value=field.value, inline=field.inline)
     raid_embed.set_footer(text=oldembed.footer.text, icon_url=oldembed.footer.icon_url)
     raid_embed.set_thumbnail(url=raid_pokemon.img_url)
