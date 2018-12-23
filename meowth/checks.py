@@ -3,6 +3,20 @@ from discord.ext import commands
 import discord.utils
 from meowth import errors
 
+def is_user_owner_check(config,userid):
+    owner = config['master']
+    return userid == owner
+
+def is_user_dev_check(userid):
+    dev_list = [454869333764603904,371387628093833216]
+    return userid in dev_list
+
+def is_user_dev_or_owner(config,userid):
+    if is_user_dev_check(userid) or is_user_owner_check(config,userid):
+        return True
+    else:
+        return False
+
 def is_owner_check(ctx):
     author = ctx.author.id
     owner = ctx.bot.config['master']
