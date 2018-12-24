@@ -1986,7 +1986,7 @@ async def _configure(ctx, configlist):
             del guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][session]
     config_dict_temp = getattr(ctx, 'config_dict_temp',copy.deepcopy(guild_dict[guild.id]['configure_dict']))
     firstconfig = False
-    all_commands = ['team', 'welcome', 'regions', 'raid', 'exraid', 'invite', 'counters', 'wild', 'research', 'meetup', 'subscription', 'archive', 'trade', 'timezone']
+    all_commands = ['team', 'welcome', 'regions', 'raid', 'exraid', 'invite', 'counters', 'wild', 'research', 'meetup', 'subscriptions', 'archive', 'trade', 'timezone', 'pvp']
     enabled_commands = []
     configreplylist = []
     config_error = False
@@ -2011,7 +2011,7 @@ async def _configure(ctx, configlist):
             if config_dict_temp[commandconfig].get('enabled',False):
                 enabled_commands.append(commandconfig)
         configmessage += _("\n\n**Enabled Commands:**\n{enabled_commands}").format(enabled_commands=", ".join(enabled_commands))
-        configmessage += _("\n\n**All Commands:**\n**all** - To redo configuration\n**team** - For Team Assignment configuration\n**welcome** - For Welcome Message configuration\n**regions** - for region configuration\n**raid** - for raid command configuration\n**exraid** - for EX raid command configuration\n**invite** - for invite command configuration\n**counters** - for automatic counters configuration\n**wild** - for wild command configuration\n**research** - for !research command configuration\n**meetup** - for !meetup command configuration\n**subscription** - for subscription command configuration\n**archive** - For !archive configuration\n**trade** - For trade command configuration\n**timezone** - For timezone configuration")
+        configmessage += _("\n\n**All Commands:**\n**all** - To redo configuration\n**team** - For Team Assignment configuration\n**welcome** - For Welcome Message configuration\n**regions** - for region configuration\n**raid** - for raid command configuration\n**exraid** - for EX raid command configuration\n**invite** - for invite command configuration\n**counters** - for automatic counters configuration\n**wild** - for wild command configuration\n**research** - for !research command configuration\n**meetup** - for !meetup command configuration\n**subscriptions** - for subscription command configuration\n**archive** - For !archive configuration\n**trade** - For trade command configuration\n**timezone** - For timezone configuration\n**pvp** - For !pvp command configuration")
         configmessage += _('\n\nReply with **cancel** at any time throughout the questions to cancel the configure process.')
         await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=configmessage).set_author(name=_('Kyogre Configuration - {guild}').format(guild=guild.name), icon_url=Meowth.user.avatar_url))
         while True:
@@ -2084,7 +2084,7 @@ async def _configure(ctx, configlist):
             ctx = await _configure_research(ctx)
             if not ctx:
                 return None
-        if "subscription" in configreplylist:
+        if "subscriptions" in configreplylist:
             ctx = await _configure_subscription(ctx)
             if not ctx:
                 return None
@@ -2100,9 +2100,14 @@ async def _configure(ctx, configlist):
             ctx = await _configure_settings(ctx)
             if not ctx:
                 return None
+        if "pvp" in configreplylist:
+            ctx = await _configure_pvp(ctx)
+            if not ctx:
+                return None
     finally:
         if ctx:
             ctx.config_dict_temp['settings']['done'] = True
+            await ctx.channel.send("overwriting config dict")
             guild_dict[guild.id]['configure_dict'] = ctx.config_dict_temp
             await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("Alright! Your settings have been saved and I'm ready to go! If you need to change any of these settings, just type **!configure** in your server again.")).set_author(name=_('Configuration Complete'), icon_url=Meowth.user.avatar_url))
         del guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id]
@@ -3417,11 +3422,11 @@ async def _configure_meetup(ctx):
     return ctx
 
 @configure.command()
-async def subscription(ctx):
+async def subscriptions(ctx):
     """!subscription settings"""
-    return await _check_sessions_and_invoke(ctx, _configure_subscription)
+    return await _check_sessions_and_invoke(ctx, _configure_subscriptions)
 
-async def _configure_subscription(ctx):
+async def _configure_subscriptions(ctx):
     guild = ctx.message.guild
     owner = ctx.message.author
     config_dict_temp = getattr(ctx, 'config_dict_temp',copy.deepcopy(guild_dict[guild.id]['configure_dict']))
@@ -3478,6 +3483,75 @@ async def _configure_subscription(ctx):
                 break
             else:
                 await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The channel list you provided doesn't match with your servers channels.\n\nThe following aren't in your server: **{invalid_channels}**\n\nPlease double check your channel list and resend your reponse.").format(invalid_channels=', '.join(sub_list_errors))))
+                continue
+    ctx.config_dict_temp = config_dict_temp
+    return ctx
+
+@configure.command()
+async def pvp(ctx):
+    """!pvp settings"""
+    return await _check_sessions_and_invoke(ctx, _configure_pvp)
+
+async def _configure_pvp(ctx):
+    guild = ctx.message.guild
+    owner = ctx.message.author
+    config_dict_temp = getattr(ctx, 'config_dict_temp',copy.deepcopy(guild_dict[guild.id]['configure_dict']))
+    if 'pvp' not in config_dict_temp:
+        config_dict_temp['pvp'] = {}
+    await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("The **!pvp** command allows your users to announce to their friends when they're available for pvp. \
+        Additionally it allows them to add and remove other users as friends. If User A has added User B as a friend, User A will receive a notification when User B announces they're available to battle. \
+        This command requires at least one channel specifically for pvp.\n\nIf you would like to disable this feature, reply with **N**. \
+        Otherwise, just send the names or IDs of the channels you want to allow the **!pvp** command in, separated by commas.")).set_author(name=_('PVP Configuration'), icon_url=Meowth.user.avatar_url))
+    while True:
+        pvpmsg = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+        if pvpmsg.content.lower() == 'cancel':
+            await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
+            return None
+        elif pvpmsg.content.lower() == 'n':
+            config_dict_temp['pvp'] = {'enabled': False, 'report_channels': []}
+            await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('PVP disabled.')))
+            break
+        else:
+            pvp_list = pvpmsg.content.lower().split(',')
+            pvp_list = [x.strip() for x in pvp_list]
+            guild_channel_list = []
+            for channel in guild.text_channels:
+                guild_channel_list.append(channel.id)
+            pvp_list_objs = []
+            pvp_list_names = []
+            pvp_list_errors = []
+            for item in pvp_list:
+                channel = None
+                if item.isdigit():
+                    channel = discord.utils.get(guild.text_channels, id=int(item))
+                if not channel:
+                    item = re.sub('[^a-zA-Z0-9 _\\-]+', '', item)
+                    item = item.replace(" ","-")
+                    name = await letter_case(guild.text_channels, item.lower())
+                    channel = discord.utils.get(guild.text_channels, name=name)
+                if channel:
+                    pvp_list_objs.append(channel)
+                    pvp_list_names.append(channel.name)
+                else:
+                    pvp_list_errors.append(item)
+            pvp_list_set = [x.id for x in pvp_list_objs]
+            diff = set(pvp_list_set) - set(guild_channel_list)
+            if (not diff) and (not pvp_list_errors):
+                config_dict_temp['pvp']['enabled'] = True
+                config_dict_temp['pvp']['report_channels'] = pvp_list_set
+                for channel in pvp_list_objs:
+                    ow = channel.overwrites_for(Meowth.user)
+                    ow.send_messages = True
+                    ow.read_messages = True
+                    ow.manage_roles = True
+                    try:
+                        await channel.set_permissions(Meowth.user, overwrite = ow)
+                    except (discord.errors.Forbidden, discord.errors.HTTPException, discord.errors.InvalidArgument):
+                        await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_('I couldn\'t set my own permissions in this channel. Please ensure I have the correct permissions in {channel} using **{prefix}get perms**.').format(prefix=ctx.prefix, channel=channel.mention)))
+                await owner.send(embed=discord.Embed(colour=discord.Colour.green(), description=_('PVP enabled')))
+                break
+            else:
+                await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The channel list you provided doesn't match with your servers channels.\n\nThe following aren't in your server: **{invalid_channels}**\n\nPlease double check your channel list and resend your reponse.").format(invalid_channels=', '.join(pvp_list_errors))))
                 continue
     ctx.config_dict_temp = config_dict_temp
     return ctx
@@ -4140,6 +4214,18 @@ async def leaderboard(ctx, type="total"):
         'raidchannel_dict':{},
         'trainers':{}
 """
+
+"""
+PVP
+"""
+
+@Meowth.group(name="pvp")
+@checks.allowpvp()
+async def _pvp(ctx):
+    """Handles pvp related commands"""
+    if ctx.invoked_subcommand == None:
+        raise commands.BadArgument()
+
 """
 Notifications
 """

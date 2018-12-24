@@ -13,6 +13,10 @@ class SubscriptionSetCheckFail(CommandError):
     'Exception raised checks.subscriptionset fails'
     pass
 
+class PvpSetCheckFail(CommandError):
+    'Exception raised checks.pvpset fails'
+    pass
+
 class WildSetCheckFail(CommandError):
     'Exception raised checks.wildset fails'
     pass
@@ -59,6 +63,10 @@ class CityChannelCheckFail(CommandError):
 
 class SubscriptionChannelCheckFail(CommandError):
     'Exception raised checks.subscriptionchannel fails'
+    pass
+
+class PvpChannelCheckFail(CommandError):
+    'Exception raised checks.pvpchannel fails'
     pass
 
 class RaidChannelCheckFail(CommandError):
