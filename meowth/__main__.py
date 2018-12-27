@@ -4223,8 +4223,60 @@ PVP
 @checks.allowpvp()
 async def _pvp(ctx):
     """Handles pvp related commands"""
+
     if ctx.invoked_subcommand == None:
+        await ctx.channel.send("bad")
         raise commands.BadArgument()
+
+@_pvp.command(name="available", aliases=["a"])
+async def _pvp_available(ctx, *, content=None):
+    """Announces that you're available for pvp
+    Usage: `!pvp available [time]`
+    Kyogre will post a message stating that you're available for PvP
+    for the next 30 minutes by default, or optionally for the amount 
+    of time you provide.
+
+    Kyogre will also notify any other users who have added you as 
+    a friend that you are now available.
+    """
+    message = ctx.message
+    channel = message.channel
+    guild = message.guild
+    trainer = message.author
+
+    expiration_minutes = 30
+    if content:
+        content = content.split()
+        error_msg = "Unable to determine the time you provided, your PvP session will remain active for 30 minutes"
+        expiration_minutes = await raid_time_check(channel, content[0], error_msg)
+        if expiration_minutes is False:
+            await channel.send("Unable to determine the time you provided, your PvP session will remain active for 30 minutes")
+            expiration_minutes = 30
+
+    pvp_embed = discord.Embed(title=_('{trainer} is available for PvP!').format(trainer=trainer.display_name), colour=guild.me.colour)
+
+    pvp_embed.add_field(name=_('**Expires:**'), value=_('In {minutes} minutes').format(minutes=expiration_minutes), inline=True)
+    pvp_embed.add_field(name=_('**To challenge:**'), value=_('Use the \u2694 react.'), inline=True)
+    pvp_embed.add_field(name=_('**To cancel:**'), value=_('Use the 🚫 react.'), inline=True)
+    pvp_embed.set_footer(text=_('{trainer}').format(trainer=trainer.display_name), icon_url=trainer.avatar_url_as(format=None, static_format='jpg', size=32))
+    pvp_embed.set_thumbnail(url="https://raw.githubusercontent.com/klords/Kyogre/master/images/misc/meetup.png?cache=0")
+
+    pvp_msg = await channel.send(content=('{trainer} is available for PvP!').format(trainer=trainer.display_name),embed=pvp_embed)
+    await pvp_msg.add_reaction('\u2694')
+    await pvp_msg.add_reaction('🚫')
+    
+    expiremsg = _('**{trainer} is no longer available for PvP!**').format(trainer=trainer.display_name)
+    pvp_dict = copy.deepcopy(guild_dict[guild.id].get('pvp_dict',{}))
+    pvp_dict[pvp_msg.id] = {
+        'exp':time.time() + (expiration_minutes * 60),
+        'expedit': {"content":pvp_msg.content,"embedcontent":expiremsg},
+        'reportmessage':message.id,
+        'reportchannel':channel.id,
+        'reportauthor':trainer.id,
+    }
+    guild_dict[guild.id]['pvp_dict'] = pvp_dict
+
+
 
 """
 Notifications
@@ -4621,6 +4673,7 @@ async def _wild_internal(message, content):
     wild_reports = guild_dict[message.guild.id].setdefault('trainers',{}).setdefault(message.author.id,{}).setdefault('wild_reports',0) + 1
     guild_dict[message.guild.id]['trainers'][message.author.id]['wild_reports'] = wild_reports
     wild_details = {'pokemon': pkmn, 'perfect': is_perfect, 'location': wild_details, 'regions': channel_regions}
+    event_loop.create_task(wild_expiry_check(wildreportmsg))
     await _update_listing_channels(message.guild, 'wild', edit=False, regions=channel_regions)
     await _send_notifications_async('wild', wild_details, message.channel, [message.author.id])
 
@@ -4696,15 +4749,14 @@ async def _raid_internal(message, content):
         await channel.send(_('Give more details when reporting! Usage: **!raid <pokemon name> <location>**'))
         return
     raidexp = False
-    if raid_split[-1].isdigit() or ':' in raid_split[-1]:
-        raidexp = await raid_time_check(channel, raid_split[-1])
-        if raidexp is False:
+    raidexp = await raid_time_check(channel, raid_split[-1])
+    if raidexp is False:
+        return
+    else:
+        del raid_split[-1]
+        if _timercheck(raidexp, raid_info['raid_eggs'][raid_pokemon.raid_level]['raidtime']):
+            await channel.send(_("That's too long. Level {raidlevel} raids currently last no more than {raidtime} minutes...").format(raidlevel=raid_pokemon.raid_level, raidtime=raid_info['raid_eggs'][raid_pokemon.raid_level]['raidtime']))
             return
-        else:
-            del raid_split[-1]
-            if _timercheck(raidexp, raid_info['raid_eggs'][raid_pokemon.raid_level]['raidtime']):
-                await channel.send(_("That's too long. Level {raidlevel} raids currently last no more than {raidtime} minutes...").format(raidlevel=raid_pokemon.raid_level, raidtime=raid_info['raid_eggs'][raid_pokemon.raid_level]['raidtime']))
-                return
     raid_details = ' '.join(raid_split)
     raid_details = raid_details.strip()
     if raid_details == '':
@@ -4830,15 +4882,14 @@ async def _raidegg(message, content):
         await channel.send(_('Give more details when reporting! Use at least: **!raidegg <level> <location>**. Type **!help** raidegg for more info.'))
         return
     raidexp = False
-    if raidegg_split[-1].isdigit() or ':' in raidegg_split[-1]:
-        raidexp = await raid_time_check(channel, raidegg_split[-1])
-        if raidexp is False:
+    raidexp = await raid_time_check(channel, raidegg_split[-1])
+    if raidexp is False:
+        return
+    else:
+        del raidegg_split[-1]
+        if _timercheck(raidexp, raid_info['raid_eggs'][str(egg_level)]['hatchtime']):
+            await channel.send(_("That's too long. Level {raidlevel} Raid Eggs currently last no more than {hatchtime} minutes...").format(raidlevel=egg_level, hatchtime=raid_info['raid_eggs'][str(egg_level)]['hatchtime']))
             return
-        else:
-            del raidegg_split[-1]
-            if _timercheck(raidexp, raid_info['raid_eggs'][str(egg_level)]['hatchtime']):
-                await channel.send(_("That's too long. Level {raidlevel} Raid Eggs currently last no more than {hatchtime} minutes...").format(raidlevel=egg_level, hatchtime=raid_info['raid_eggs'][str(egg_level)]['hatchtime']))
-                return
     raid_details = ' '.join(raidegg_split)
     raid_details = raid_details.strip()
     if raid_details == '':
@@ -6063,13 +6114,17 @@ async def print_raid_timer(channel):
         timerstr += _("No one told me when the {raidtype} will {raidaction}, so I'm assuming it will {raidaction} at {expiry_time}!").format(raidtype=raidtype, raidaction=raidaction, expiry_time=end.strftime(_('%I:%M %p (%H:%M)')))
     return timerstr
 
-async def raid_time_check(channel,time):
+async def raid_time_check(channel,time, error = None):
     if time.isdigit():
         raidexp = int(time)
         return raidexp
     elif ':' in time:
         now = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[channel.guild.id]['configure_dict']['settings']['offset'])
-        start = dateparser.parse(time, settings={'PREFER_DATES_FROM': 'future'})
+        try:
+            start = dateparser.parse(time, settings={'PREFER_DATES_FROM': 'future'})
+        except:
+            await channel.send("Unable to parse the time you entered.")
+            return False
         start = start.replace(month = now.month, day=now.day)
         timediff = relativedelta(start, now)
         if timediff.hours <= -10:
@@ -6081,7 +6136,10 @@ async def raid_time_check(channel,time):
             return False
         return raidexp
     else:
-        await channel.send(_("I couldn't understand your time format. Try again like this: **!timerset <minutes>**"))
+        if error:
+            await channel.send(error)
+        else:
+            await channel.send(_("I couldn't understand your time format. Try again like this: **!timerset <minutes>**"))
         return False
 
 @Meowth.command()
@@ -6108,13 +6166,12 @@ async def timerset(ctx, *,timer):
             raidtype = _('Raid')
             maxtime = raid_info['raid_eggs'][raidlevel]['raidtime']
         raidexp = False
-        if timer.isdigit() or ':' in timer:
-            raidexp = await raid_time_check(channel,timer)
-            if raidexp is False:
-                return
-            if _timercheck(raidexp, maxtime):
-                await channel.send(_("That's too long. Level {raidlevel} {raidtype}s currently last no more than {maxtime} minutes...").format(raidlevel=str(raidlevel), raidtype=raidtype.capitalize(), maxtime=str(maxtime)))
-                return
+        raidexp = await raid_time_check(channel,timer)
+        if raidexp is False:
+            return
+        if _timercheck(raidexp, maxtime):
+            await channel.send(_("That's too long. Level {raidlevel} {raidtype}s currently last no more than {maxtime} minutes...").format(raidlevel=str(raidlevel), raidtype=raidtype.capitalize(), maxtime=str(maxtime)))
+            return
         await _timerset(channel, raidexp)
     if checks.check_exraidchannel(ctx):
         if checks.check_eggchannel(ctx) or checks.check_meetupchannel(ctx):
