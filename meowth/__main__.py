@@ -2770,7 +2770,6 @@ async def _configure_raid(ctx):
         region_names = [name for name in config_dict_temp['regions']['info'].keys()]
         while True:
             categories = await Meowth.wait_for('message', check=lambda message: message.guild == None and message.author == owner)
-            await owner.send(categories)
             categories = categories.content.lower()
             if categories == "cancel":
                 await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
@@ -2785,18 +2784,18 @@ async def _configure_raid(ctx):
                 break
             else:
                 entered_regions = categories.split(',')
+                entered_regions = [r.strip() for r in entered_regions]
                 error_set = set(entered_regions) - set(region_names)
                 if len(error_set) > 0:
-                    msg = ("The following regions you provided are not in your server's region list: {invalid}").format(invalid=', '.join(error_set))
+                    msg = ("The following regions you provided are not in your server's region list: **{invalid}**").format(invalid=', '.join(error_set))
+                    msg += "\n\nPlease enter the regions that will have raid channels enabled."
                     await owner.send(embed=discord.Embed(colour=discord.Colour.orange(),description=msg))
                     continue
                 for region in entered_regions:
                     if region in region_names:
-                        await channel.send(("{region} is enabled").format(region=region))
                         config_dict_temp['raid']['raid_channels'][region] = True
                 disabled_region_set = set(region_names) - set(entered_regions)
                 for region in disabled_region_set:
-                    await channel.send(("{region} is disabled").format(region=region))
                     config_dict_temp['raid']['raid_channels'][region] = False
                 break
         config_dict_temp['raid']['category_dict'] = category_dict
