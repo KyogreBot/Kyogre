@@ -4694,7 +4694,7 @@ async def _raid_internal(message, content):
         raid_channel_ids = get_existing_raid(guild, gym)
         if raid_channel_ids:
             raid_channel = Meowth.get_channel(raid_channel_ids[0])
-            if guild_dict[guild.id]['raidchannel_dict'][raid_channel.id]['active']:
+            if guild_dict[guild.id]['raidchannel_dict'][raid_channel.id] and guild_dict[guild.id]['raidchannel_dict'][raid_channel.id]['active']:
                 msg = f"A raid has already been reported for {gym.name}."
                 enabled = raid_channels_enabled(guild, channel)
                 if enabled:
@@ -4721,13 +4721,14 @@ async def _raid_internal(message, content):
         raid_embed.add_field(name=_('**Gym:**'), value=gym_info, inline=False)
     raid_embed.add_field(name=_('**Details:**'), value=_('{pokemon} ({pokemonnumber}) {type}').format(pokemon=str(raid_pokemon), pokemonnumber=str(raid_pokemon.id), type=types_to_str(guild, raid_pokemon.types), inline=True))
     raid_embed.add_field(name=_('**Weaknesses:**'), value=_('{weakness_list}').format(weakness_list=types_to_str(guild, raid_pokemon.weak_against.keys()), inline=True))
-    raid_embed.add_field(name=_('**Next Group:**'), value=_('Set with **!starttime**'), inline=True)
-    raid_embed.add_field(name=_('**Expires:**'), value=_('Set with **!timerset**'), inline=True)
+    enabled = raid_channels_enabled(guild, channel)
+    if enabled:
+        raid_embed.add_field(name=_('**Next Group:**'), value=_('Set with **!starttime**'), inline=True)
+        raid_embed.add_field(name=_('**Expires:**'), value=_('Set with **!timerset**'), inline=True)
     raid_embed.set_footer(text=_('Reported by {author} - {timestamp}').format(author=author.display_name, timestamp=timestamp), icon_url=author.avatar_url_as(format=None, static_format='jpg', size=32))
     raid_embed.set_thumbnail(url=raid_pokemon.img_url)
     report_embed = raid_embed
     msg = _('{pokemon} raid reported by {member}! Details: {location_details}.').format(pokemon=str(raid_pokemon), member=author.display_name, location_details=raid_details)
-    enabled = raid_channels_enabled(guild, channel)
     if enabled:
         msg += _(" Coordinate in {raid_channel}").format(raid_channel=raid_channel.mention)
     raidreport = await channel.send(content=msg, embed=report_embed)
@@ -4881,12 +4882,13 @@ async def _raidegg(message, content):
         else:
             raid_embed.add_field(name=_('**Possible Bosses:**'), value=_('{bosslist}').format(bosslist=''.join(boss_list)), inline=True)
             raid_embed.add_field(name='\u200b', value='\u200b', inline=True)
-        raid_embed.add_field(name=_('**Next Group:**'), value=_('Set with **!starttime**'), inline=True)
-        raid_embed.add_field(name=_('**Hatches:**'), value=_('Set with **!timerset**'), inline=True)
+        enabled = raid_channels_enabled(guild, channel)
+        if enabled:
+            raid_embed.add_field(name=_('**Next Group:**'), value=_('Set with **!starttime**'), inline=True)
+            raid_embed.add_field(name=_('**Hatches:**'), value=_('Set with **!timerset**'), inline=True)
         raid_embed.set_footer(text=_('Reported by {author} - {timestamp}').format(author=author.display_name, timestamp=timestamp), icon_url=author.avatar_url_as(format=None, static_format='jpg', size=32))
         raid_embed.set_thumbnail(url=raid_img_url)
         msg = _('Level {level} raid egg reported by {member}! Details: {location_details}.').format(level=egg_level, member=author.display_name, location_details=raid_details)
-        enabled = raid_channels_enabled(guild, channel)
         if enabled:
             msg += _(" Coordinate in {raid_channel}").format(raid_channel=raid_channel.mention)
         raidreport = await channel.send(content=msg, embed=raid_embed)
@@ -6207,6 +6209,11 @@ async def _timerset(raidchannel, exptime):
         index += 1
     if found:
         embed.set_field_at(index, name=embed.fields[index].name, value=endtime, inline=True)
+    else:
+        if guild_dict[guild.id]['raidchannel_dict'][raidchannel.id]['type'] == "raid":
+            embed.add_field(name=_('**Expires:**'), value=endtime, inline=True)
+        else:
+            embed.add_field(name=_('**Hatches:**'), value=endtime, inline=True)
     try:
         await raidmsg.edit(content=raidmsg.content,embed=embed)
     except discord.errors.NotFound:
