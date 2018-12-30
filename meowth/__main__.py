@@ -88,6 +88,7 @@ raid_info = {}
 
 active_raids = []
 active_wilds = []
+active_pvp = []
 
 """
 Helper functions
@@ -503,6 +504,43 @@ async def template(ctx, *, sample_message):
 Server Management
 """
 
+async def pvp_expiry_check(message):
+    logger.info('Expiry_Check - ' + message.channel.name)
+    channel = message.channel
+    guild = channel.guild
+    global active_pvp
+    message = await channel.get_message(message.id)
+    if message not in active_pvp:
+        active_pvp.append(message)
+        logger.info(
+        'pvp_expiry_check - Message added to watchlist - ' + channel.name
+        )
+        await asyncio.sleep(0.5)
+        while True:
+            try:
+                if guild_dict[guild.id]['pvp_dict'][message.id]['exp'] <= time.time():
+                    await expire_pvp(message)
+            except KeyError:
+                pass
+            await asyncio.sleep(30)
+            continue
+
+async def expire_pvp(message):
+    channel = message.channel
+    guild = channel.guild
+    pvp_dict = guild_dict[guild.id]['pvp_dict']
+    try:
+        await message.edit(content=pvp_dict[message.id]['expedit']['content'], embed=discord.Embed(description=pvp_dict[message.id]['expedit']['embedcontent'], colour=message.embeds[0].colour.value))
+        await message.clear_reactions()
+    except discord.errors.NotFound:
+        pass
+    try:
+        user_message = await channel.get_message(pvp_dict[message.id]['reportmessage'])
+        await user_message.delete()
+    except (discord.errors.NotFound, discord.errors.Forbidden, discord.errors.HTTPException):
+        pass
+    del guild_dict[guild.id]['pvp_dict'][message.id]
+
 async def wild_expiry_check(message):
     logger.info('Expiry_Check - ' + message.channel.name)
     guild = message.channel.guild
@@ -524,11 +562,11 @@ async def wild_expiry_check(message):
             continue
 
 async def expire_wild(message):
-    guild = message.channel.guild
     channel = message.channel
+    guild = channel.guild
     wild_dict = guild_dict[guild.id]['wildreport_dict']
     try:
-        await message.edit(embed=discord.Embed(description=guild_dict[guild.id]['wildreport_dict'][message.id]['expedit']['embedcontent'], colour=message.embeds[0].colour.value))
+        await message.edit(embed=discord.Embed(description=wild_dict[message.id]['expedit']['embedcontent'], colour=message.embeds[0].colour.value))
         await message.clear_reactions()
     except discord.errors.NotFound:
         pass
@@ -1268,6 +1306,15 @@ async def on_raw_reaction_add(payload):
                 except:
                     pass
                 await _refresh_listing_channels_internal(guild, "raid")
+    pvp_dict = guild_dict[guild.id].setdefault('pvp_dict', {})
+    if message.id in pvp_dict and user.id != Meowth.user.id:
+        if (message.author.id == payload.user_id or can_manage(user)):
+            if str(payload.emoji) == '🚫':
+                return await expire_pvp(message)
+        if str(payload.emoji) == '\u2694':
+            attacker = guild.get_member(payload.user_id)
+            defender = guild.get_member(pvp_dict[message.id]['reportauthor'])
+            battle_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"{defender.mention} you have been challenged by {attacker.mention}!"))
 
 def get_raid_report(guild, message_id):
     raid_dict = guild_dict[guild.id]['raidchannel_dict']
@@ -4421,13 +4468,13 @@ async def _pvp_available(ctx, *, content=None):
     pvp_dict = copy.deepcopy(guild_dict[guild.id].get('pvp_dict',{}))
     pvp_dict[pvp_msg.id] = {
         'exp':time.time() + (expiration_minutes * 60),
-        'expedit': {"content":pvp_msg.content,"embedcontent":expiremsg},
+        'expedit': {"content":"","embedcontent":expiremsg},
         'reportmessage':message.id,
         'reportchannel':channel.id,
         'reportauthor':trainer.id,
     }
     guild_dict[guild.id]['pvp_dict'] = pvp_dict
-
+    event_loop.create_task(pvp_expiry_check(pvp_msg))
 
 
 """
