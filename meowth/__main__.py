@@ -4411,7 +4411,7 @@ async def _pvp_available(ctx, *, content=None):
     pvp_embed.add_field(name=_('**To challenge:**'), value=_('Use the \u2694 react.'), inline=True)
     pvp_embed.add_field(name=_('**To cancel:**'), value=_('Use the 🚫 react.'), inline=True)
     pvp_embed.set_footer(text=_('{trainer}').format(trainer=trainer.display_name), icon_url=trainer.avatar_url_as(format=None, static_format='jpg', size=32))
-    pvp_embed.set_thumbnail(url="https://raw.githubusercontent.com/klords/Kyogre/master/images/misc/meetup.png?cache=0")
+    pvp_embed.set_thumbnail(url="https://github.com/KyogreBot/Kyogre/raw/master/images/misc/pvp.png")
 
     pvp_msg = await channel.send(content=('{trainer} is available for PvP!').format(trainer=trainer.display_name),embed=pvp_embed)
     await pvp_msg.add_reaction('\u2694')
