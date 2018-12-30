@@ -686,6 +686,7 @@ async def expire_channel(channel):
                             guild_dict[guild.id]['raidchannel_dict'][channel.id]['reportcity'])
                         reportmsg = await report_channel.get_message(guild_dict[channel.guild.id]['raidchannel_dict'][channel.id]['raidreport'])
                         await reportmsg.edit(embed=discord.Embed(description=expiremsg, colour=channel.guild.me.colour))
+                        await reportmsg.clear_reactions()
                         await _update_listing_channels(guild, 'raid', edit=True, regions=guild_dict[guild.id]['raidchannel_dict'][channel.id].get('regions', None))
                     except:
                         pass
@@ -1303,12 +1304,10 @@ async def modify_research_report(payload):
     stops = get_stops(guild.id, regions)
     prompt = 'Which item would you like to modify?'
     choices_list = ['Pokestop','Task', 'Reward']
-    prompt_msg = await channel.send(prompt)
     match = await utils.ask_list(Meowth, prompt, channel, choices_list, user_list=user.id)
-    await prompt_msg.delete()
     if match in choices_list:
         if match == choices_list[0]:
-            query_msg = await channel.send("What is the correct Pokestop?")
+            query_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.gold(), description="What is the correct Pokestop?"))
             try:
                 pokestopmsg = await Meowth.wait_for('message', timeout=30, check=(lambda reply: reply.author == user))
             except asyncio.TimeoutError:
@@ -1323,19 +1322,19 @@ async def modify_research_report(payload):
                 if stops:
                     stop = await location_match_prompt(channel, user.id, pokestopmsg.clean_content, stops)
                     if not stop:
-                        return await channel.send(_("I couldn't find a pokestop named '{0}'. Try again using the exact pokestop name!").format(location))
+                        return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"I couldn't find a pokestop named '{location}'. Try again using the exact pokestop name!"))
                     if get_existing_research(guild, stop):
-                        return await channel.send(f"A quest has already been reported for {stop.name}")
+                        return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"A quest has already been reported for {stop.name}"))
                     location = stop.name
                     loc_url = stop.maps_url
                     questreport_dict[message.id]['location'] = location
                     questreport_dict[message.id]['url'] = loc_url
                     await _refresh_listing_channels_internal(guild, "research")
-                    await channel.send("Research listing updated")
+                    await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description="Research listing updated"))
                     await pokestopmsg.delete()
                     await query_msg.delete()
         elif match == choices_list[1]:
-            questwait = await channel.send("What is the correct research task?")
+            questwait = await channel.send(embed=discord.Embed(colour=discord.Colour.gold(), description="What is the correct research task?"))
             try:
                 questmsg = await Meowth.wait_for('message', timeout=30, check=(lambda reply: reply.author == user))
             except asyncio.TimeoutError:
@@ -1356,9 +1355,10 @@ async def modify_research_report(payload):
             questreport_dict[message.id]['quest'] = quest.name
             questreport_dict[message.id]['reward'] = reward
             await _refresh_listing_channels_internal(guild, "research")
+            await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description="Research listing updated"))
             await questmsg.delete()
         elif match == choices_list[2]:
-            rewardwait = await channel.send("What is the correct reward?")
+            rewardwait = await channel.send(embed=discord.Embed(colour=discord.Colour.gold(), description="What is the correct reward?"))
             quest = guild_dict[guild.id]['questreport_dict'].get(message.id, None)
             quest = await _get_quest_v(channel, user.id, quest['quest'])
             
@@ -1367,6 +1367,7 @@ async def modify_research_report(payload):
                 error = "didn't identify the reward"
             questreport_dict[message.id]['reward'] = reward
             await _refresh_listing_channels_internal(guild, "research")
+            await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description="Research listing updated"))
             await rewardwait.delete()
         embed = message.embeds[0]
         embed.clear_fields()
@@ -1403,19 +1404,17 @@ async def modify_raid_report(payload, raid_report):
     raid_channel = Meowth.get_channel(raid_report)
     gyms = None
     gyms = get_gyms(guild.id, regions)
-    prompt = 'Which item would you like to modify?'
     choices_list = ['Location', 'Hatch / Expire Time'] #'Boss / Tier',
-    prompt_msg = await channel.send(prompt)
+    prompt = 'Which item would you like to modify?'
     match = await utils.ask_list(Meowth, prompt, channel, choices_list, user_list=user.id)
-    await prompt_msg.delete()
     if match in choices_list:
         if match == choices_list[0]:
-            query_msg = await channel.send("What is the correct Location?")
+            query_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.gold(), description=_("What is the correct Location?")))
             try:
                 gymmsg = await Meowth.wait_for('message', timeout=30, check=(lambda reply: reply.author == user))
             except asyncio.TimeoutError:
-                gymmsg = None
                 await gymmsg.delete()
+                gymmsg = None
             if not gymmsg:
                 error = _("took too long to respond")
             elif gymmsg.clean_content.lower() == "cancel":
@@ -1434,11 +1433,11 @@ async def modify_raid_report(payload, raid_report):
                             return await channel.send(f"A raid has already been reported for {gym.name}")
                     await update_raid_location(message, channel, raid_channel, gym)
                     await _refresh_listing_channels_internal(guild, "raid")
-                    await channel.send("Raid listing updated")
+                    await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid location updated")))
                     await gymmsg.delete()
                     await query_msg.delete()
         elif match == choices_list[1]:
-            timewait = await channel.send("What is the Hatch / Expire time?")
+            timewait = await channel.send(embed=discord.Embed(colour=discord.Colour.gold(), description=_("What is the Hatch / Expire time?")))
             try:
                 timemsg = await Meowth.wait_for('message', timeout=30, check=(lambda reply: reply.author == user))
             except asyncio.TimeoutError:
@@ -1453,6 +1452,7 @@ async def modify_raid_report(payload, raid_report):
             if raidexp is not False:
                 await _timerset(raid_channel, raidexp)
             await _refresh_listing_channels_internal(guild, "raid")
+            await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid hatch / expire time updated")))
             await timewait.delete()
             await timemsg.delete()
         await message.clear_reactions()
@@ -4831,12 +4831,12 @@ async def _raid_internal(message, content):
     raid_embed.set_footer(text=_('Reported by {author} - {timestamp}').format(author=author.display_name, timestamp=timestamp), icon_url=author.avatar_url_as(format=None, static_format='jpg', size=32))
     raid_embed.set_thumbnail(url=raid_pokemon.img_url)
     report_embed = raid_embed
-    msg = _('{pokemon} raid reported by {member}! Details: {location_details}.').format(pokemon=str(raid_pokemon), member=author.display_name, location_details=raid_details)
+    msg = _('{ex}{pokemon} raid reported by {member} at {location_details} gym.').format(ex=" EX Eligible " if gym.ex_eligible else "", pokemon=str(raid_pokemon), member=author.display_name, location_details=raid_details)
     if enabled:
         msg += _(" Coordinate in {raid_channel}").format(raid_channel=raid_channel.mention)
     raidreport = await channel.send(content=msg, embed=report_embed)
     await asyncio.sleep(1)
-    raidmsg = _("{pokemon} raid reported by {member} in {citychannel}! Details: {location_details}. Coordinate here!\n\nClick the question mark reaction to get help on the commands that work in here.\n\nThis channel will be deleted five minutes after the timer expires.").format(pokemon=str(raid_pokemon), member=author.display_name, citychannel=channel.mention, location_details=raid_details)
+    raidmsg = _("{pokemon} raid reported by {member} in {citychannel} at {location_details} gym. Coordinate here!\n\nClick the question mark reaction to get help on the commands that work in here.\n\nThis channel will be deleted five minutes after the timer expires.").format(pokemon=str(raid_pokemon), member=author.display_name, citychannel=channel.mention, location_details=raid_details)
     raidmessage = await raid_channel.send(content=raidmsg, embed=raid_embed)
     await raidmessage.add_reaction('\u2754')
     await raidmessage.pin()
@@ -4995,12 +4995,12 @@ async def _raidegg(message, content):
             raid_embed.add_field(name=_('**Hatches:**'), value=_('Set with **!timerset**'), inline=True)
         raid_embed.set_footer(text=_('Reported by {author} - {timestamp}').format(author=author.display_name, timestamp=timestamp), icon_url=author.avatar_url_as(format=None, static_format='jpg', size=32))
         raid_embed.set_thumbnail(url=raid_img_url)
-        msg = _('Level {level} raid egg reported by {member}! Details: {location_details}.').format(level=egg_level, member=author.display_name, location_details=raid_details)
+        msg = _('{ex}Level {level} raid egg reported by {member} at {location_details} gym.').format(ex=" EX Eligible " if gym.ex_eligible else "", level=egg_level, member=author.display_name, location_details=raid_details)
         if enabled:
             msg += _(" Coordinate in {raid_channel}").format(raid_channel=raid_channel.mention)
         raidreport = await channel.send(content=msg, embed=raid_embed)
         await asyncio.sleep(1)
-        raidmsg = _("Level {level} raid egg reported by {member} in {citychannel}! Details: {location_details}. Coordinate here!\n\nClick the question mark reaction to get help on the commands that work in here.\n\nThis channel will be deleted five minutes after the timer expires.").format(level=egg_level, member=author.display_name, citychannel=channel.mention, location_details=raid_details)
+        raidmsg = _("Level {level} raid egg reported by {member} in {citychannel} at {location_details} gym. Coordinate here!\n\nClick the question mark reaction to get help on the commands that work in here.\n\nThis channel will be deleted five minutes after the timer expires.").format(level=egg_level, member=author.display_name, citychannel=channel.mention, location_details=raid_details)
         raidmessage = await raid_channel.send(content=raidmsg, embed=raid_embed)
         await raidmessage.add_reaction('\u2754')
         await raidmessage.pin()
@@ -5170,7 +5170,7 @@ async def _eggtoraid(entered_raid, raid_channel, author=None):
         return
     if egglevel.isdigit():
         hatchtype = 'raid'
-        raidreportcontent = _('The egg has hatched into a {pokemon} raid! Details: {location_details}.').format(pokemon=entered_raid.capitalize(), location_details=egg_address)
+        raidreportcontent = _('The egg has hatched into a {pokemon} raid at {location_details} gym.').format(pokemon=entered_raid.capitalize(), location_details=egg_address)
         enabled = raid_channels_enabled(raid_channel.guild, raid_channel)
         if enabled:
             raidreportcontent += _('Coordinate in {raid_channel}').format(raid_channel=raid_channel.mention)
