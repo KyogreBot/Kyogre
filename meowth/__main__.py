@@ -4804,7 +4804,9 @@ async def _raid_internal(message, content):
                     msg += f" Coordinate in {raid_channel.mention}"
                 return await channel.send(msg)
             else:
+                await message.add_reaction('✅')
                 return await _eggtoraid(raid_pokemon.name.lower(), raid_channel)
+
         raid_details = gym.name
         raid_gmaps_link = gym.maps_url
         regions = [gym.region]
