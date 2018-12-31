@@ -4748,9 +4748,9 @@ async def _raid_internal(message, content):
     raid_pokemon = Pokemon.get_pokemon(Meowth, content)
     pkmn_error = None
     pkmn_error_dict = {'not_pokemon': "I couldn't determine the Pokemon in your report.\nWhat raid boss or raid tier are you reporting?",
-    'not_boss': 'That Pokemon does not appear in raids!\nWhat is the correct Pokemon?',
-    'ex': ("The Pokemon {pokemon} only appears in EX Raids!\nWhat is the correct Pokemon?").format(pokemon=str(raid_pokemon).capitalize()),
-    'level': "That is not a valid raid tier. Please provide the raid boss or tier for your report."}
+                       'not_boss': 'That Pokemon does not appear in raids!\nWhat is the correct Pokemon?',
+                       'ex': ("The Pokemon {pokemon} only appears in EX Raids!\nWhat is the correct Pokemon?").format(pokemon=str(raid_pokemon).capitalize()),
+                       'level': "That is not a valid raid tier. Please provide the raid boss or tier for your report."}
     if not raid_pokemon:
         pkmn_error = 'not_pokemon'
         try:
@@ -4905,13 +4905,7 @@ async def _raid_internal(message, content):
     raid_embed.set_footer(text=_('Reported by {author} - {timestamp}').format(author=author.display_name, timestamp=timestamp), icon_url=author.avatar_url_as(format=None, static_format='jpg', size=32))
     raid_embed.set_thumbnail(url=raid_pokemon.img_url)
     report_embed = raid_embed
-    msg = _('{ex}{pokemon} raid reported by {member} at {location_details} gym.').format(ex=" EX Eligible " if gym.ex_eligible else "", pokemon=str(raid_pokemon), member=author.display_name, location_details=raid_details)
-    if raidexp is not False:
-        now = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[guild.id]['configure_dict']['settings']['offset'])
-        end = now + datetime.timedelta(minutes=raidexp)
-        msg += _(' Expires: {end}.').format(end=end.strftime(_('%B %d at %I:%M %p (%H:%M)')))
-    if enabled:
-        msg += _(" Coordinate in {raid_channel}").format(raid_channel=raid_channel.mention)
+    msg = build_raid_report_message(gym, raid_pokemon.name, raidexp, enabled, raid_channel)
     raidreport = await channel.send(content=msg, embed=report_embed)
     await asyncio.sleep(1)
     raidmsg = _("{pokemon} raid reported by {member} in {citychannel} at {location_details} gym. Coordinate here!\n\nClick the question mark reaction to get help on the commands that work in here.\n\nThis channel will be deleted five minutes after the timer expires.").format(pokemon=str(raid_pokemon), member=author.display_name, citychannel=channel.mention, location_details=raid_details)
@@ -5074,13 +5068,7 @@ async def _raidegg(message, content):
             raid_embed.add_field(name=_('**Hatches:**'), value=_('Set with **!timerset**'), inline=True)
         raid_embed.set_footer(text=_('Reported by {author} - {timestamp}').format(author=author.display_name, timestamp=timestamp), icon_url=author.avatar_url_as(format=None, static_format='jpg', size=32))
         raid_embed.set_thumbnail(url=raid_img_url)
-        msg = _('{ex}Level {level} raid egg reported by {member} at {location_details} gym.').format(ex=" EX Eligible " if gym.ex_eligible else "", level=egg_level, member=author.display_name, location_details=raid_details)
-        if raidexp is not False:
-            now = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[guild.id]['configure_dict']['settings']['offset'])
-            end = now + datetime.timedelta(minutes=raidexp)
-            msg += _(' Hatches: {end}.').format(end=end.strftime(_('%B %d at %I:%M %p (%H:%M)')))
-        if enabled:
-            msg += _(" Coordinate in {raid_channel}").format(raid_channel=raid_channel.mention)
+        msg = build_raid_report_message(gym, egg_level, raidexp, enabled, raid_channel)
         raidreport = await channel.send(content=msg, embed=raid_embed)
         await asyncio.sleep(1)
         raidmsg = _("Level {level} raid egg reported by {member} in {citychannel} at {location_details} gym. Coordinate here!\n\nClick the question mark reaction to get help on the commands that work in here.\n\nThis channel will be deleted five minutes after the timer expires.").format(level=egg_level, member=author.display_name, citychannel=channel.mention, location_details=raid_details)
@@ -5126,6 +5114,22 @@ async def _raidegg(message, content):
         await raidreport.add_reaction('🚫')
         await asyncio.sleep(0.25)
         return raid_channel
+
+def build_raid_report_message(gym, pokemon, raidexp, enabled, channel):
+    guild = channel.guild
+    if pokemon.isdigit():
+        msg = _('T{level} egg @ {location}{ex}').format(ex=" (EX) " if gym.ex_eligible else "", level=pokemon, location=gym.name)
+        type = "Hatches: "
+    else:
+        msg = _('{boss} @ {location}{ex}').format(ex=" (EX) " if gym.ex_eligible else "", boss=pokemon, location=gym.name)
+        type = "Expires: "
+    if raidexp is not False:
+        now = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[guild.id]['configure_dict']['settings']['offset'])
+        end = now + datetime.timedelta(minutes=raidexp)
+        msg += _(' {type}{end}.').format(end=end.strftime(_('%I:%M %p')), type=type)
+    if enabled:
+        msg += _(" Coordinate in {channel}").format(channel=channel.mention)
+    return msg
 
 async def _eggassume(args, raid_channel, author=None):
 
