@@ -4713,6 +4713,7 @@ async def _raid_internal(message, content):
     guild = channel.guild
     author = message.author
     fromegg = False
+    eggtoraid = False
     if guild_dict[guild.id]['raidchannel_dict'].get(channel.id,{}).get('type') == "egg":
         fromegg = True
     timestamp = (message.created_at + datetime.timedelta(hours=guild_dict[guild.id]['configure_dict']['settings']['offset'])).strftime(_('%I:%M %p (%H:%M)'))
@@ -4737,12 +4738,10 @@ async def _raid_internal(message, content):
                 await _eggassume(" ".join(raid_split), channel, author)
                 return
         elif guild_dict[guild.id]['raidchannel_dict'][channel.id]['active'] == False:
-            await _eggtoraid(" ".join(raid_split).lower(), channel, author)
-            return
+            eggtoraid = True
         ## This is a hack but it allows users to report the just hatched boss before Kyogre catches up with hatching the egg.
         elif guild_dict[guild.id]['raidchannel_dict'][channel.id]['exp'] - 30 < datetime.datetime.now().timestamp():
-            await _eggtoraid(raid_split[0].lower(), channel, author)
-            return
+            eggtoraid = True
         else:            
             await channel.send(_('Please wait until the egg has hatched before changing it to an open raid!'))
             return
@@ -4813,6 +4812,8 @@ async def _raid_internal(message, content):
             await asyncio.sleep(.5)
     else:
         new_content = ' '.join(content.split()[len(raid_pokemon.full_name.split()):])
+    if eggtoraid:
+        return await _eggtoraid(new_content, channel, author)
     raid_split = new_content.strip().split()
     if len(raid_split) == 0:
         await channel.send(_('Give more details when reporting! Usage: **!raid <pokemon name> <location>**'))
@@ -4825,8 +4826,9 @@ async def _raid_internal(message, content):
         else:
             del raid_split[-1]
             if _timercheck(raidexp, raid_info['raid_eggs'][raid_pokemon.raid_level]['raidtime']):
-                await channel.send(_("That's too long. Level {raidlevel} raids currently last no more than {raidtime} minutes...").format(raidlevel=raid_pokemon.raid_level, raidtime=raid_info['raid_eggs'][raid_pokemon.raid_level]['raidtime']))
-                return
+                time_embed = Discord.Embed(description=_("That's too long. Level {raidlevel} Raid currently last no more than {hatchtime} minutes...\nExpire time will not be set.").format(raidlevel=raid_pokemon.raid_level, hatchtime=raid_info['raid_eggs'][raid_pokemon.raid_level]['hatchtime']), colour=discord.Colour.red())
+                await channel.send(embed=time_embed)
+                raidexp = False
     raid_details = ' '.join(raid_split)
     raid_details = raid_details.strip()
     if raid_details == '':
@@ -4849,18 +4851,32 @@ async def _raid_internal(message, content):
     if gyms:
         gym = await location_match_prompt(channel, author.id, raid_details, gyms)
         if not gym:
-            return await channel.send(_("I couldn't find a gym named '{0}'. Try again using the exact gym name!").format(raid_details))
+            second_attempt = raid_details.split(' ')
+            if second_attempt[-2] == "alolan":
+                del second_attempt[-2]
+            del second_attempt[-1]
+            second_attempt = ' '.join(second_attempt)
+            gym = await location_match_prompt(channel, author.id, second_attempt, gyms)
+            if not gym:
+                return await channel.send(_("I couldn't find a gym named '{0}'. Try again using the exact gym name!").format(raid_details))
         raid_channel_ids = get_existing_raid(guild, gym)
         if raid_channel_ids:
             raid_channel = Meowth.get_channel(raid_channel_ids[0])
-            if guild_dict[guild.id]['raidchannel_dict'][raid_channel.id] and guild_dict[guild.id]['raidchannel_dict'][raid_channel.id]['active']:
+            try:
+                raid_dict_entry = guild_dict[guild.id]['raidchannel_dict'][raid_channel.id]
+            except:
+                return await message.add_reaction('\u274c')
+            enabled = raid_channels_enabled(guild, channel)
+            if raid_dict_entry and raid_dict_entry['active']:
                 msg = f"A raid has already been reported for {gym.name}."
-                enabled = raid_channels_enabled(guild, channel)
                 if enabled:
                     msg += f" Coordinate in {raid_channel.mention}"
                 return await channel.send(msg)
             else:
                 await message.add_reaction('✅')
+                location = raid_dict_entry.get('address', 'unknown gym')
+                if not enabled:
+                    await channel.send(f"The egg at {location} has hatched into a {raid_pokemon.name} raid!")
                 return await _eggtoraid(raid_pokemon.name.lower(), raid_channel)
 
         raid_details = gym.name
@@ -4984,8 +5000,9 @@ async def _raidegg(message, content):
         else:
             del raidegg_split[-1]
             if _timercheck(raidexp, raid_info['raid_eggs'][str(egg_level)]['hatchtime']):
-                await channel.send(_("That's too long. Level {raidlevel} Raid Eggs currently last no more than {hatchtime} minutes...").format(raidlevel=egg_level, hatchtime=raid_info['raid_eggs'][str(egg_level)]['hatchtime']))
-                return
+                time_embed = discord.Embed(description=_("That's too long. Level {raidlevel} Raid Eggs currently last no more than {hatchtime} minutes...\nHatch time will not be set.").format(raidlevel=egg_level, hatchtime=raid_info['raid_eggs'][str(egg_level)]['hatchtime']), colour=discord.Colour.red())
+                await channel.send(embed=time_embed)
+                raidexp = False
     raid_details = ' '.join(raidegg_split)
     raid_details = raid_details.strip()
     if raid_details == '':
@@ -6263,7 +6280,7 @@ async def raid_time_check(channel,time):
     elif ':' in time:
         now = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[channel.guild.id]['configure_dict']['settings']['offset'])
         start = dateparser.parse(time, settings={'PREFER_DATES_FROM': 'future'})
-        start = start.replace(month = now.month, day=now.day)
+        start = start.replace(month = now.month, day=now.day, year=now.year)
         timediff = relativedelta(start, now)
         if timediff.hours <= -10:
             start = start + datetime.timedelta(hours=12)
