@@ -4891,6 +4891,10 @@ async def _raid_internal(message, content):
     raid_embed.set_thumbnail(url=raid_pokemon.img_url)
     report_embed = raid_embed
     msg = _('{ex}{pokemon} raid reported by {member} at {location_details} gym.').format(ex=" EX Eligible " if gym.ex_eligible else "", pokemon=str(raid_pokemon), member=author.display_name, location_details=raid_details)
+    if raidexp is not False:
+        now = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[guild.id]['configure_dict']['settings']['offset'])
+        end = now + datetime.timedelta(minutes=raidexp)
+        msg += _(' Expires: {end}.').format(end=end.strftime(_('%B %d at %I:%M %p (%H:%M)')))
     if enabled:
         msg += _(" Coordinate in {raid_channel}").format(raid_channel=raid_channel.mention)
     raidreport = await channel.send(content=msg, embed=report_embed)
@@ -5055,6 +5059,10 @@ async def _raidegg(message, content):
         raid_embed.set_footer(text=_('Reported by {author} - {timestamp}').format(author=author.display_name, timestamp=timestamp), icon_url=author.avatar_url_as(format=None, static_format='jpg', size=32))
         raid_embed.set_thumbnail(url=raid_img_url)
         msg = _('{ex}Level {level} raid egg reported by {member} at {location_details} gym.').format(ex=" EX Eligible " if gym.ex_eligible else "", level=egg_level, member=author.display_name, location_details=raid_details)
+        if raidexp is not False:
+            now = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[guild.id]['configure_dict']['settings']['offset'])
+            end = now + datetime.timedelta(minutes=raidexp)
+            msg += _(' Hatches: {end}.').format(end=end.strftime(_('%B %d at %I:%M %p (%H:%M)')))
         if enabled:
             msg += _(" Coordinate in {raid_channel}").format(raid_channel=raid_channel.mention)
         raidreport = await channel.send(content=msg, embed=raid_embed)
