@@ -4793,7 +4793,6 @@ async def _raid_internal(message, content):
                 return
             if pokemon_msg.clean_content.isdigit():
                 if int(pokemon_msg.clean_content) > 0 and int(pokemon_msg.clean_content) <= 5:
-                    await channel.send(' '.join([str(pokemon_msg.clean_content), new_content]))
                     return await _raidegg(message, ' '.join([str(pokemon_msg.clean_content), new_content]))
                 else:
                     pkmn_error = 'level'
