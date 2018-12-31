@@ -4747,16 +4747,73 @@ async def _raid_internal(message, content):
             await channel.send(_('Please wait until the egg has hatched before changing it to an open raid!'))
             return
     raid_pokemon = Pokemon.get_pokemon(Meowth, content)
+    pkmn_error = None
+    pkmn_error_dict = {'not_pokemon': "I couldn't determine the Pokemon in your report.\nWhat raid boss or raid tier are you reporting?",
+    'not_boss': 'That Pokemon does not appear in raids!\nWhat is the correct Pokemon?',
+    'ex': ("The Pokemon {pokemon} only appears in EX Raids!\nWhat is the correct Pokemon?").format(pokemon=str(raid_pokemon).capitalize()),
+    'level': "That is not a valid raid tier. Please provide the raid boss or tier for your report."}
     if not raid_pokemon:
-        await channel.send(_("I couldn't find the Pokemon name in {content}! Check the spelling and try again!").format(content=content))
-        return
-    if not raid_pokemon.is_raid:
-        await channel.send(_('The Pokemon {pokemon} does not appear in raids!').format(pokemon=str(raid_pokemon)))
-        return
+        pkmn_error = 'not_pokemon'
+        try:
+            new_content = content.split()
+            pkmn_index = new_content.index('alolan')
+            del new_content[pkmn_index + 1]
+            del new_content[pkmn_index]
+            new_content = ' '.join(new_content)
+        except ValueError:
+            new_content = ' '.join(content.split())
+    elif not raid_pokemon.is_raid:
+        pkmn_error = 'not_boss'
+        try:
+            new_content = content.split()
+            pkmn_index = new_content.index('alolan')
+            del new_content[pkmn_index + 1]
+            del new_content[pkmn_index]
+            new_content = ' '.join(new_content)
+        except ValueError:
+            new_content = content.split()
     elif raid_pokemon.is_exraid:
-        await channel.send(_("The Pokemon {pokemon} only appears in EX Raids! Use **!exraid** to report one!").format(pokemon=str(raid_pokemon).capitalize()))
-        return
-    new_content = ' '.join(content.split()[len(raid_pokemon.full_name.split()):])
+        pkmn_error = 'ex'
+        new_content = ' '.join(content.split()[1:])
+    if pkmn_error is not None:
+        while True:
+            pkmn_embed=discord.Embed(colour=discord.Colour.red(), description=pkmn_error_dict[pkmn_error])
+            pkmn_embed.set_footer(text="Reply with 'cancel' to cancel your raid report.")
+            pkmnquery_msg = await channel.send(embed=pkmn_embed)
+            try:
+                pokemon_msg = await Meowth.wait_for('message', timeout=30, check=(lambda reply: reply.author == author))
+            except asyncio.TimeoutError:
+                timeout_error_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.light_grey(), description="You took too long to reply. Raid report cancelled."))
+                await pkmnquery_msg.delete()
+                return
+            if pokemon_msg.clean_content == "cancel":
+                await pkmnquery_msg.delete()
+                await pokemon_msg.delete()
+                cancelled_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.light_grey(), description="Raid report cancelled."))
+                return
+            if pokemon_msg.clean_content.isdigit():
+                if int(pokemon_msg.clean_content) > 0 and int(pokemon_msg.clean_content) <= 5:
+                    await channel.send(' '.join([str(pokemon_msg.clean_content), new_content]))
+                    return await _raidegg(message, ' '.join([str(pokemon_msg.clean_content), new_content]))
+                else:
+                    pkmn_error = 'level'
+                    continue
+            raid_pokemon = Pokemon.get_pokemon(Meowth, pokemon_msg.clean_content)
+            if not raid_pokemon:
+                pkmn_error = 'not_pokemon'
+            elif not raid_pokemon.is_raid:
+                pkmn_error = 'not_boss'
+            elif raid_pokemon.is_exraid:
+                pkmn_error = 'ex'
+            else:
+                await pkmnquery_msg.delete()
+                await pokemon_msg.delete()
+                break
+            await pkmnquery_msg.delete()
+            await pokemon_msg.delete()
+            await asyncio.sleep(.5)
+    else:
+        new_content = ' '.join(content.split()[len(raid_pokemon.full_name.split()):])
     raid_split = new_content.strip().split()
     if len(raid_split) == 0:
         await channel.send(_('Give more details when reporting! Usage: **!raid <pokemon name> <location>**'))
