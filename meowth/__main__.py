@@ -4847,6 +4847,8 @@ async def _raid_internal(message, content):
             await asyncio.sleep(.5)
     else:
         new_content = ' '.join(content.split()[len(raid_pokemon.full_name.split()):])
+    if fromegg:
+        return await _eggtoraid(raid_pokemon.full_name, channel, author)
     if eggtoraid:
         return await _eggtoraid(new_content, channel, author)
     raid_split = new_content.strip().split()
@@ -4886,13 +4888,8 @@ async def _raid_internal(message, content):
     if gyms:
         gym = await location_match_prompt(channel, author.id, raid_details, gyms)
         if not gym:
-            second_attempt = raid_details.split(' ')
-            if second_attempt[-2] == "alolan":
-                del second_attempt[-2]
-            del second_attempt[-1]
-            second_attempt = ' '.join(second_attempt)
-            gym = await location_match_prompt(channel, author.id, second_attempt, gyms)
-            if not gym:
+            gym = await retry_gym_match(channel, author.id, raid_details, gyms)
+            if gym is None:
                 return await channel.send(_("I couldn't find a gym named '{0}'. Try again using the exact gym name!").format(raid_details))
         raid_channel_ids = get_existing_raid(guild, gym)
         if raid_channel_ids:
@@ -5004,6 +5001,27 @@ async def _raid_internal(message, content):
     await asyncio.sleep(0.25)
     return raid_channel
 
+async def retry_gym_match(channel, author_id, raid_details, gyms):
+    attempt = raid_details.split(' ')
+    if attempt[-2] == "alolan":
+        del attempt[-2]
+    del attempt[-1]
+    attempt = ' '.join(attempt)
+    gym = await location_match_prompt(channel, author_id, attempt, gyms)
+    if gym:
+        return gym
+    else:
+        attempt = raid_details.split(' ')
+        if attempt[0] == "alolan":
+            del attempt[0]
+        del attempt[0]
+        attempt = ' '.join(attempt)
+        gym = await location_match_prompt(channel, author_id, attempt, gyms)
+        if gym:
+            return gym
+        else:
+            return None
+
 async def _raidegg(message, content):
     channel = message.channel
     guild = message.guild
@@ -5056,7 +5074,9 @@ async def _raidegg(message, content):
     if gyms:
         gym = await location_match_prompt(channel, author.id, raid_details, gyms)
         if not gym:
-            return await channel.send(_("I couldn't find a gym named '{0}'. Try again using the exact gym name!").format(raid_details))
+            gym = await retry_gym_match(channel, author.id, raid_details, gyms)
+            if gym is None:
+                return await channel.send(_("I couldn't find a gym named '{0}'. Try again using the exact gym name!").format(raid_details))
         raid_channel_ids = get_existing_raid(guild, gym)
         if raid_channel_ids:
             raid_channel = Meowth.get_channel(raid_channel_ids[0])
@@ -5257,9 +5277,18 @@ async def _eggtoraid(entered_raid, raid_channel, author=None):
     trainer_dict = eggdetails['trainer_dict']
     egg_address = eggdetails['address']
     weather = eggdetails.get('weather', None)
-    gym = None if eggdetails['gym'] is None else eggdetails['gym']
-    reporter = None if eggdetails['reporter'] is None else eggdetails['reporter']
-    reportchannel = None if eggdetails['reportchannel'] is None else eggdetails['reportchannel']
+    try:
+        gym = eggdetails['gym']
+    except:
+        gym = None
+    try:
+        reporter = eggdetails['reporter']
+    except:
+        reporter = None
+    try:
+        reportchannel = eggdetails['reportchannel']
+    except:
+        reportchannel = None
     if reportchannel is not None:
         reportchannel = Meowth.get_channel(reportchannel)
     raid_message = await raid_channel.get_message(eggdetails['raidmessage'])
