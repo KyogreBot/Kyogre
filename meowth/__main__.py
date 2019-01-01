@@ -1252,7 +1252,7 @@ async def on_raw_reaction_add(payload):
     raid_dict = guild_dict[guild.id].setdefault('raidchannel_dict', {})
     raid_report = get_raid_report(guild, message.id)
     if raid_report is not None and user.id != Meowth.user.id:
-        if (message.author.id == payload.user_id or can_manage(user)):
+        if (raid_dict.get(raid_report, {}).get('reporter', 0) == payload.user_id or can_manage(user)):
             if str(payload.emoji) == '\u270f':
                 await modify_raid_report(payload, raid_report)
             elif str(payload.emoji) == '🚫':
@@ -4938,6 +4938,7 @@ async def _raid_internal(message, content):
         'active': True,
         'raidmessage': raidmessage.id,
         'raidreport': raidreport.id,
+        'reportchannel': channel,
         'ctrsmessage': ctrsmessage_id,
         'address': raid_details,
         'type': 'raid',
@@ -4947,6 +4948,7 @@ async def _raid_internal(message, content):
         'moveset': 0,
         'weather': weather,
         'gym': gym,
+        'reporter': author.id
     }
     if raidexp is not False:
         await _timerset(raid_channel, raidexp)
@@ -5084,13 +5086,15 @@ async def _raidegg(message, content):
             'active': True,
             'raidmessage': raidmessage.id,
             'raidreport': raidreport.id,
+            'reportchannel': channel,
             'address': raid_details,
             'type': 'egg',
             'pokemon': '',
             'egglevel': egg_level,
-            'weather': weather,
             'moveset': 0,
+            'weather': weather,
             'gym': gym,
+            'reporter': author.id
         }
         if raidexp is not False:
             await _timerset(raid_channel, raidexp)
@@ -5219,6 +5223,8 @@ async def _eggtoraid(entered_raid, raid_channel, author=None):
     egg_address = eggdetails['address']
     weather = eggdetails.get('weather', None)
     gym = None if eggdetails['gym'] is None else eggdetails['gym']
+    reporter = None if eggdetails['reporter'] is None else eggdetails['reporter']
+    reportchannel = None if eggdetails['reportchannel'] is None else eggdetails['reportchannel']
     raid_message = await raid_channel.get_message(eggdetails['raidmessage'])
     if not reportcitychannel:
         async for message in raid_channel.history(limit=500, reverse=True):
@@ -5313,14 +5319,7 @@ async def _eggtoraid(entered_raid, raid_channel, author=None):
     if enabled:
         await _send_notifications_async('raid', raid_details, raid_channel, [author] if author else [])
     else:
-        regions = _get_channel_regions(raid_channel, 'raid')
-        if regions and len(regions) > 0:
-            region = regions[0]
-            report_dict = guild_dict[raid_channel.guild.id]['configure_dict']['raid']['report_channels']
-            for r in report_dict:
-                if report_dict[r] == region:
-                    r_channel = Meowth.get_channel(int(r))
-            await _send_notifications_async('raid', raid_details, r_channel, [author] if author else [])
+        await _send_notifications_async('raid', raid_details, reportchannel, [author] if author else [])
     for field in oldembed.fields:
         t = _('team')
         s = _('status')
@@ -5358,6 +5357,7 @@ async def _eggtoraid(entered_raid, raid_channel, author=None):
         'active': True,
         'raidmessage': raid_message,
         'raidreport': egg_report,
+        'reportchannel': reportchannel,
         'address': egg_address,
         'type': hatchtype,
         'pokemon': pkmn.name.lower(),
@@ -5366,7 +5366,8 @@ async def _eggtoraid(entered_raid, raid_channel, author=None):
         'ctrsmessage': ctrsmessage_id,
         'weather': weather,
         'moveset': 0,
-        'gym': gym
+        'gym': gym,
+        'reporter': reporter
     }
     guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['starttime'] = starttime
     guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['duplicate'] = duplicate
@@ -5468,6 +5469,7 @@ async def _exraid(ctx, location):
         'pokemon': '',
         'egglevel': 'EX',
         'gym': gym,
+        'reporter': message.author.id
     }
     if len(raid_info['raid_eggs']['EX']['pokemon']) == 1:
         await _eggassume('assume ' + raid_info['raid_eggs']['EX']['pokemon'][0], raid_channel)
@@ -5821,7 +5823,8 @@ async def _meetup(ctx, location):
         'type': 'egg',
         'pokemon': '',
         'egglevel': 'EX',
-        'meetup': {'start':None, 'end':None}
+        'meetup': {'start':None, 'end':None},
+        'reporter': message.author.id
     }
     now = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[raid_channel.guild.id]['configure_dict']['settings']['offset'])
     await raid_channel.send(content=_('Hey {member}, if you can, set the time that the event starts with **!starttime <date and time>** and also set the time that the event ends using **!timerset <date and time>**.').format(member=message.author.mention))
