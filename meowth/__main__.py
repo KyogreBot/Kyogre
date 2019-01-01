@@ -4973,7 +4973,7 @@ async def _raid_internal(message, content):
         'active': True,
         'raidmessage': raidmessage.id,
         'raidreport': raidreport.id,
-        'reportchannel': channel,
+        'reportchannel': channel.id,
         'ctrsmessage': ctrsmessage_id,
         'address': raid_details,
         'type': 'raid',
@@ -5121,7 +5121,7 @@ async def _raidegg(message, content):
             'active': True,
             'raidmessage': raidmessage.id,
             'raidreport': raidreport.id,
-            'reportchannel': channel,
+            'reportchannel': channel.id,
             'address': raid_details,
             'type': 'egg',
             'pokemon': '',
@@ -5260,6 +5260,8 @@ async def _eggtoraid(entered_raid, raid_channel, author=None):
     gym = None if eggdetails['gym'] is None else eggdetails['gym']
     reporter = None if eggdetails['reporter'] is None else eggdetails['reporter']
     reportchannel = None if eggdetails['reportchannel'] is None else eggdetails['reportchannel']
+    if reportchannel is not None:
+        reportchannel = Meowth.get_channel(reportchannel)
     raid_message = await raid_channel.get_message(eggdetails['raidmessage'])
     if not reportcitychannel:
         async for message in raid_channel.history(limit=500, reverse=True):
@@ -5392,7 +5394,7 @@ async def _eggtoraid(entered_raid, raid_channel, author=None):
         'active': True,
         'raidmessage': raid_message,
         'raidreport': egg_report,
-        'reportchannel': reportchannel,
+        'reportchannel': reportchannel.id,
         'address': egg_address,
         'type': hatchtype,
         'pokemon': pkmn.name.lower(),
