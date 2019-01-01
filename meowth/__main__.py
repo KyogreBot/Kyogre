@@ -4324,14 +4324,16 @@ async def _sub_adminlist(ctx, *, trainer=None):
 
     await message.add_reaction('✅')
     results = (SubscriptionTable
-            .select(SubscriptionTable.type, SubscriptionTable.target)
-            .join(TrainerTable, on=(SubscriptionTable.trainer == TrainerTable.snowflake))
-            .where(SubscriptionTable.trainer == trainer)
-            .where(TrainerTable.guild == ctx.guild.id))
+        .select(SubscriptionTable.type, SubscriptionTable.target)
+        .join(TrainerTable, on=(SubscriptionTable.trainer == TrainerTable.snowflake))
+        .where(SubscriptionTable.trainer == trainer)
+        .where(TrainerTable.guild == ctx.guild.id))
 
     results = results.execute()
+    subscription_msg = ''
+    types = set([s.type for s in results])
     subscriptions = {t: [s.target for s in results if s.type == t] for t in types}
-    
+
     for sub in subscriptions:
         subscription_msg += '**{category}**:\n\t{subs}\n\n'.format(category=sub.title(),subs='\n\t'.join(subscriptions[sub]))
     if subscription_msg:
