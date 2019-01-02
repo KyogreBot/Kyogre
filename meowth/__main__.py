@@ -5003,18 +5003,20 @@ async def _raid_internal(message, content):
 
 async def retry_gym_match(channel, author_id, raid_details, gyms):
     attempt = raid_details.split(' ')
-    if attempt[-2] == "alolan":
-        del attempt[-2]
-    del attempt[-1]
+    if len(attempt) > 1:
+        if attempt[-2] == "alolan" and len(attempt) > 2:
+            del attempt[-2]
+        del attempt[-1]
     attempt = ' '.join(attempt)
     gym = await location_match_prompt(channel, author_id, attempt, gyms)
     if gym:
         return gym
     else:
         attempt = raid_details.split(' ')
-        if attempt[0] == "alolan":
+        if len(attempt) > 1:
+            if attempt[0] == "alolan" and len(attempt) > 2:
+                del attempt[0]
             del attempt[0]
-        del attempt[0]
         attempt = ' '.join(attempt)
         gym = await location_match_prompt(channel, author_id, attempt, gyms)
         if gym:
