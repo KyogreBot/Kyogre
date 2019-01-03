@@ -4227,11 +4227,12 @@ async def profile(ctx, user: discord.Member = None):
     await ctx.send(embed=embed)
 
 @Meowth.command()
-async def leaderboard(ctx, type="total"):
+async def leaderboard(ctx, type="total", region=None):
     """Displays the top ten reporters of a server.
 
-    Usage: !leaderboard [type]
-    Accepted types: raids, eggs, wilds, research, joined"""
+    Usage: !leaderboard [type] [region]
+    Accepted types: raids, eggs, wilds, research, joined
+    Region must be any configured region"""
     trainers = copy.deepcopy(guild_dict[ctx.guild.id]['trainers'])
     leaderboard = []
     rank = 1
@@ -4241,8 +4242,16 @@ async def leaderboard(ctx, type="total"):
     if type not in typelist:
         await ctx.send(_("Leaderboard type not supported. Please select from: **total, raids, eggs, wilds, research, joined**"))
         return
+    if region is not None:
+        role = discord.utils.get(guild.roles, name=region)
+        if role is None:
+            return await ctx.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"No region found with name {region}"))
+    else:
+        role = discord.utils.get(guild.roles, name="@everyone")
     for trainer in trainers.keys():
         user = ctx.guild.get_member(trainer)
+        if role not in user.roles:
+            continue
         raids = trainers[trainer].setdefault('raid_reports', 0)
         wilds = trainers[trainer].setdefault('wild_reports', 0)
         exraids = trainers[trainer].setdefault('ex_reports', 0)
