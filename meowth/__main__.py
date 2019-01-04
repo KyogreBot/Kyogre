@@ -4250,6 +4250,8 @@ async def leaderboard(ctx, type="total", region=None):
         role = discord.utils.get(ctx.guild.roles, name="@everyone")
     for trainer in trainers.keys():
         user = ctx.guild.get_member(trainer)
+        if user is None:
+            continue
         if role not in user.roles:
             continue
         raids = trainers[trainer].setdefault('raid_reports', 0)
