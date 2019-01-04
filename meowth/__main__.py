@@ -3701,20 +3701,32 @@ async def _configure_settings(ctx):
     guild = ctx.message.guild
     owner = ctx.message.author
     config_dict_temp = getattr(ctx, 'config_dict_temp',copy.deepcopy(guild_dict[guild.id]['configure_dict']))
-    await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("There are a few settings available that are not within **!configure**. To set these, use **!set <setting>** in any channel to set that setting.\n\nThese include:\n**!set regional <name or number>** - To set a server's regional raid boss\n**!set prefix <prefix>** - To set my command prefix\n**!set timezone <offset>** - To set offset outside of **!configure**\n**!set silph <trainer>** - To set a trainer's SilphRoad card (usable by members)\n**!set pokebattler <ID>** - To set a trainer's pokebattler ID (usable by members)\n\nHowever, we can do your timezone now to help coordinate reports for you. For others, use the **!set** command.\n\nThe current 24-hr time UTC is {utctime}. How many hours off from that are you?\n\nRespond with: A number from **-12** to **12**:").format(utctime=strftime('%H:%M', time.gmtime()))).set_author(name=_('Timezone Configuration and Other Settings'), icon_url=Meowth.user.avatar_url))
+    await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("There are a few settings available that are not within **!configure**. \
+        To set these, use **!set <setting>** in any channel to set that setting.\n\nThese include:\n\
+        **!set regional <name or number>** - To set a server's regional raid boss\n\
+        **!set prefix <prefix>** - To set my command prefix\n\
+        **!set timezone <offset>** - To set offset outside of **!configure**\n\
+        **!set silph <trainer>** - To set a trainer's SilphRoad card (usable by members)\n\
+        **!set pokebattler <ID>** - To set a trainer's pokebattler ID (usable by members)\n\n\
+        However, we can set your timezone now to help coordinate reports or we can setup an admin command channel. \
+        For others, use the **!set** command.\n\nThe current 24-hr time UTC is {utctime}. \
+        Reply with 'skip' to setup your admin command channels.\
+        How many hours off from that are you?\n\nRespond with: A number from **-12** to **12**:"\
+        ).format(utctime=strftime('%H:%M', time.gmtime()))).set_author(name=_('Timezone Configuration and Other Settings'), icon_url=Meowth.user.avatar_url))
     while True:
         offsetmsg = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
         if offsetmsg.content.lower() == 'cancel':
             await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
             return None
+        elif if offsetmsg.content.lower() == 'skip':
         else:
             try:
                 offset = float(offsetmsg.content)
             except ValueError:
-                await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("I couldn't convert your answer to an appropriate timezone!\n\nPlease double check what you sent me and resend a number strarting from **-12** to **12**.")))
+                await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("I couldn't convert your answer to an appropriate timezone!\n\nPlease double check what you sent me and resend a number from **-12** to **12**.")))
                 continue
             if (not ((- 12) <= offset <= 14)):
-                await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("I couldn't convert your answer to an appropriate timezone!\n\nPlease double check what you sent me and resend a number strarting from **-12** to **12**.")))
+                await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("I couldn't convert your answer to an appropriate timezone!\n\nPlease double check what you sent me and resend a number from **-12** to **12**.")))
                 continue
             else:
                 break
