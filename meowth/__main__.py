@@ -4243,11 +4243,11 @@ async def leaderboard(ctx, type="total", region=None):
         return await ctx.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Leaderboard type not supported. Please select from: **{', '.join(typelist)}**"))
         return
     if region is not None:
-        role = discord.utils.get(guild.roles, name=region)
+        role = discord.utils.get(ctx.guild.roles, name=region)
         if role is None:
             return await ctx.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"No region found with name {region}"))
     else:
-        role = discord.utils.get(guild.roles, name="@everyone")
+        role = discord.utils.get(ctx.guild.roles, name="@everyone")
     for trainer in trainers.keys():
         user = ctx.guild.get_member(trainer)
         if role not in user.roles:
@@ -4266,7 +4266,7 @@ async def leaderboard(ctx, type="total", region=None):
     embed = discord.Embed(colour=ctx.guild.me.colour)
     leaderboard_title = f"Reporting Leaderboard ({type.title()})"
     if region is not None:
-        leaderboard_title += f"{region.capitalize()}"
+        leaderboard_title += f" {region.capitalize()}"
     embed.set_author(name=_(leaderboard_title), icon_url=Meowth.user.avatar_url)
     for trainer in leaderboard:
         user = ctx.guild.get_member(trainer['trainer'])
