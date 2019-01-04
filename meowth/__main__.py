@@ -3894,6 +3894,9 @@ async def reset_board(ctx, *, user=None, type=None):
             elif "res" in argument.lower():
                 type = "research_reports"
                 break
+            elif "join" in argument.lower():
+                type = "joined"
+                break
     if not type:
         type = "total_reports"
     msg = _("Are you sure you want to reset the **{type}** report stats for **{target}**?").format(type=type, target=tgt_string)
@@ -4218,28 +4221,37 @@ async def profile(ctx, user: discord.Member = None):
     embed.add_field(name=_("Pokebattler"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('pokebattlerid',None)}", inline=True)
     embed.add_field(name=_("Raid Reports"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('raid_reports',0)}", inline=True)
     embed.add_field(name=_("Egg Reports"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('egg_reports',0)}", inline=True)
-    embed.add_field(name=_("EX Raid Reports"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('ex_reports',0)}", inline=True)
     embed.add_field(name=_("Wild Reports"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('wild_reports',0)}", inline=True)
     embed.add_field(name=_("Research Reports"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('research_reports',0)}", inline=True)
+    embed.add_field(name=_("Raids Joined"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('joined',0)}", inline=True)
     await ctx.send(embed=embed)
 
 @Meowth.command()
-async def leaderboard(ctx, type="total"):
+async def leaderboard(ctx, type="total", region=None):
     """Displays the top ten reporters of a server.
 
-    Usage: !leaderboard [type]
-    Accepted types: raids, eggs, exraids, wilds, research"""
+    Usage: !leaderboard [type] [region]
+    Accepted types: raids, eggs, wilds, research, joined
+    Region must be any configured region"""
     trainers = copy.deepcopy(guild_dict[ctx.guild.id]['trainers'])
     leaderboard = []
     rank = 1
     field_value = ""
-    typelist = ["total", "raids", "exraids", "wilds", "research", "eggs", "joined"]
+    typelist = ["total", "raids", "eggs", "exraids", "wilds", "research", "joined"]
     type = type.lower()
     if type not in typelist:
-        await ctx.send(_("Leaderboard type not supported. Please select from: **total, raids, eggs, exraids, wilds, research**"))
+        return await ctx.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Leaderboard type not supported. Please select from: **{', '.join(typelist)}**"))
         return
+    if region is not None:
+        role = discord.utils.get(ctx.guild.roles, name=region)
+        if role is None:
+            return await ctx.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"No region found with name {region}"))
+    else:
+        role = discord.utils.get(ctx.guild.roles, name="@everyone")
     for trainer in trainers.keys():
         user = ctx.guild.get_member(trainer)
+        if role not in user.roles:
+            continue
         raids = trainers[trainer].setdefault('raid_reports', 0)
         wilds = trainers[trainer].setdefault('wild_reports', 0)
         exraids = trainers[trainer].setdefault('ex_reports', 0)
@@ -4252,7 +4264,10 @@ async def leaderboard(ctx, type="total"):
             leaderboard.append(trainer_stats)
     leaderboard = sorted(leaderboard,key= lambda x: x[type], reverse=True)[:10]
     embed = discord.Embed(colour=ctx.guild.me.colour)
-    embed.set_author(name=_("Reporting Leaderboard ({type})").format(type=type.title()), icon_url=Meowth.user.avatar_url)
+    leaderboard_title = f"Reporting Leaderboard ({type.title()})"
+    if region is not None:
+        leaderboard_title += f" {region.capitalize()}"
+    embed.set_author(name=_(leaderboard_title), icon_url=Meowth.user.avatar_url)
     for trainer in leaderboard:
         user = ctx.guild.get_member(trainer['trainer'])
         if user:
