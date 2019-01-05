@@ -3705,25 +3705,98 @@ async def _configure_settings(ctx):
     guild = ctx.message.guild
     owner = ctx.message.author
     config_dict_temp = getattr(ctx, 'config_dict_temp',copy.deepcopy(guild_dict[guild.id]['configure_dict']))
-    await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("There are a few settings available that are not within **!configure**. To set these, use **!set <setting>** in any channel to set that setting.\n\nThese include:\n**!set regional <name or number>** - To set a server's regional raid boss\n**!set prefix <prefix>** - To set my command prefix\n**!set timezone <offset>** - To set offset outside of **!configure**\n**!set silph <trainer>** - To set a trainer's SilphRoad card (usable by members)\n**!set pokebattler <ID>** - To set a trainer's pokebattler ID (usable by members)\n\nHowever, we can do your timezone now to help coordinate reports for you. For others, use the **!set** command.\n\nThe current 24-hr time UTC is {utctime}. How many hours off from that are you?\n\nRespond with: A number from **-12** to **12**:").format(utctime=strftime('%H:%M', time.gmtime()))).set_author(name=_('Timezone Configuration and Other Settings'), icon_url=Meowth.user.avatar_url))
+    await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("There are a few settings available that are not within **!configure**. \
+        To set these, use **!set <setting>** in any channel to set that setting.\n\nThese include:\n\
+        **!set regional <name or number>** - To set a server's regional raid boss\n\
+        **!set prefix <prefix>** - To set my command prefix\n\
+        **!set timezone <offset>** - To set offset outside of **!configure**\n\
+        **!set silph <trainer>** - To set a trainer's SilphRoad card (usable by members)\n\
+        **!set pokebattler <ID>** - To set a trainer's pokebattler ID (usable by members)\n\n\
+        However, we can set your timezone now to help coordinate reports or we can setup an admin command channel. \
+        For others, use the **!set** command.\n\nThe current 24-hr time UTC is {utctime}. \
+        Reply with 'skip' to setup your admin command channels.\
+        How many hours off from that are you?\n\nRespond with: A number from **-12** to **12**:"\
+        ).format(utctime=strftime('%H:%M', time.gmtime()))).set_author(name=_('Timezone Configuration and Other Settings'), icon_url=Meowth.user.avatar_url))
+    skipped = False
     while True:
         offsetmsg = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
         if offsetmsg.content.lower() == 'cancel':
             await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
             return None
+        elif offsetmsg.content.lower() == 'skip':
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('Timezone configuration skipped.')))
+            skipped = True
+            break
         else:
             try:
                 offset = float(offsetmsg.content)
             except ValueError:
-                await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("I couldn't convert your answer to an appropriate timezone!\n\nPlease double check what you sent me and resend a number strarting from **-12** to **12**.")))
+                await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("I couldn't convert your answer to an appropriate timezone!\n\n\
+                    Please double check what you sent me and resend a number from **-12** to **12**.")))
                 continue
             if (not ((- 12) <= offset <= 14)):
-                await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("I couldn't convert your answer to an appropriate timezone!\n\nPlease double check what you sent me and resend a number strarting from **-12** to **12**.")))
+                await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("I couldn't convert your answer to an appropriate timezone!\n\n\
+                    Please double check what you sent me and resend a number from **-12** to **12**.")))
                 continue
             else:
                 break
-    config_dict_temp['settings']['offset'] = offset
-    await owner.send(embed=discord.Embed(colour=discord.Colour.green(), description=_('Timezone set')))
+    if not skipped:
+        config_dict_temp['settings']['offset'] = offset
+        await owner.send(embed=discord.Embed(colour=discord.Colour.green(), description=_('Timezone set')))
+    else:
+        await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description="It may be helpful to have an admin only command channel for\
+            interacting with Kyogre.\n\nPlease provide a channel name or id for this purpose.\nYou can also provide a comma separate list but all list\
+            items should be the same (all names or all ids)."))
+        while True:
+            channel_message = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+            if offsetmsg.content.lower() == 'cancel':
+                await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
+                return None
+            else:
+                adminchannel_list = channel_message.content.lower().split(',')
+                adminchannel_list = [x.strip() for x in adminchannel_list]
+                guild_channel_list = []
+                for channel in guild.text_channels:
+                    guild_channel_list.append(channel.id)
+                adminchannel_objs = []
+                adminchannel_names = []
+                adminchannel_errors = []
+                for item in adminchannel_list:
+                    channel = None
+                    if item.isdigit():
+                        channel = discord.utils.get(guild.text_channels, id=int(item))
+                    if not channel:
+                        item = re.sub('[^a-zA-Z0-9 _\\-]+', '', item)
+                        item = item.replace(" ","-")
+                        name = await letter_case(guild.text_channels, item.lower())
+                        channel = discord.utils.get(guild.text_channels, name=name)
+                    if channel:
+                        adminchannel_objs.append(channel)
+                        adminchannel_names.append(channel.name)
+                    else:
+                        adminchannel_errors.append(item)
+                adminchannel_list = [x.id for x in adminchannel_objs]
+                diff = set(adminchannel_list) - set(guild_channel_list)
+                if (not diff) and (not adminchannel_errors):
+                    for channel in adminchannel_objs:
+                        ow = channel.overwrites_for(Meowth.user)
+                        ow.send_messages = True
+                        ow.read_messages = True
+                        ow.manage_roles = True
+                        try:
+                            await channel.set_permissions(Meowth.user, overwrite = ow)
+                        except (discord.errors.Forbidden, discord.errors.HTTPException, discord.errors.InvalidArgument):
+                            await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_('I couldn\'t set my own permissions in this channel. Please ensure I have the correct permissions in {channel} using **{prefix}get perms**.').format(prefix=ctx.prefix, channel=channel.mention)))
+                    break
+                else:
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The channel list you provided doesn't match with your servers channels.\n\nThe following aren't in your server: **{invalid_channels}**\n\nPlease double check your channel list and resend your reponse.").format(invalid_channels=', '.join(adminchannel_errors))))
+                    continue
+        command_channels = []
+        for channel in adminchannel_objs:
+            command_channels.append(channel.id)
+        admin_dict = config_dict_temp.setdefault('admin',{})
+        admin_dict['command_channels'] = command_channels
+    await owner.send(embed=discord.Embed(colour=discord.Colour.green(), description=_('Admin Command Channels enabled')))
     ctx.config_dict_temp = config_dict_temp
     return ctx
 
