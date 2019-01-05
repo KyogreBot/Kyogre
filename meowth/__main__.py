@@ -1980,7 +1980,17 @@ async def announce(ctx, *, announce=None):
     channel = message.channel
     guild = message.guild
     author = message.author
+    announcetitle = 'Announcement'
     if announce == None:
+        titlewait = await channel.send(_("If you would like to set a title for your announcement please reply with the title, otherwise reply with 'skip'."))
+        titlemsg = await Meowth.wait_for('message', timeout=180, check=(lambda reply: reply.author == message.author))
+        await titlewait.delete()
+        if titlemsg != None:
+            if titlemsg.content.lower() == "skip":
+                pass
+            else:
+                announcetitle = titlemsg.content
+            await titlemsg.delete()
         announcewait = await channel.send(_("I'll wait for your announcement!"))
         announcemsg = await Meowth.wait_for('message', timeout=180, check=(lambda reply: reply.author == message.author))
         await announcewait.delete()
@@ -1991,7 +2001,7 @@ async def announce(ctx, *, announce=None):
             confirmation = await channel.send(_("You took too long to send me your announcement! Retry when you're ready."))
     embeddraft = discord.Embed(colour=guild.me.colour, description=announce)
     if ctx.invoked_with == "announce":
-        title = _('Announcement')
+        title = _(announcetitle)
         if Meowth.user.avatar_url:
             embeddraft.set_author(name=title, icon_url=Meowth.user.avatar_url)
         else:
