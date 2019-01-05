@@ -4243,7 +4243,7 @@ async def leaderboard(ctx, type="total", region=None):
         return await ctx.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Leaderboard type not supported. Please select from: **{', '.join(typelist)}**"))
         return
     if region is not None:
-        role = discord.utils.get(ctx.guild.roles, name=region)
+        role = discord.utils.get(ctx.guild.roles, name=region.lower())
         if role is None:
             return await ctx.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"No region found with name {region}"))
     else:
