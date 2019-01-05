@@ -422,7 +422,7 @@ def get_raidtext(type, pkmn, level, member, channel):
         raidtext = _("EX raid reported by {member} in {channel}! Coordinate here!\n\nFor help, react to this message with the question mark and I will DM you a list of commands you can use!").format(member=member.display_name, channel=channel.mention)
     return raidtext
 
-async def create_raid_channel(raid_type, pkmn, level, details, report_channel):
+async def create_raid_channel(raid_type, pkmn, level, gym, report_channel):
     guild = report_channel.guild
     cat = None
     if raid_type == "exraid":
@@ -465,7 +465,11 @@ async def create_raid_channel(raid_type, pkmn, level, details, report_channel):
     if not enabled:
         user_overwrite = (guild.default_role, discord.PermissionOverwrite(send_messages=False, read_messages=False, read_message_history=False))
         raid_channel_overwrite_list.append(user_overwrite)
-    name = sanitize_name(name+details)
+        role = discord.utils.get(guild.roles, name=gym.region)
+        if role is not None:
+            role_overwrite = (role, discord.PermissionOverwrite(send_messages=False, read_messages=False, read_message_history=False))
+            raid_channel_overwrite_list.append(role_overwrite)
+    name = sanitize_name(name+gym.name)
     ow = dict(raid_channel_overwrite_list)
     return await guild.create_text_channel(name, overwrites=ow, category=cat)
 
@@ -4933,7 +4937,7 @@ async def _raid_internal(ctx, content):
         regions = [gym.region]
     else:
         raid_gmaps_link = create_gmaps_query(raid_details, channel, type="raid")
-    raid_channel = await create_raid_channel("raid", raid_pokemon, None, raid_details, channel)
+    raid_channel = await create_raid_channel("raid", raid_pokemon, None, gym, channel)
     ow = raid_channel.overwrites_for(raid_channel.guild.default_role)
     ow.send_messages = True
     try:
@@ -5120,7 +5124,7 @@ async def _raidegg(ctx, content):
         for entry in egg_info['pokemon']:
             p = Pokemon.get_pokemon(Meowth, entry)
             boss_list.append(str(p) + ' (' + str(p.id) + ') ' + types_to_str(guild, p.types))
-        raid_channel = await create_raid_channel("egg", None, egg_level, raid_details, channel)
+        raid_channel = await create_raid_channel("egg", None, egg_level, gym, channel)
         ow = raid_channel.overwrites_for(raid_channel.guild.default_role)
         ow.send_messages = True
         try:
@@ -5505,7 +5509,7 @@ async def _exraid(ctx, location):
     for entry in egg_info['pokemon']:
         p = Pokemon.get_pokemon(Meowth, entry)
         boss_list.append(str(p) + ' (' + str(p.id) + ') ' + ''.join(p.types))
-    raid_channel = await create_raid_channel("exraid", None, None, raid_details, message.channel)
+    raid_channel = await create_raid_channel("exraid", None, None, gym, message.channel)
     if config_dict['invite']['enabled']:
         for role in channel.guild.role_hierarchy:
             if role.permissions.manage_guild or role.permissions.manage_channels or role.permissions.manage_messages:
