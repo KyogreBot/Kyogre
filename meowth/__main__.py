@@ -3719,7 +3719,7 @@ async def _configure_settings(ctx):
         if offsetmsg.content.lower() == 'cancel':
             await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
             return None
-        elif if offsetmsg.content.lower() == 'skip':
+        elif offsetmsg.content.lower() == 'skip':
             await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('Timezone configuration skipped.')))
             skipped = True
             break
@@ -3774,7 +3774,6 @@ async def _configure_settings(ctx):
                 adminchannel_list = [x.id for x in adminchannel_objs]
                 diff = set(adminchannel_list) - set(guild_channel_list)
                 if (not diff) and (not adminchannel_errors):
-                    await owner.send(embed=discord.Embed(colour=discord.Colour.green(), description=_('Admin Command Channels enabled')))
                     for channel in adminchannel_objs:
                         ow = channel.overwrites_for(Meowth.user)
                         ow.send_messages = True
@@ -3788,12 +3787,12 @@ async def _configure_settings(ctx):
                 else:
                     await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The channel list you provided doesn't match with your servers channels.\n\nThe following aren't in your server: **{invalid_channels}**\n\nPlease double check your channel list and resend your reponse.").format(invalid_channels=', '.join(adminchannel_errors))))
                     continue
-                content = channel_message.content.lower()
-                values = content.split(',')
-                if values[0].isdigit():
-
-                else:
-
+        command_channels = []
+        for channel in adminchannel_objs:
+            command_channels.append(channel.id)
+        admin_dict = config_dict_temp.setdefault('admin',{})
+        admin_dict['command_channels'] = command_channels
+    await owner.send(embed=discord.Embed(colour=discord.Colour.green(), description=_('Admin Command Channels enabled')))
     ctx.config_dict_temp = config_dict_temp
     return ctx
 
