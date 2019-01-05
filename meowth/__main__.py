@@ -2083,13 +2083,13 @@ async def announce(ctx, *, announce=None):
 @Meowth.group(case_insensitive=True, invoke_without_command=True)
 @commands.has_permissions(manage_guild=True)
 async def configure(ctx, *, configlist: str=""):
-    """Meowth Configuration
+    """Kyogre Configuration
 
     Usage: !configure [list]
-    Meowth will DM you instructions on how to configure Meowth for your server.
+    Kyogre will DM you instructions on how to configure Kyogre for your server.
     If it is not your first time configuring, you can choose a section to jump to.
     You can also include a comma separated [list] of sections from the following:
-    all, team, welcome, regions, raid, exraid, invite, counters, wild, research, subscription, archive, timezone"""
+    all, team, welcome, regions, raid, exraid, invite, counters, wild, research, meetup, subscription, archive, trade, timezone"""
     await _configure(ctx, configlist)
 
 async def _configure(ctx, configlist):
@@ -4401,10 +4401,11 @@ async def _sub_add(ctx, *, content):
     """Create a subscription
 
     Usage: !sub add <type> <target>
-    Kyogre will send you a DM if an event is generated
+    Kyogre will send you a notification if an event is generated
     matching the details of your subscription.
     
-    Valid types are: pokemon, raid, research, wild, and nest"""
+    Valid types are: pokemon, raid, research, wild, and gym
+    Note: 'Pokemon' includes raid, research, and wild reports"""
     subscription_types = ['pokemon','raid','research','wild','nest','gym']
     message = ctx.message
     channel = message.channel
@@ -4458,7 +4459,13 @@ async def _sub_remove(ctx,*,content):
     """Remove a subscription
 
     Usage: !sub remove <type> <target>
-    You will no longer be notified of the specified target for the given event type."""
+    You will no longer be notified of the specified target for the given event type.
+
+    You can remove all subscriptions of a type:
+    !sub remove <type> all
+
+    Or remove all subscriptions:
+    !sub remove all all"""
     subscription_types = ['all','pokemon','raid','research','wild','nest','gym']
     message = ctx.message
     channel = message.channel
@@ -4559,11 +4566,11 @@ async def _sub_list(ctx, *, content=None):
     Usage: !sub list <type> 
     Leave type empty to receive complete list of all subscriptions.
     Or include a type to receive a specific list
-    Valid types are: pokemon, raid, research, wild, and nest"""
+    Valid types are: pokemon, raid, research, wild, and gym"""
     message = ctx.message
     channel = message.channel
     author = message.author
-    subscription_types = ['pokemon','raid','research','wild','nest']
+    subscription_types = ['pokemon','raid','research','wild','nest', 'gym']
     response_msg = ''
     invalid_types = []
     valid_types = []
@@ -4680,8 +4687,7 @@ async def _wild(ctx,pokemon,*,location):
     """Report a wild Pokemon spawn location.
 
     Usage: !wild <species> <location>
-    Kyogre will insert the details (really just everything after the species name) into a
-    Google maps link and post the link to the same channel the report was made in."""
+    Location should be the name of a Pokestop or Gym. Or a google maps link."""
     content = f"{pokemon} {location}"
     await _wild_internal(ctx.message, content)
 
@@ -4754,9 +4760,8 @@ async def _wild_internal(message, content):
 async def _raid(ctx,pokemon,*,location:commands.clean_content(fix_channel_mentions=True)="", weather=None, timer=None):
     """Report an ongoing raid or a raid egg.
 
-    Usage: !raid <species/level> <location> [weather] [minutes]
-    Kyogre will insert <location> into a
-    Google maps link and post the link to the same channel the report was made in.
+    Usage: !raid <species/level> <gym name> [minutes]
+    Kyogre will attempt to find a gym with the name you provide
     Kyogre's message will also include the type weaknesses of the boss.
 
     Finally, Kyogre will create a separate channel for the raid report, for the purposes of organizing the raid."""
@@ -5627,9 +5632,12 @@ async def _invite(ctx):
 @checks.allowresearchreport()
 async def research(ctx, *, details = None):
     """Report Field research
-    Guided report method with just !research. If you supply arguments in one
-    line, avoid commas in anything but your separations between pokestop and
-    quest. Order matters if you supply arguments.
+    Start a guided report method with just !research. 
+
+    If you want to do a quick report, provide the pokestop name followed by the task text with a comma in between.
+    Do not include any other commas.
+
+    If you reverse the order, Kyogre will attempt to determine the pokestop.
 
     Usage: !research [pokestop name, quest]"""
     message = ctx.message
@@ -5783,7 +5791,7 @@ async def _get_quest(ctx, name):
     return await _get_quest_v(channel, author, name)
 
 async def _get_quest_v(channel, author, name):
-    """gets a quest by name. provided name can be an id instead"""
+    """gets a quest by name or id"""
     if not name:
         return
     id = None
@@ -6397,7 +6405,7 @@ async def timerset(ctx, *,timer):
 
     Usage: !timerset <minutes>
     Works only in raid channels, can be set or overridden by anyone.
-    Meowth displays the end time in HH:MM local time."""
+    Kyogre displays the end time in HH:MM local time."""
     message = ctx.message
     channel = message.channel
     guild = message.guild
@@ -6521,7 +6529,7 @@ async def _timerset(raidchannel, exptime):
 @Meowth.command()
 @checks.raidchannel()
 async def timer(ctx):
-    """Have Meowth resend the expire time message for a raid.
+    """Have Kyogre resend the expire time message for a raid.
 
     Usage: !timer
     The expiry time should have been previously set with !timerset."""
@@ -6678,8 +6686,8 @@ async def location(ctx):
 async def new(ctx,*,content):
     """Change raid location.
 
-    Usage: !location new <new address>
-    Works only in raid channels. Changes the google map links."""
+    Usage: !location new <gym name>
+    Works only in raid channels. Updates the gym at which the raid is located."""
     message = ctx.message
     channel = message.channel
     location_split = content.lower().split()
@@ -6963,7 +6971,7 @@ async def duplicate(ctx):
 
     Usage: !duplicate
     Works only in raid channels. When three users report a channel as a duplicate,
-    Meowth deactivates the channel and marks it for deletion."""
+    Kyogre deactivates the channel and marks it for deletion."""
     channel = ctx.channel
     author = ctx.author
     guild = ctx.guild
@@ -7052,7 +7060,7 @@ async def counters(ctx, *, args=''):
 
     Usage: !counters [pokemon] [weather] [user]
     See !help weather for acceptable values for weather.
-    If [user] is a valid Pokebattler user id, Meowth will simulate the Raid with that user's Pokebox.
+    If [user] is a valid Pokebattler user id, Kyogre will simulate the Raid with that user's Pokebox.
     Uses current boss and weather by default if available.
     """
     rgx = '[^a-zA-Z0-9 ]'
