@@ -5917,7 +5917,7 @@ async def _prompt_reward_v(channel, author, quest, reward_type=None):
     # handle items
     if reward_type == "items":
         if len(target_pool) == 1:
-            target_pool = target_pool[0]
+            target_pool = target_pool[list(target_pool.keys())[0]]
         else:
             candidates = [k for k in target_pool]
             prompt = "Please select an item:"
