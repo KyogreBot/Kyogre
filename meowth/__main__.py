@@ -4215,6 +4215,7 @@ async def profile(ctx, user: discord.Member = None):
     if silph:
         card = _("Traveler Card")
         silph = f"[{card}](https://sil.ph/{silph.lower()})"
+    await temp(ctx, user)
     embed = discord.Embed(title=_("{user}\'s Trainer Profile").format(user=user.display_name), colour=user.colour)
     embed.set_thumbnail(url=user.avatar_url)
     embed.add_field(name=_("Silph Road"), value=f"{silph}", inline=True)
@@ -4225,6 +4226,21 @@ async def profile(ctx, user: discord.Member = None):
     embed.add_field(name=_("Research Reports"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('research_reports',0)}", inline=True)
     embed.add_field(name=_("Raids Joined"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('joined',0)}", inline=True)
     await ctx.send(embed=embed)
+
+async def temp(ctx, user):
+    regions = guild_dict[ctx.guild.id]['configure_dict']['regions']['info'].keys()
+    raids, eggs, wilds, research, joined = 0, 0, 0, 0, 0
+    for region in regions:
+        raids += guild_dict[ctx.guild.id]['trainers'][region].setdefault(user.id,{}).get('raid_reports',0)
+        eggs += guild_dict[ctx.guild.id]['trainers'][region].setdefault(user.id,{}).get('egg_reports',0)
+        wilds += guild_dict[ctx.guild.id]['trainers'][region].setdefault(user.id,{}).get('wild_reports',0)
+        research += guild_dict[ctx.guild.id]['trainers'][region].setdefault(user.id,{}).get('research_reports',0)
+        joined += guild_dict[ctx.guild.id]['trainers'][region].setdefault(user.id,{}).get('joined',0)
+    await ctx.channel.send(raids)
+    await ctx.channel.send(eggs)
+    await ctx.channel.send(wilds)
+    await ctx.channel.send(research)
+    await ctx.channel.send(joined)
 
 @Meowth.command()
 async def leaderboard(ctx, type="total", region=None):
@@ -5004,8 +5020,9 @@ async def _raid_internal(message, content):
     else:
         await raid_channel.send(content=_('Hey {member}, if you can, set the time left on the raid using **!timerset <minutes>** so others can check it with **!timer**.').format(member=author.mention))
     event_loop.create_task(expiry_check(raid_channel))
-    raid_reports = guild_dict[guild.id].setdefault('trainers',{}).setdefault(author.id,{}).setdefault('raid_reports',0) + 1
-    guild_dict[guild.id]['trainers'][author.id]['raid_reports'] = raid_reports
+    # TODO will need multi region support
+    raid_reports = guild_dict[guild.id].setdefault('trainers',{}).setdefault(gym.region, {}).setdefault(author.id,{}).setdefault('raid_reports',0) + 1
+    guild_dict[guild.id]['trainers'][regions][author.id]['raid_reports'] = raid_reports
     raid_details = {'pokemon': raid_pokemon, 'tier': raid_pokemon.raid_level, 'ex-eligible': gym.ex_eligible if gym else False, 'location': raid_details, 'regions': regions}
     await _update_listing_channels(guild, 'raid', edit=False, regions=regions)
     if enabled:
@@ -5179,7 +5196,7 @@ async def _raidegg(message, content):
         elif egg_level == "5" and guild_dict[raid_channel.guild.id]['configure_dict']['settings'].get('regional',None) in raid_info['raid_eggs']["5"]['pokemon']:
             await _eggassume('assume ' + guild_dict[raid_channel.guild.id]['configure_dict']['settings']['regional'], raid_channel)
         event_loop.create_task(expiry_check(raid_channel))
-        egg_reports = guild_dict[message.guild.id].setdefault('trainers',{}).setdefault(author.id,{}).setdefault('egg_reports',0) + 1
+        egg_reports = guild_dict[message.guild.id].setdefault('trainers',{}).setdefault(gym.region,{}).setdefault(author.id,{}).setdefault('egg_reports',0) + 1
         guild_dict[message.guild.id]['trainers'][author.id]['egg_reports'] = egg_reports
         await _update_listing_channels(guild, 'raid', edit=False, regions=regions)
         raid_details = {'tier': egg_level, 'ex-eligible': gym.ex_eligible if gym else False, 'location': raid_details, 'regions': regions}
@@ -5458,8 +5475,8 @@ async def _eggtoraid(entered_raid, raid_channel, author=None):
     guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['duplicate'] = duplicate
     guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['archive'] = archive
     if author:
-        raid_reports = guild_dict[raid_channel.guild.id].setdefault('trainers',{}).setdefault(author.id,{}).setdefault('raid_reports',0) + 1
-        guild_dict[raid_channel.guild.id]['trainers'][author.id]['raid_reports'] = raid_reports
+        raid_reports = guild_dict[raid_channel.guild.id].setdefault('trainers',{}).setdefault(regions[0], {}).setdefault(author.id,{}).setdefault('raid_reports',0) + 1
+        guild_dict[raid_channel.guild.id]['trainers'][regions[0]][author.id]['raid_reports'] = raid_reports
         await _edit_party(raid_channel, author)
     await _update_listing_channels(raid_channel.guild, 'raid', edit=False, regions=regions)
     event_loop.create_task(expiry_check(raid_channel))
@@ -6968,6 +6985,7 @@ async def duplicate(ctx):
     t_dict = rc_d['trainer_dict']
     can_manage = channel.permissions_for(author).manage_channels
     raidtype = _("event") if guild_dict[guild.id]['raidchannel_dict'][channel.id].get('meetup',False) else _("raid")
+    regions = rc_d['regions']
     if can_manage:
         dupecount = 2
         rc_d['duplicate'] = dupecount
@@ -7019,14 +7037,14 @@ async def duplicate(ctx):
                 raidmsg = await channel.get_message(rc_d['raidmessage'])
                 reporter = raidmsg.mentions[0]
                 if 'egg' in raidmsg.content:
-                    egg_reports = guild_dict[guild.id]['trainers'][reporter.id]['egg_reports']
-                    guild_dict[guild.id]['trainers'][reporter.id]['egg_reports'] = egg_reports - 1
+                    egg_reports = guild_dict[guild.id]['trainers'][regions[0]][reporter.id]['egg_reports']
+                    guild_dict[guild.id]['trainers'][regions[0]][reporter.id]['egg_reports'] = egg_reports - 1
                 elif 'EX' in raidmsg.content:
-                    ex_reports = guild_dict[guild.id]['trainers'][reporter.id]['ex_reports']
-                    guild_dict[guild.id]['trainers'][reporter.id]['ex_reports'] = ex_reports - 1
+                    ex_reports = guild_dict[guild.id]['trainers'][regions[0]][reporter.id]['ex_reports']
+                    guild_dict[guild.id]['trainers'][regions[0]][reporter.id]['ex_reports'] = ex_reports - 1
                 else:
-                    raid_reports = guild_dict[guild.id]['trainers'][reporter.id]['raid_reports']
-                    guild_dict[guild.id]['trainers'][reporter.id]['raid_reports'] = raid_reports - 1
+                    raid_reports = guild_dict[guild.id]['trainers'][regions[0]][reporter.id]['raid_reports']
+                    guild_dict[guild.id]['trainers'][regions[0]][reporter.id]['raid_reports'] = raid_reports - 1
                 await expire_channel(channel)
                 return
         else:
