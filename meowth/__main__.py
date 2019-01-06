@@ -422,7 +422,7 @@ def get_raidtext(type, pkmn, level, member, channel):
         raidtext = _("EX raid reported by {member} in {channel}! Coordinate here!\n\nFor help, react to this message with the question mark and I will DM you a list of commands you can use!").format(member=member.display_name, channel=channel.mention)
     return raidtext
 
-async def create_raid_channel(raid_type, pkmn, level, details, report_channel):
+async def create_raid_channel(raid_type, pkmn, level, gym, report_channel):
     guild = report_channel.guild
     cat = None
     if raid_type == "exraid":
@@ -465,7 +465,11 @@ async def create_raid_channel(raid_type, pkmn, level, details, report_channel):
     if not enabled:
         user_overwrite = (guild.default_role, discord.PermissionOverwrite(send_messages=False, read_messages=False, read_message_history=False))
         raid_channel_overwrite_list.append(user_overwrite)
-    name = sanitize_name(name+details)
+        role = discord.utils.get(guild.roles, name=gym.region)
+        if role is not None:
+            role_overwrite = (role, discord.PermissionOverwrite(send_messages=False, read_messages=False, read_message_history=False))
+            raid_channel_overwrite_list.append(role_overwrite)
+    name = sanitize_name(name+gym.name)
     ow = dict(raid_channel_overwrite_list)
     return await guild.create_text_channel(name, overwrites=ow, category=cat)
 
@@ -2079,13 +2083,13 @@ async def announce(ctx, *, announce=None):
 @Meowth.group(case_insensitive=True, invoke_without_command=True)
 @commands.has_permissions(manage_guild=True)
 async def configure(ctx, *, configlist: str=""):
-    """Meowth Configuration
+    """Kyogre Configuration
 
     Usage: !configure [list]
-    Meowth will DM you instructions on how to configure Meowth for your server.
+    Kyogre will DM you instructions on how to configure Kyogre for your server.
     If it is not your first time configuring, you can choose a section to jump to.
     You can also include a comma separated [list] of sections from the following:
-    all, team, welcome, regions, raid, exraid, invite, counters, wild, research, subscription, archive, timezone"""
+    all, team, welcome, regions, raid, exraid, invite, counters, wild, research, meetup, subscription, archive, trade, timezone"""
     await _configure(ctx, configlist)
 
 async def _configure(ctx, configlist):
@@ -3967,6 +3971,9 @@ async def reset_board(ctx, *, user=None, type=None):
             elif "res" in argument.lower():
                 type = "research_reports"
                 break
+            elif "join" in argument.lower():
+                type = "joined"
+                break
     if not type:
         type = "total_reports"
     msg = _("Are you sure you want to reset the **{type}** report stats for **{target}**?").format(type=type, target=tgt_string)
@@ -4291,28 +4298,39 @@ async def profile(ctx, user: discord.Member = None):
     embed.add_field(name=_("Pokebattler"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('pokebattlerid',None)}", inline=True)
     embed.add_field(name=_("Raid Reports"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('raid_reports',0)}", inline=True)
     embed.add_field(name=_("Egg Reports"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('egg_reports',0)}", inline=True)
-    embed.add_field(name=_("EX Raid Reports"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('ex_reports',0)}", inline=True)
     embed.add_field(name=_("Wild Reports"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('wild_reports',0)}", inline=True)
     embed.add_field(name=_("Research Reports"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('research_reports',0)}", inline=True)
+    embed.add_field(name=_("Raids Joined"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('joined',0)}", inline=True)
     await ctx.send(embed=embed)
 
 @Meowth.command()
-async def leaderboard(ctx, type="total"):
+async def leaderboard(ctx, type="total", region=None):
     """Displays the top ten reporters of a server.
 
-    Usage: !leaderboard [type]
-    Accepted types: raids, eggs, exraids, wilds, research"""
+    Usage: !leaderboard [type] [region]
+    Accepted types: raids, eggs, wilds, research, joined
+    Region must be any configured region"""
     trainers = copy.deepcopy(guild_dict[ctx.guild.id]['trainers'])
     leaderboard = []
     rank = 1
     field_value = ""
-    typelist = ["total", "raids", "exraids", "wilds", "research", "eggs", "joined"]
+    typelist = ["total", "raids", "eggs", "exraids", "wilds", "research", "joined"]
     type = type.lower()
     if type not in typelist:
-        await ctx.send(_("Leaderboard type not supported. Please select from: **total, raids, eggs, exraids, wilds, research**"))
+        return await ctx.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Leaderboard type not supported. Please select from: **{', '.join(typelist)}**"))
         return
+    if region is not None:
+        role = discord.utils.get(ctx.guild.roles, name=region.lower())
+        if role is None:
+            return await ctx.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"No region found with name {region}"))
+    else:
+        role = discord.utils.get(ctx.guild.roles, name="@everyone")
     for trainer in trainers.keys():
         user = ctx.guild.get_member(trainer)
+        if user is None:
+            continue
+        if role not in user.roles:
+            continue
         raids = trainers[trainer].setdefault('raid_reports', 0)
         wilds = trainers[trainer].setdefault('wild_reports', 0)
         exraids = trainers[trainer].setdefault('ex_reports', 0)
@@ -4325,7 +4343,10 @@ async def leaderboard(ctx, type="total"):
             leaderboard.append(trainer_stats)
     leaderboard = sorted(leaderboard,key= lambda x: x[type], reverse=True)[:10]
     embed = discord.Embed(colour=ctx.guild.me.colour)
-    embed.set_author(name=_("Reporting Leaderboard ({type})").format(type=type.title()), icon_url=Meowth.user.avatar_url)
+    leaderboard_title = f"Reporting Leaderboard ({type.title()})"
+    if region is not None:
+        leaderboard_title += f" {region.capitalize()}"
+    embed.set_author(name=_(leaderboard_title), icon_url=Meowth.user.avatar_url)
     for trainer in leaderboard:
         user = ctx.guild.get_member(trainer['trainer'])
         if user:
@@ -4453,10 +4474,11 @@ async def _sub_add(ctx, *, content):
     """Create a subscription
 
     Usage: !sub add <type> <target>
-    Kyogre will send you a DM if an event is generated
+    Kyogre will send you a notification if an event is generated
     matching the details of your subscription.
     
-    Valid types are: pokemon, raid, research, wild, and nest"""
+    Valid types are: pokemon, raid, research, wild, and gym
+    Note: 'Pokemon' includes raid, research, and wild reports"""
     subscription_types = ['pokemon','raid','research','wild','nest','gym']
     message = ctx.message
     channel = message.channel
@@ -4510,7 +4532,13 @@ async def _sub_remove(ctx,*,content):
     """Remove a subscription
 
     Usage: !sub remove <type> <target>
-    You will no longer be notified of the specified target for the given event type."""
+    You will no longer be notified of the specified target for the given event type.
+
+    You can remove all subscriptions of a type:
+    !sub remove <type> all
+
+    Or remove all subscriptions:
+    !sub remove all all"""
     subscription_types = ['all','pokemon','raid','research','wild','nest','gym']
     message = ctx.message
     channel = message.channel
@@ -4611,11 +4639,11 @@ async def _sub_list(ctx, *, content=None):
     Usage: !sub list <type> 
     Leave type empty to receive complete list of all subscriptions.
     Or include a type to receive a specific list
-    Valid types are: pokemon, raid, research, wild, and nest"""
+    Valid types are: pokemon, raid, research, wild, and gym"""
     message = ctx.message
     channel = message.channel
     author = message.author
-    subscription_types = ['pokemon','raid','research','wild','nest']
+    subscription_types = ['pokemon','raid','research','wild','nest', 'gym']
     response_msg = ''
     invalid_types = []
     valid_types = []
@@ -4732,8 +4760,7 @@ async def _wild(ctx,pokemon,*,location):
     """Report a wild Pokemon spawn location.
 
     Usage: !wild <species> <location>
-    Kyogre will insert the details (really just everything after the species name) into a
-    Google maps link and post the link to the same channel the report was made in."""
+    Location should be the name of a Pokestop or Gym. Or a google maps link."""
     content = f"{pokemon} {location}"
     await _wild_internal(ctx.message, content)
 
@@ -4806,9 +4833,8 @@ async def _wild_internal(message, content):
 async def _raid(ctx,pokemon,*,location:commands.clean_content(fix_channel_mentions=True)="", weather=None, timer=None):
     """Report an ongoing raid or a raid egg.
 
-    Usage: !raid <species/level> <location> [weather] [minutes]
-    Kyogre will insert <location> into a
-    Google maps link and post the link to the same channel the report was made in.
+    Usage: !raid <species/level> <gym name> [minutes]
+    Kyogre will attempt to find a gym with the name you provide
     Kyogre's message will also include the type weaknesses of the boss.
 
     Finally, Kyogre will create a separate channel for the raid report, for the purposes of organizing the raid."""
@@ -4989,7 +5015,7 @@ async def _raid_internal(ctx, content):
         regions = [gym.region]
     else:
         raid_gmaps_link = create_gmaps_query(raid_details, channel, type="raid")
-    raid_channel = await create_raid_channel("raid", raid_pokemon, None, raid_details, channel)
+    raid_channel = await create_raid_channel("raid", raid_pokemon, None, gym, channel)
     ow = raid_channel.overwrites_for(raid_channel.guild.default_role)
     ow.send_messages = True
     try:
@@ -5176,7 +5202,7 @@ async def _raidegg(ctx, content):
         for entry in egg_info['pokemon']:
             p = Pokemon.get_pokemon(Meowth, entry)
             boss_list.append(str(p) + ' (' + str(p.id) + ') ' + types_to_str(guild, p.types))
-        raid_channel = await create_raid_channel("egg", None, egg_level, raid_details, channel)
+        raid_channel = await create_raid_channel("egg", None, egg_level, gym, channel)
         ow = raid_channel.overwrites_for(raid_channel.guild.default_role)
         ow.send_messages = True
         try:
@@ -5561,7 +5587,7 @@ async def _exraid(ctx, location):
     for entry in egg_info['pokemon']:
         p = Pokemon.get_pokemon(Meowth, entry)
         boss_list.append(str(p) + ' (' + str(p.id) + ') ' + ''.join(p.types))
-    raid_channel = await create_raid_channel("exraid", None, None, raid_details, message.channel)
+    raid_channel = await create_raid_channel("exraid", None, None, gym, message.channel)
     if config_dict['invite']['enabled']:
         for role in channel.guild.role_hierarchy:
             if role.permissions.manage_guild or role.permissions.manage_channels or role.permissions.manage_messages:
@@ -5679,9 +5705,12 @@ async def _invite(ctx):
 @checks.allowresearchreport()
 async def research(ctx, *, details = None):
     """Report Field research
-    Guided report method with just !research. If you supply arguments in one
-    line, avoid commas in anything but your separations between pokestop and
-    quest. Order matters if you supply arguments.
+    Start a guided report method with just !research. 
+
+    If you want to do a quick report, provide the pokestop name followed by the task text with a comma in between.
+    Do not include any other commas.
+
+    If you reverse the order, Kyogre will attempt to determine the pokestop.
 
     Usage: !research [pokestop name, quest]"""
     message = ctx.message
@@ -5837,7 +5866,7 @@ async def _get_quest(ctx, name):
     return await _get_quest_v(channel, author, name)
 
 async def _get_quest_v(channel, author, name):
-    """gets a quest by name. provided name can be an id instead"""
+    """gets a quest by name or id"""
     if not name:
         return
     id = None
@@ -5890,7 +5919,7 @@ async def _prompt_reward_v(channel, author, quest, reward_type=None):
     # handle items
     if reward_type == "items":
         if len(target_pool) == 1:
-            target_pool = target_pool[0]
+            target_pool = target_pool[list(target_pool.keys())[0]]
         else:
             candidates = [k for k in target_pool]
             prompt = "Please select an item:"
@@ -6451,7 +6480,7 @@ async def timerset(ctx, *,timer):
 
     Usage: !timerset <minutes>
     Works only in raid channels, can be set or overridden by anyone.
-    Meowth displays the end time in HH:MM local time."""
+    Kyogre displays the end time in HH:MM local time."""
     message = ctx.message
     channel = message.channel
     guild = message.guild
@@ -6575,7 +6604,7 @@ async def _timerset(raidchannel, exptime):
 @Meowth.command()
 @checks.raidchannel()
 async def timer(ctx):
-    """Have Meowth resend the expire time message for a raid.
+    """Have Kyogre resend the expire time message for a raid.
 
     Usage: !timer
     The expiry time should have been previously set with !timerset."""
@@ -6732,8 +6761,8 @@ async def location(ctx):
 async def new(ctx,*,content):
     """Change raid location.
 
-    Usage: !location new <new address>
-    Works only in raid channels. Changes the google map links."""
+    Usage: !location new <gym name>
+    Works only in raid channels. Updates the gym at which the raid is located."""
     message = ctx.message
     channel = message.channel
     location_split = content.lower().split()
@@ -7017,7 +7046,7 @@ async def duplicate(ctx):
 
     Usage: !duplicate
     Works only in raid channels. When three users report a channel as a duplicate,
-    Meowth deactivates the channel and marks it for deletion."""
+    Kyogre deactivates the channel and marks it for deletion."""
     channel = ctx.channel
     author = ctx.author
     guild = ctx.guild
@@ -7106,7 +7135,7 @@ async def counters(ctx, *, args=''):
 
     Usage: !counters [pokemon] [weather] [user]
     See !help weather for acceptable values for weather.
-    If [user] is a valid Pokebattler user id, Meowth will simulate the Raid with that user's Pokebox.
+    If [user] is a valid Pokebattler user id, Kyogre will simulate the Raid with that user's Pokebox.
     Uses current boss and weather by default if available.
     """
     rgx = '[^a-zA-Z0-9 ]'
