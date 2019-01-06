@@ -5708,10 +5708,12 @@ async def research(ctx, *, details = None):
             if stops:
                 stop = await location_match_prompt(channel, author.id, location, stops)
                 if not stop:
+                    return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"I couldn't find a pokestop named '{location}'. Perhaps you have reversed the order of your report?\n\
+                        Looking up stop with name '{quest_name}'"))
                     quest_name, location = research_split
                     stop = await location_match_prompt(channel, author.id, location, stops)
                     if not stop:
-                        return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"I couldn't find a pokestop named '{location}'. Try again using the exact pokestop name!"))
+                        return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"No pokestop found with name '{location}' either. Try reporting again using the exact pokestop name!"))
                 if get_existing_research(guild, stop):
                     return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"A quest has already been reported for {stop.name}"))
                 location = stop.name
