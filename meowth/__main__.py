@@ -1592,7 +1592,7 @@ async def kban(ctx, *, user: str = '', reason: str = ''):
         trainer_id = trainer.id
     except:
         return await ctx.channel.send("User not found.")   
-    trainer = guild_dict[ctx.guild.id]['trainers'].setdefault(trainer_id,{})
+    trainer = guild_dict[ctx.guild.id]['trainers'].setdefault('info', {}).setdefault(trainer_id,{})
     trainer['is_banned'] = True
     ban_reason = trainer.get('ban_reason')
     if not ban_reason:
@@ -1615,7 +1615,7 @@ async def kunban(ctx, *, user: str = ''):
         trainer_id = trainer.id
     except:
         return await channel.send("User not found.")   
-    trainer = guild_dict[ctx.guild.id]['trainers'].get(trainer_id, None)
+    trainer = guild_dict[ctx.guild.id]['trainers'].setdefault('info', {}).get(trainer_id, None)
     trainer['is_banned'] = False
     try:
         await ctx.message.add_reaction('\u2705')
@@ -1816,7 +1816,7 @@ async def silph(ctx, silph_user: str = None):
     if not silph_user:
         await ctx.send(_('Silph Road Travelers Card cleared!'))
         try:
-            del guild_dict[ctx.guild.id]['trainers'][ctx.author.id]['silphid']
+            del guild_dict[ctx.guild.id]['trainers'].setdefault('info', {})[ctx.author.id]['silphid']
         except:
             pass
         return
@@ -1845,9 +1845,9 @@ async def silph(ctx, silph_user: str = None):
         offset = None
 
     trainers = guild_dict[ctx.guild.id].get('trainers', {})
-    author = trainers.get(ctx.author.id,{})
+    author = trainers.setdefault('info', {}).get(ctx.author.id,{})
     author['silphid'] = silph_user
-    trainers[ctx.author.id] = author
+    trainers.setdefault('info', {})[ctx.author.id] = author
     guild_dict[ctx.guild.id]['trainers'] = trainers
 
     await ctx.send(
@@ -1860,14 +1860,14 @@ async def pokebattler(ctx, pbid: int = 0):
     if not pbid:
         await ctx.send(_('Pokebattler ID cleared!'))
         try:
-            del guild_dict[ctx.guild.id]['trainers'][ctx.author.id]['pokebattlerid']
+            del guild_dict[ctx.guild.id]['trainers'].setdefault('info', {})[ctx.author.id]['pokebattlerid']
         except:
             pass
         return
     trainers = guild_dict[ctx.guild.id].get('trainers',{})
-    author = trainers.get(ctx.author.id,{})
+    author = trainers.setdefault('info', {}).get(ctx.author.id,{})
     author['pokebattlerid'] = pbid
-    trainers[ctx.author.id] = author
+    trainers.setdefault('info', {})[ctx.author.id] = author
     guild_dict[ctx.guild.id]['trainers'] = trainers
     await ctx.send(_('Pokebattler ID set to {pbid}!').format(pbid=pbid))
 
@@ -3986,6 +3986,8 @@ async def reset_board(ctx, *, user=None, type=None):
                 break
     if not type:
         type = "total_reports"
+    if tgt_string == "":
+        tgt_string = "all report types and all users"
     msg = _("Are you sure you want to reset the **{type}** report stats for **{target}**?").format(type=type, target=tgt_string)
     question = await ctx.channel.send(msg)
     try:
@@ -4003,18 +4005,21 @@ async def reset_board(ctx, *, user=None, type=None):
     for trainer in trainers:
         if tgt_trainer:
             trainer = tgt_trainer.id
-        if type == "total_reports":
-            trainers[trainer]['raid_reports'] = 0
-            trainers[trainer]['wild_reports'] = 0
-            trainers[trainer]['ex_reports'] = 0
-            trainers[trainer]['egg_reports'] = 0
-            trainers[trainer]['research_reports'] = 0
-            trainers[trainer]['joined'] = 0
-        else:
-            trainers[trainer][type] = 0
-        if tgt_trainer:
-            await ctx.send(_("{trainer}'s report stats have been cleared!").format(trainer=tgt_trainer.display_name))
-            return
+        regions = guild_dict[ctx.guild.id]['configure_dict']['regions']['info'].keys()
+    
+        for region in regions:
+            if type == "total_reports":
+                trainers.setdefault(region, {})[trainer]['raid_reports'] = 0
+                trainers.setdefault(region, {})[trainer]['wild_reports'] = 0
+                trainers.setdefault(region, {})[trainer]['ex_reports'] = 0
+                trainers.setdefault(region, {})[trainer]['egg_reports'] = 0
+                trainers.setdefault(region, {})[trainer]['research_reports'] = 0
+                trainers.setdefault(region, {})[trainer]['joined'] = 0
+            else:
+                trainers.setdefault(region, {})[trainer][type] = 0
+            if tgt_trainer:
+                await ctx.send(_("{trainer}'s report stats have been cleared!").format(trainer=tgt_trainer.display_name))
+                return
     await ctx.send("This server's report stats have been reset!")
 
 @Meowth.command()
@@ -4298,20 +4303,37 @@ async def profile(ctx, user: discord.Member = None):
     Usage:!profile [user]"""
     if not user:
         user = ctx.message.author
-    silph = guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('silphid',None)
+    silph = guild_dict[ctx.guild.id]['trainers'].setdefault('info', {}).setdefault(user.id,{}).get('silphid',None)
     if silph:
         card = _("Traveler Card")
         silph = f"[{card}](https://sil.ph/{silph.lower()})"
+    raids, eggs, wilds, research, joined = await temp(ctx, user)
     embed = discord.Embed(title=_("{user}\'s Trainer Profile").format(user=user.display_name), colour=user.colour)
     embed.set_thumbnail(url=user.avatar_url)
     embed.add_field(name=_("Silph Road"), value=f"{silph}", inline=True)
-    embed.add_field(name=_("Pokebattler"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('pokebattlerid',None)}", inline=True)
-    embed.add_field(name=_("Raid Reports"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('raid_reports',0)}", inline=True)
-    embed.add_field(name=_("Egg Reports"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('egg_reports',0)}", inline=True)
-    embed.add_field(name=_("Wild Reports"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('wild_reports',0)}", inline=True)
-    embed.add_field(name=_("Research Reports"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('research_reports',0)}", inline=True)
-    embed.add_field(name=_("Raids Joined"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault(user.id,{}).get('joined',0)}", inline=True)
+    embed.add_field(name=_("Pokebattler"), value=f"{guild_dict[ctx.guild.id]['trainers'].setdefault('info', {}).get('pokebattlerid',None)}", inline=True)
+    embed.add_field(name=_("Raid Reports"), value=f"{raids}", inline=True)
+    embed.add_field(name=_("Egg Reports"), value=f"{eggs}", inline=True)
+    embed.add_field(name=_("Wild Reports"), value=f"{wilds}", inline=True)
+    embed.add_field(name=_("Research Reports"), value=f"{research}", inline=True)
+    embed.add_field(name=_("Raids Joined"), value=f"{joined}", inline=True)
     await ctx.send(embed=embed)
+
+async def temp(ctx, user):
+    regions = guild_dict[ctx.guild.id]['configure_dict']['regions']['info'].keys()
+    raids, eggs, wilds, research, joined = 0, 0, 0, 0, 0
+    for region in regions:
+        raids += guild_dict[ctx.guild.id]['trainers'].setdefault(region, {}).setdefault(user.id,{}).get('raid_reports',0)
+        eggs += guild_dict[ctx.guild.id]['trainers'].setdefault(region, {}).setdefault(user.id,{}).get('egg_reports',0)
+        wilds += guild_dict[ctx.guild.id]['trainers'].setdefault(region, {}).setdefault(user.id,{}).get('wild_reports',0)
+        research += guild_dict[ctx.guild.id]['trainers'].setdefault(region, {}).setdefault(user.id,{}).get('research_reports',0)
+        joined += guild_dict[ctx.guild.id]['trainers'].setdefault(region, {}).setdefault(user.id,{}).get('joined',0)
+    return [raids, eggs, wilds, research, joined]
+    await ctx.channel.send(raids)
+    await ctx.channel.send(eggs)
+    await ctx.channel.send(wilds)
+    await ctx.channel.send(research)
+    await ctx.channel.send(joined)
 
 @Meowth.command()
 async def leaderboard(ctx, type="total", region=None):
@@ -4320,55 +4342,67 @@ async def leaderboard(ctx, type="total", region=None):
     Usage: !leaderboard [type] [region]
     Accepted types: raids, eggs, wilds, research, joined
     Region must be any configured region"""
-    trainers = copy.deepcopy(guild_dict[ctx.guild.id]['trainers'])
-    leaderboard = []
+    guild = ctx.guild
+    leaderboard = {}
     rank = 1
     field_value = ""
     typelist = ["total", "raids", "eggs", "exraids", "wilds", "research", "joined"]
     type = type.lower()
+    regions = list(guild_dict[guild.id]['configure_dict']['regions']['info'].keys())
     if type not in typelist:
-        return await ctx.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Leaderboard type not supported. Please select from: **{', '.join(typelist)}**"))
-        return
+        if type in regions:
+            region = type
+            type = "total"
+        else:
+            return await ctx.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Leaderboard type not supported. Please select from: **{', '.join(typelist)}**"))
     if region is not None:
-        role = discord.utils.get(ctx.guild.roles, name=region.lower())
-        if role is None:
+        region = region.lower()
+        if region in regions:
+            regions = [region]
+        else:
             return await ctx.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"No region found with name {region}"))
-    else:
-        role = discord.utils.get(ctx.guild.roles, name="@everyone")
-    for trainer in trainers.keys():
-        user = ctx.guild.get_member(trainer)
-        if user is None:
-            continue
-        if role not in user.roles:
-            continue
-        raids = trainers[trainer].setdefault('raid_reports', 0)
-        wilds = trainers[trainer].setdefault('wild_reports', 0)
-        exraids = trainers[trainer].setdefault('ex_reports', 0)
-        eggs = trainers[trainer].setdefault('egg_reports', 0)
-        research = trainers[trainer].setdefault('research_reports', 0)
-        joined = trainers[trainer].setdefault('joined', 0)
-        total_reports = raids + wilds + exraids + eggs + research + joined
-        trainer_stats = {'trainer':trainer, 'total':total_reports, 'raids':raids, 'wilds':wilds, 'research':research, 'exraids':exraids, 'eggs':eggs, 'joined':joined}
-        if trainer_stats[type] > 0 and user:
-            leaderboard.append(trainer_stats)
-    leaderboard = sorted(leaderboard,key= lambda x: x[type], reverse=True)[:10]
-    embed = discord.Embed(colour=ctx.guild.me.colour)
+    for region in regions:
+        trainers = copy.deepcopy(guild_dict[guild.id]['trainers'].setdefault(region, {}))
+        for trainer in trainers.keys():
+            user = guild.get_member(trainer)
+            if user is None:
+                continue
+            raids, wilds, exraids, eggs, research, joined = 0, 0, 0, 0, 0, 0
+            
+            raids += trainers[trainer].setdefault('raid_reports', 0)
+            wilds += trainers[trainer].setdefault('wild_reports', 0)
+            exraids += trainers[trainer].setdefault('ex_reports', 0)
+            eggs += trainers[trainer].setdefault('egg_reports', 0)
+            research += trainers[trainer].setdefault('research_reports', 0)
+            joined += trainers[trainer].setdefault('joined', 0)
+            total_reports = raids + wilds + exraids + eggs + research + joined
+            trainer_stats = {'trainer':trainer, 'total':total_reports, 'raids':raids, 'wilds':wilds, 'research':research, 'exraids':exraids, 'eggs':eggs, 'joined':joined}
+            if trainer_stats[type] > 0 and user:
+                if trainer in leaderboard:
+                    leaderboard[trainer] = combine_dicts(leaderboard[trainer], trainer_stats)
+                else:
+                    leaderboard[trainer] = trainer_stats
+    leaderboardlist = []
+    for key, value in leaderboard.items():
+        leaderboardlist.append(value)
+    leaderboardlist = sorted(leaderboardlist,key= lambda x: x[type], reverse=True)[:10]
+    embed = discord.Embed(colour=guild.me.colour)
     leaderboard_title = f"Reporting Leaderboard ({type.title()})"
-    if region is not None:
+    if len(regions) == 1:
         leaderboard_title += f" {region.capitalize()}"
     embed.set_author(name=_(leaderboard_title), icon_url=Meowth.user.avatar_url)
-    for trainer in leaderboard:
-        user = ctx.guild.get_member(trainer['trainer'])
+    for trainer in leaderboardlist:
+        user = guild.get_member(int(trainer['trainer']))
         if user:
-            if guild_dict[ctx.guild.id]['configure_dict']['raid']['enabled']:
+            if guild_dict[guild.id]['configure_dict']['raid']['enabled']:
                 field_value += _("Raids: **{raids}** | Eggs: **{eggs}** | ").format(raids=trainer['raids'], eggs=trainer['eggs'])
-            if guild_dict[ctx.guild.id]['configure_dict']['exraid']['enabled']:
+            if guild_dict[guild.id]['configure_dict']['exraid']['enabled']:
                 field_value += _("EX Raids: **{exraids}** | ").format(exraids=trainer['exraids'])
-            if guild_dict[ctx.guild.id]['configure_dict']['wild']['enabled']:
+            if guild_dict[guild.id]['configure_dict']['wild']['enabled']:
                 field_value += _("Wilds: **{wilds}** | ").format(wilds=trainer['wilds'])
-            if guild_dict[ctx.guild.id]['configure_dict']['research']['enabled']:
+            if guild_dict[guild.id]['configure_dict']['research']['enabled']:
                 field_value += _("Research: **{research}** | ").format(research=trainer['research'])
-            if guild_dict[ctx.guild.id]['configure_dict']['raid']['enabled']:
+            if guild_dict[guild.id]['configure_dict']['raid']['enabled']:
                 field_value += _("Raids Joined: **{joined}** | ").format(joined=trainer['joined'])
             embed.add_field(name=f"{rank}. {user.display_name} - {type.title()}: **{trainer[type]}**", value=field_value[:-3], inline=False)
             field_value = ""
@@ -4376,6 +4410,12 @@ async def leaderboard(ctx, type="total", region=None):
     if len(embed.fields) == 0:
         embed.add_field(name=_("No Reports"), value=_("Nobody has made a report or this report type is disabled."))
     await ctx.send(embed=embed)
+
+def combine_dicts(a, b):
+    for key,value in a.items():
+        if key != 'trainer':
+            a[key] = a[key] + b[key]
+    return a
 
 ## TODO: UPDATE THIS:
 """
@@ -5096,8 +5136,9 @@ async def _raid_internal(ctx, content):
     else:
         await raid_channel.send(content=_('Hey {member}, if you can, set the time left on the raid using **!timerset <minutes>** so others can check it with **!timer**.').format(member=author.mention))
     event_loop.create_task(expiry_check(raid_channel))
-    raid_reports = guild_dict[guild.id].setdefault('trainers',{}).setdefault(author.id,{}).setdefault('raid_reports',0) + 1
-    guild_dict[guild.id]['trainers'][author.id]['raid_reports'] = raid_reports
+    # TODO will need multi region support
+    raid_reports = guild_dict[guild.id].setdefault('trainers',{}).setdefault(gym.region, {}).setdefault(author.id,{}).setdefault('raid_reports',0) + 1
+    guild_dict[guild.id]['trainers'][gym.region][author.id]['raid_reports'] = raid_reports
     raid_details = {'pokemon': raid_pokemon, 'tier': raid_pokemon.raid_level, 'ex-eligible': gym.ex_eligible if gym else False, 'location': raid_details, 'regions': regions}
     await _update_listing_channels(guild, 'raid', edit=False, regions=regions)
     if enabled:
@@ -5271,8 +5312,8 @@ async def _raidegg(ctx, content):
         elif egg_level == "5" and guild_dict[raid_channel.guild.id]['configure_dict']['settings'].get('regional',None) in raid_info['raid_eggs']["5"]['pokemon']:
             await _eggassume('assume ' + guild_dict[raid_channel.guild.id]['configure_dict']['settings']['regional'], raid_channel)
         event_loop.create_task(expiry_check(raid_channel))
-        egg_reports = guild_dict[message.guild.id].setdefault('trainers',{}).setdefault(author.id,{}).setdefault('egg_reports',0) + 1
-        guild_dict[message.guild.id]['trainers'][author.id]['egg_reports'] = egg_reports
+        egg_reports = guild_dict[message.guild.id].setdefault('trainers',{}).setdefault(gym.region,{}).setdefault(author.id,{}).setdefault('egg_reports',0) + 1
+        guild_dict[message.guild.id]['trainers'][gym.region][author.id]['egg_reports'] = egg_reports
         await _update_listing_channels(guild, 'raid', edit=False, regions=regions)
         raid_details = {'tier': egg_level, 'ex-eligible': gym.ex_eligible if gym else False, 'location': raid_details, 'regions': regions}
         if enabled:
@@ -5547,8 +5588,8 @@ async def _eggtoraid(entered_raid, raid_channel, author=None):
     guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['duplicate'] = duplicate
     guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['archive'] = archive
     if author:
-        raid_reports = guild_dict[raid_channel.guild.id].setdefault('trainers',{}).setdefault(author.id,{}).setdefault('raid_reports',0) + 1
-        guild_dict[raid_channel.guild.id]['trainers'][author.id]['raid_reports'] = raid_reports
+        raid_reports = guild_dict[raid_channel.guild.id].setdefault('trainers',{}).setdefault(regions[0], {}).setdefault(author.id,{}).setdefault('raid_reports',0) + 1
+        guild_dict[raid_channel.guild.id]['trainers'][regions[0]][author.id]['raid_reports'] = raid_reports
         await _edit_party(raid_channel, author)
     await _update_listing_channels(raid_channel.guild, 'raid', edit=False, regions=regions)
     event_loop.create_task(expiry_check(raid_channel))
@@ -5648,8 +5689,8 @@ async def _exraid(ctx, location):
     if len(raid_info['raid_eggs']['EX']['pokemon']) == 1:
         await _eggassume('assume ' + raid_info['raid_eggs']['EX']['pokemon'][0], raid_channel)
     await raid_channel.send(content=_('Hey {member}, if you can, set the time left until the egg hatches using **!timerset <date and time>** so others can check it with **!timer**. **<date and time>** can just be written exactly how it appears on your EX Raid Pass.').format(member=message.author.mention))
-    ex_reports = guild_dict[message.guild.id].setdefault('trainers',{}).setdefault(message.author.id,{}).setdefault('ex_reports',0) + 1
-    guild_dict[message.guild.id]['trainers'][message.author.id]['ex_reports'] = ex_reports
+    ex_reports = guild_dict[message.guild.id].setdefault('trainers',{}).setdefault(regions[0], {}).setdefault(message.author.id,{}).setdefault('ex_reports',0) + 1
+    guild_dict[message.guild.id]['trainers'][regions[0]][message.author.id]['ex_reports'] = ex_reports
     event_loop.create_task(expiry_check(raid_channel))
 
 @Meowth.command()
@@ -5857,8 +5898,8 @@ async def research(ctx, *, details = None):
             'reward':reward
         }
         guild_dict[guild.id]['questreport_dict'] = research_dict
-        research_reports = guild_dict[ctx.guild.id].setdefault('trainers',{}).setdefault(author.id,{}).setdefault('research_reports',0) + 1
-        guild_dict[ctx.guild.id]['trainers'][author.id]['research_reports'] = research_reports
+        research_reports = guild_dict[ctx.guild.id].setdefault('trainers',{}).setdefault(regions[0], {}).setdefault(author.id,{}).setdefault('research_reports',0) + 1
+        guild_dict[ctx.guild.id]['trainers'][regions[0]][author.id]['research_reports'] = research_reports
         await _update_listing_channels(guild, 'research', edit=False, regions=regions)
         if 'encounter' in reward.lower():
             pokemon = reward.rsplit(maxsplit=1)[0]
@@ -7066,6 +7107,7 @@ async def duplicate(ctx):
     t_dict = rc_d['trainer_dict']
     can_manage = channel.permissions_for(author).manage_channels
     raidtype = _("event") if guild_dict[guild.id]['raidchannel_dict'][channel.id].get('meetup',False) else _("raid")
+    regions = rc_d['regions']
     if can_manage:
         dupecount = 2
         rc_d['duplicate'] = dupecount
@@ -7117,14 +7159,14 @@ async def duplicate(ctx):
                 raidmsg = await channel.get_message(rc_d['raidmessage'])
                 reporter = raidmsg.mentions[0]
                 if 'egg' in raidmsg.content:
-                    egg_reports = guild_dict[guild.id]['trainers'][reporter.id]['egg_reports']
-                    guild_dict[guild.id]['trainers'][reporter.id]['egg_reports'] = egg_reports - 1
+                    egg_reports = guild_dict[guild.id]['trainers'][regions[0]][reporter.id]['egg_reports']
+                    guild_dict[guild.id]['trainers'][regions[0]][reporter.id]['egg_reports'] = egg_reports - 1
                 elif 'EX' in raidmsg.content:
-                    ex_reports = guild_dict[guild.id]['trainers'][reporter.id]['ex_reports']
-                    guild_dict[guild.id]['trainers'][reporter.id]['ex_reports'] = ex_reports - 1
+                    ex_reports = guild_dict[guild.id]['trainers'][regions[0]][reporter.id]['ex_reports']
+                    guild_dict[guild.id]['trainers'][regions[0]][reporter.id]['ex_reports'] = ex_reports - 1
                 else:
-                    raid_reports = guild_dict[guild.id]['trainers'][reporter.id]['raid_reports']
-                    guild_dict[guild.id]['trainers'][reporter.id]['raid_reports'] = raid_reports - 1
+                    raid_reports = guild_dict[guild.id]['trainers'][regions[0]][reporter.id]['raid_reports']
+                    guild_dict[guild.id]['trainers'][regions[0]][reporter.id]['raid_reports'] = raid_reports - 1
                 await expire_channel(channel)
                 return
         else:
@@ -7991,6 +8033,7 @@ async def starting(ctx, team: str = ''):
     ctx.team_names = ["mystic", "valor", "instinct", "unknown"]
     team = team if team and team.lower() in ctx.team_names else "all"
     ctx.trainer_dict = copy.deepcopy(guild_dict[guild.id]['raidchannel_dict'][channel.id]['trainer_dict'])
+    regions = guild_dict[guild.id]['raidchannel_dict'][channel.id]['regions']
     if guild_dict[guild.id]['raidchannel_dict'][channel.id].get('type',None) == 'egg':
         starting_str = _("How can you start when the egg hasn't hatched!?")
         await channel.send(starting_str)
@@ -8019,8 +8062,8 @@ async def starting(ctx, team: str = ''):
                 trainer_joined = True
                 ctx_startinglist.append(user.mention)
         if trainer_joined:
-            joined = guild_dict[guild.id].setdefault('trainers',{}).setdefault(trainer,{}).setdefault('joined',0) + 1
-            guild_dict[guild.id]['trainers'][trainer]['joined'] = joined
+            joined = guild_dict[guild.id].setdefault('trainers',{}).setdefault(regions[0], {}).setdefault(trainer,{}).setdefault('joined',0) + 1
+            guild_dict[guild.id]['trainers'][regions[0]][trainer]['joined'] = joined
             
     if len(ctx_startinglist) == 0:
         starting_str = _("How can you start when there's no one waiting at this raid!?")
