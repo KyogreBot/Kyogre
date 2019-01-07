@@ -42,7 +42,7 @@ def is_good_standing(ctx):
     guild = ctx.guild
     if not guild:
         return False
-    return ctx.bot.guild_dict[guild.id]['trainers'].get(ctx.author.id, {}).get('is_banned', False)
+    return ctx.bot.guild_dict[guild.id]['trainers'].setdefault('info', {}).get(ctx.author.id, {}).get('is_banned', False)
 
 def check_permissions(ctx, perms):
     if not perms:
