@@ -168,7 +168,7 @@ def custom_error_handling(bot, logger):
         channel = ctx.channel
         prefix = ctx.prefix.replace(ctx.bot.user.mention, '@' + ctx.bot.user.name)
         if isinstance(error, commands.MissingRequiredArgument):
-            error = await ctx.channel.send(missing_arg_msg(ctx))
+            error = await ctx.channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=missing_arg_msg(ctx)))
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
         elif isinstance(error, commands.BadArgument):
