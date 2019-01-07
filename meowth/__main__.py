@@ -3992,24 +3992,24 @@ async def reset_board(ctx, *, user=None, type=None):
         pass
     else:
         return
-    for trainer in trainers:
-        if tgt_trainer:
-            trainer = tgt_trainer.id
-        regions = guild_dict[ctx.guild.id]['configure_dict']['regions']['info'].keys()
-    
-        for region in regions:
-            if type == "total_reports":
-                trainers.setdefault(region, {})[trainer]['raid_reports'] = 0
-                trainers.setdefault(region, {})[trainer]['wild_reports'] = 0
-                trainers.setdefault(region, {})[trainer]['ex_reports'] = 0
-                trainers.setdefault(region, {})[trainer]['egg_reports'] = 0
-                trainers.setdefault(region, {})[trainer]['research_reports'] = 0
-                trainers.setdefault(region, {})[trainer]['joined'] = 0
-            else:
-                trainers.setdefault(region, {})[trainer][type] = 0
+    regions = guild_dict[ctx.guild.id]['configure_dict']['regions']['info'].keys()
+    for region in regions:
+        trainers.setdefault(region, {})
+        for trainer in trainers[region]:
             if tgt_trainer:
-                await ctx.send(_("{trainer}'s report stats have been cleared!").format(trainer=tgt_trainer.display_name))
-                return
+                trainer = tgt_trainer.id
+                if type == "total_reports":
+                    trainers[region][trainer].setdefault('raid_reports', 0) = 0
+                    trainers[region][trainer].setdefault('raid_reports', 0) = 0
+                    trainers[region][trainer].setdefault('raid_reports', 0) = 0
+                    trainers[region][trainer].setdefault('raid_reports', 0) = 0
+                    trainers[region][trainer].setdefault('raid_reports', 0) = 0
+                    trainers[region][trainer].setdefault('raid_reports', 0) = 0
+                else:
+                    trainers[region][trainer].setdefault(type, 0) = 0
+                if tgt_trainer:
+                    await ctx.send(_("{trainer}'s report stats have been cleared!").format(trainer=tgt_trainer.display_name))
+                    return
     await ctx.send("This server's report stats have been reset!")
 
 @Meowth.command()
