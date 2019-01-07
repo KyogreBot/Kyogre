@@ -4338,11 +4338,15 @@ async def leaderboard(ctx, type="total", region=None):
     field_value = ""
     typelist = ["total", "raids", "eggs", "exraids", "wilds", "research", "joined"]
     type = type.lower()
-    if type not in typelist:
-        return await ctx.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Leaderboard type not supported. Please select from: **{', '.join(typelist)}**"))
-        return
     regions = list(guild_dict[guild.id]['configure_dict']['regions']['info'].keys())
+    if type not in typelist:
+        if type in regions:
+            region = type
+            type = "total"
+        else:
+            return await ctx.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Leaderboard type not supported. Please select from: **{', '.join(typelist)}**"))
     if region is not None:
+        region = region.lower()
         if region in regions:
             regions = [region]
         else:
