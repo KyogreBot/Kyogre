@@ -90,7 +90,7 @@ class LocationMatching:
             match = [match]
         return [(l, score) for l in locations for match_name, score in match if l.name == match_name]
     
-    @commands.command(hidden=True)
+    @commands.command(hidden=True, aliases=["lmt"])
     @checks.is_dev_or_owner()
     async def location_match_test(self, ctx, *, content=None):
         add_prefix = False
