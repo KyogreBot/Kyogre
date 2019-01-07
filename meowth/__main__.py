@@ -5747,10 +5747,14 @@ async def research(ctx, *, details = None):
             if stops:
                 stop = await location_match_prompt(channel, author.id, location, stops)
                 if not stop:
+                    await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"\
+                        I couldn't find a pokestop named '**{location}**'. \
+                        Perhaps you have reversed the order of your report?\n\n\
+                        Looking up stop with name '**{quest_name.strip()}**'"))
                     quest_name, location = research_split
-                    stop = await location_match_prompt(channel, author.id, location, stops)
+                    stop = await location_match_prompt(channel, author.id, location.strip(), stops)
                     if not stop:
-                        return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"I couldn't find a pokestop named '{location}'. Try again using the exact pokestop name!"))
+                        return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"No pokestop found with name '**{location.strip()}**' either. Try reporting again using the exact pokestop name!"))
                 if get_existing_research(guild, stop):
                     return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"A quest has already been reported for {stop.name}"))
                 location = stop.name
@@ -5927,7 +5931,7 @@ async def _prompt_reward_v(channel, author, quest, reward_type=None):
     # handle items
     if reward_type == "items":
         if len(target_pool) == 1:
-            target_pool = target_pool[0]
+            target_pool = target_pool[list(target_pool.keys())[0]]
         else:
             candidates = [k for k in target_pool]
             prompt = "Please select an item:"
@@ -6199,7 +6203,7 @@ def format_quest_info(quest):
     if items:
         output += "\nItems:"
         for name, quantities in items.items():
-            output += f"\n\t{name.title()}: {quantities[0] if len(quantities) == 1 else quantities[0] + ' - ' + quantities[-1]}"
+            output += f"\n\t{name.title()}: {quantities[0] if len(quantities) == 1 else str(quantities[0]) + ' - ' + str(quantities[-1])}"
     return output
 
 @Meowth.group(name="rewards")
