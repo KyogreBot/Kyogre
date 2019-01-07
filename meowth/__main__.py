@@ -6193,7 +6193,7 @@ def format_quest_info(quest):
     if items:
         output += "\nItems:"
         for name, quantities in items.items():
-            output += f"\n\t{name.title()}: {quantities[0] if len(quantities) == 1 else quantities[0] + ' - ' + quantities[-1]}"
+            output += f"\n\t{name.title()}: {quantities[0] if len(quantities) == 1 else str(quantities[0]) + ' - ' + str(quantities[-1])}"
     return output
 
 @Meowth.group(name="rewards")
