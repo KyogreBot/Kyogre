@@ -1678,7 +1678,7 @@ async def _region(ctx):
         raise commands.BadArgument()
 
 @_region.command(name="join")
-async def join(ctx, *, region_names: str = ''):
+async def join(ctx, *, region_names):
     """Joins regional roles from the provided comma-separated list
 
     Examples:
@@ -4079,6 +4079,7 @@ async def reset_board(ctx, *, user=None, type=None):
         converter = commands.MemberConverter()
         for argument in user.split():
             try:
+                await ctx.channel.send(argument)
                 tgt_trainer = await converter.convert(ctx, argument)
                 tgt_string = tgt_trainer.display_name
             except:
@@ -4560,14 +4561,12 @@ def combine_dicts(a, b):
 """
 PVP
 """
-
-@Meowth.group(name="pvp")
+@Meowth.group(name="pvp", case_insensitive=True)
 @checks.allowpvp()
 async def _pvp(ctx):
     """Handles pvp related commands"""
 
     if ctx.invoked_subcommand == None:
-        await ctx.channel.send("bad")
         raise commands.BadArgument()
 
 @_pvp.command(name="available", aliases=["av"])
@@ -4643,7 +4642,8 @@ async def _pvp_add_friend(ctx, *, friends):
     trainer = message.author
     trainer_dict = copy.deepcopy(guild_dict[guild.id]['trainers'])
     trainer_info_dict = trainer_dict.setdefault('info', {})
-    friend_list = friends.split(' ')
+    friend_list = set([r for r in re.split(r'\s*,\s*', friends.strip()) if r])
+    await channel.send(friend_list)
     if len(friend_list) < 1:
         err_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description='Please provide the name of at least one other trainer.\n\
             Name should be the `@mention` of another Discord user.'))
@@ -4652,15 +4652,19 @@ async def _pvp_add_friend(ctx, *, friends):
         await err_msg.delete()
     friend_list_success = []
     friend_list_errors = []
-    converter = commands.MemberConverter()
     for user in friend_list:
-        tgt_trainer = await converter.convert(ctx, user)
+        try:
+            tgt_trainer = await commands.MemberConverter().convert(ctx, user.strip())
+        except:
+            friend_list_errors.append(user)
+            continue
         if tgt_trainer is not None:
             tgt_friends = trainer_info_dict.setdefault(tgt_trainer.id, {}).setdefault('friends', [])
+            if trainer.id not in tgt_friends:
+                tgt_friends.append(trainer.id)
             friend_list_success.append(user)
-            tgt_friends.append(trainer.id)
         else:
-            friend_list_errors.append(user)
+            friend_list_errors.append(user)           
     if len(friend_list_errors) > 0:
         await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Unable to find the following users:\n\
             {', '.join(friend_list_errors)}"))
@@ -4673,14 +4677,14 @@ async def _pvp_add_friend(ctx, *, friends):
     return
 
 @_pvp.command(name="remove", aliases=["rem"])
-async def _pvp_remove_friend(ctx, *, friends):
+async def _pvp_remove_friend(ctx, *, friends: str = ''):
     message = ctx.message
     channel = message.channel
     guild = message.guild
     trainer = message.author
     trainer_dict = copy.deepcopy(guild_dict[guild.id]['trainers'])
     trainer_info_dict = trainer_dict.setdefault('info', {})
-    friend_list = friends.split(' ')
+    friend_list = set([r for r in re.split(r'\s*,\s*', friends.strip()) if r])
     if len(friend_list) < 1:
         err_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description='Please provide the name of at least one other trainer.\n\
             Name should be the `@mention` of another Discord user.'))
@@ -4689,12 +4693,16 @@ async def _pvp_remove_friend(ctx, *, friends):
         await err_msg.delete()
     friend_list_success = []
     friend_list_errors = []
-    converter = commands.MemberConverter()
     for user in friend_list:
-        tgt_trainer = await converter.convert(ctx, user)
+        try:
+            tgt_trainer = await commands.MemberConverter().convert(ctx, user.strip())
+        except:
+            friend_list_errors.append(user)
+            continue
         if tgt_trainer is not None:
             tgt_friends = trainer_info_dict.setdefault(tgt_trainer.id, {}).setdefault('friends', [])
-            tgt_friends.remove(trainer.id)
+            if trainer.id in tgt_friends:
+                tgt_friends.remove(trainer.id)
             friend_list_success.append(user)
         else:
             friend_list_errors.append(user)
