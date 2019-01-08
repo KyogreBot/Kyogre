@@ -4651,6 +4651,7 @@ async def _pvp_add_friend(ctx, *, friends):
         await err_msg.delete()
     friend_list_success = []
     friend_list_errors = []
+    friend_list_exist = []
     for user in friend_list:
         try:
             tgt_trainer = await commands.MemberConverter().convert(ctx, user.strip())
@@ -4661,18 +4662,34 @@ async def _pvp_add_friend(ctx, *, friends):
             tgt_friends = trainer_info_dict.setdefault(tgt_trainer.id, {}).setdefault('friends', [])
             if trainer.id not in tgt_friends:
                 tgt_friends.append(trainer.id)
-            friend_list_success.append(user)
+                friend_list_success.append(user)
+            else:
+                friend_list_exist.append(user)
         else:
-            friend_list_errors.append(user)           
+            friend_list_errors.append(user)
+    failed_msg = None
+    exist_msg = None
+    success_msg = None
     if len(friend_list_errors) > 0:
-        await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Unable to find the following users:\n\
+        failed_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Unable to find the following users:\n\
             {', '.join(friend_list_errors)}"))
-    success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=f"Successfully added the following friends:\n\
+        await message.add_reaction('👍')
+    if len(friend_list_exist) > 0:
+        exist_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.orange(), description=f"You're already friends with the following users:\n\
+            {', '.join(friend_list_exist)}"))
+        await message.add_reaction('👍')
+    if len(friend_list_success) > 0:
+        success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=f"Successfully added the following friends:\n\
             {', '.join(friend_list_success)}"))
-    guild_dict[guild.id]['trainers'] = trainer_dict
-    await message.add_reaction('✅')
+        guild_dict[guild.id]['trainers'] = trainer_dict
+        await message.add_reaction('✅')
     await asyncio.sleep(10)
-    await success_msg.delete()
+    if failed_msg is not None:
+        await failed_msg.delete()
+    if exist_msg is not None:
+        await exist_msg.delete()
+    if success_msg is not None:
+        await success_msg.delete()
     return
 
 @_pvp.command(name="remove", aliases=["rem"])
@@ -4692,6 +4709,7 @@ async def _pvp_remove_friend(ctx, *, friends: str = ''):
         await err_msg.delete()
     friend_list_success = []
     friend_list_errors = []
+    friend_list_notexist = []
     for user in friend_list:
         try:
             tgt_trainer = await commands.MemberConverter().convert(ctx, user.strip())
@@ -4702,18 +4720,35 @@ async def _pvp_remove_friend(ctx, *, friends: str = ''):
             tgt_friends = trainer_info_dict.setdefault(tgt_trainer.id, {}).setdefault('friends', [])
             if trainer.id in tgt_friends:
                 tgt_friends.remove(trainer.id)
-            friend_list_success.append(user)
+                friend_list_success.append(user)
+            else:
+                friend_list_notexist.append(user)
         else:
             friend_list_errors.append(user)
+    
+    failed_msg = None
+    notexist_msg = None
+    success_msg = None
     if len(friend_list_errors) > 0:
-        await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Unable to find the following users:\n\
+        failed_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Unable to find the following users:\n\
             {', '.join(friend_list_errors)}"))
-    success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=f"Successfully removed the following friends:\n\
+        await message.add_reaction('👍')
+    if len(friend_list_notexist) > 0:
+        notexist_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.orange(), description=f"You're not friends with the following users:\n\
+            {', '.join(friend_list_notexist)}"))
+        await message.add_reaction('👍')
+    if len(friend_list_success) > 0:
+        success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=f"Successfully removed the following friends:\n\
             {', '.join(friend_list_success)}"))
-    guild_dict[guild.id]['trainers'] = trainer_dict
-    await message.add_reaction('✅')
+        guild_dict[guild.id]['trainers'] = trainer_dict
+        await message.add_reaction('✅')
     await asyncio.sleep(10)
-    await success_msg.delete()
+    if failed_msg is not None:
+        await failed_msg.delete()
+    if notexist_msg is not None:
+        await notexist_msg.delete()
+    if success_msg is not None:
+        await success_msg.delete()
     return
 
 """
