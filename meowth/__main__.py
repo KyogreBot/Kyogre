@@ -4643,7 +4643,6 @@ async def _pvp_add_friend(ctx, *, friends):
     trainer_dict = copy.deepcopy(guild_dict[guild.id]['trainers'])
     trainer_info_dict = trainer_dict.setdefault('info', {})
     friend_list = set([r for r in re.split(r'\s*,\s*', friends.strip()) if r])
-    await channel.send(friend_list)
     if len(friend_list) < 1:
         err_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description='Please provide the name of at least one other trainer.\n\
             Name should be the `@mention` of another Discord user.'))
