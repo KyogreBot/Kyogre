@@ -4572,7 +4572,7 @@ async def _pvp(ctx):
         await ctx.channel.send("bad")
         raise commands.BadArgument()
 
-@_pvp.command(name="available", aliases=["a"])
+@_pvp.command(name="available", aliases=["av"])
 async def _pvp_available(ctx, *, content=None):
     """Announces that you're available for pvp
     Usage: `!pvp available [time]`
@@ -4621,6 +4621,79 @@ async def _pvp_available(ctx, *, content=None):
     guild_dict[guild.id]['pvp_dict'] = pvp_dict
     event_loop.create_task(pvp_expiry_check(pvp_msg))
 
+@_pvp.command(name="add", aliases=["add"])
+async def _pvp_add_friend(ctx, *, friends):
+    message = ctx.message
+    channel = message.channel
+    guild = message.guild
+    trainer = message.author
+    trainer_dict = copy.deepcopy(guild_dict[guild.id]['trainers'])
+    trainer_info_dict = trainer_dict.setdefault('info', {})
+    friend_list = friends.split(',')
+    if len(friend_list) < 1:
+        err_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description='Please provide the name of at least one other trainer.\n\
+            Name should be the `@mention` of another Discord user. \nMultiple names should be separated by commas.'))
+        await asyncio.sleep(15)
+        await message.delete()
+        await err_msg.delete()
+    friend_list_success = []
+    friend_list_errors = []
+    converter = commands.MemberConverter()
+    for user in friend_list:
+        tgt_trainer = await converter.convert(ctx, user)
+        if tgt_trainer is not None:
+            tgt_friends = trainer_info_dict.setdefault(tgt_trainer.id, {}).setdefault('friends', [])
+            friend_list_success.append(user)
+            tgt_friends.append(trainer.id)
+        else:
+            friend_list_errors.append(user)
+    if len(friend_list_errors) > 0:
+        await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Unable to find the following users:\n\
+            {', '.join(friend_list_errors)}"))
+    success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Successfully added the following friends:\n\
+            {', '.join(friend_list_success)}"))
+    guild_dict[guild.id]['trainers'] = trainer_dict
+    await message.add_reaction('✅')
+    await asyncio.sleep(10)
+    await success_msg.delete()
+    return
+
+@_pvp.command(name="remove", aliases=["rem"])
+async def _pvp_remove_friend(ctx, *, friends):
+    message = ctx.message
+    channel = message.channel
+    guild = message.guild
+    trainer = message.author
+    trainer_dict = copy.deepcopy(guild_dict[guild.id]['trainers'])
+    trainer_info_dict = trainer_dict.setdefault('info', {})
+    friend_list = friends.split(',')
+    if len(friend_list) < 1:
+        err_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description='Please provide the name of at least one other trainer.\n\
+            Name should be the `@mention` of another Discord user. \nMultiple names should be separated by commas.'))
+        await asyncio.sleep(15)
+        await message.delete()
+        await err_msg.delete()
+    friend_list_success = []
+    friend_list_errors = []
+    converter = commands.MemberConverter()
+    for user in friend_list:
+        tgt_trainer = await converter.convert(ctx, user)
+        if tgt_trainer is not None:
+            tgt_friends = trainer_info_dict.setdefault(tgt_trainer.id, {}).setdefault('friends', [])
+            del tgt_friends[trainer.id]
+            friend_list_success.append(user)
+        else:
+            friend_list_errors.append(user)
+    if len(friend_list_errors) > 0:
+        await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Unable to find the following users:\n\
+            {', '.join(friend_list_errors)}"))
+    success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Successfully removed the following friends:\n\
+            {', '.join(friend_list_success)}"))
+    guild_dict[guild.id]['trainers'] = trainer_dict
+    await message.add_reaction('✅')
+    await asyncio.sleep(10)
+    await success_msg.delete()
+    return
 
 """
 Notifications
