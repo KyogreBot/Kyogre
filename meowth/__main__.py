@@ -4572,7 +4572,7 @@ async def _pvp(ctx):
         raise commands.BadArgument()
 
 @_pvp.command(name="available", aliases=["av"])
-async def _pvp_available(ctx, *, content=None):
+async def _pvp_available(ctx, exptime=None):
     """Announces that you're available for pvp
     Usage: `!pvp available [time]`
     Kyogre will post a message stating that you're available for PvP
@@ -4587,18 +4587,24 @@ async def _pvp_available(ctx, *, content=None):
     guild = message.guild
     trainer = message.author
 
-    expiration_minutes = 30
-    if content:
-        content = content.split()
-        error_msg = "Unable to determine the time you provided, your PvP session will remain active for 30 minutes"
-        expiration_minutes = await raid_time_check(channel, content[0], error_msg)
-        if expiration_minutes is False:
-            await channel.send("Unable to determine the time you provided, your PvP session will remain active for 30 minutes")
-            expiration_minutes = 30
+    time_msg = None
+    expiration_minutes = False
+    time_err = "Unable to determine the time you provided, your PvP session will remain active for 30 minutes"
+    if exptime:
+        if exptime.isdigit():
+            expiration_minutes = await raid_time_check(channel, exptime, time_err)
+    else:
+        time_err = "No expiration time provided, your PvP session will remain active for 30 minutes"
+    if expiration_minutes is False:
+        time_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.orange(), description=time_err))
+        expiration_minutes = 30
+
+    now = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[guild.id]['configure_dict']['settings']['offset'])
+    expire = now + datetime.timedelta(minutes=expiration_minutes)
 
     pvp_embed = discord.Embed(title=_('{trainer} is available for PvP!').format(trainer=trainer.display_name), colour=guild.me.colour)
 
-    pvp_embed.add_field(name=_('**Expires:**'), value=_('In {minutes} minutes').format(minutes=expiration_minutes), inline=True)
+    pvp_embed.add_field(name=_('**Expires:**'), value=_('{end}').format(end=expire.strftime('%I:%M %p')), inline=True)
     pvp_embed.add_field(name=_('**To challenge:**'), value=_('Use the \u2694 react.'), inline=True)
     pvp_embed.add_field(name=_('**To cancel:**'), value=_('Use the 🚫 react.'), inline=True)
     pvp_embed.set_footer(text=_('{trainer}').format(trainer=trainer.display_name), icon_url=trainer.avatar_url_as(format=None, static_format='jpg', size=32))
@@ -4620,6 +4626,10 @@ async def _pvp_available(ctx, *, content=None):
     guild_dict[guild.id]['pvp_dict'] = pvp_dict
     await _send_pvp_notification_async(ctx)
     event_loop.create_task(pvp_expiry_check(pvp_msg))
+    if time_msg is not None:
+        await asyncio.sleep(10)
+        await time_msg.delete()
+    
 
 async def _send_pvp_notification_async(ctx):
     message = ctx.message
@@ -4638,6 +4648,17 @@ async def _send_pvp_notification_async(ctx):
 
 @_pvp.command(name="add")
 async def _pvp_add_friend(ctx, *, friends):
+    """Adds another user as a friend to your friends list
+    Usage: `!pvp add <friend>`
+    Usage: `!pvp add AshKetchum#1234, ProfessorOak#5309`
+
+    Kyogre will add the friends you list to your friends list.
+    Whenever one of your friends announces they are available to
+    battle, Kyogre will notify you.
+
+    Provide any number of friends using their discord name including
+    the "#0000" discriminator with a comma between each name
+    """
     message = ctx.message
     channel = message.channel
     guild = message.guild
@@ -4696,6 +4717,16 @@ async def _pvp_add_friend(ctx, *, friends):
 
 @_pvp.command(name="remove", aliases=["rem"])
 async def _pvp_remove_friend(ctx, *, friends: str = ''):
+    """Remove a user from your friends list
+
+    Usage: `!pvp [remove|rem] <friend>`
+    Usage: `!pvp add AshKetchum#1234, ProfessorOak#5309`
+
+    Kyogre will remove the friends you list from your friends list.
+
+    Provide any number of friends using their discord name including
+    the "#0000" discriminator with a comma between each name
+    """
     message = ctx.message
     channel = message.channel
     guild = message.guild
