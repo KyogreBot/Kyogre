@@ -4002,21 +4002,18 @@ async def reset_board(ctx, *, user=None, type=None):
         pass
     else:
         return
-    for trainer in trainers:
-        if tgt_trainer:
-            trainer = tgt_trainer.id
-        regions = guild_dict[ctx.guild.id]['configure_dict']['regions']['info'].keys()
-    
-        for region in regions:
+    regions = guild_dict[ctx.guild.id]['configure_dict']['regions']['info'].keys()
+    for region in regions:
+        trainers.setdefault(region, {})
+        for trainer in trainers[region]:
+            if tgt_trainer:
+                trainer = tgt_trainer.id
             if type == "total_reports":
-                trainers.setdefault(region, {})[trainer]['raid_reports'] = 0
-                trainers.setdefault(region, {})[trainer]['wild_reports'] = 0
-                trainers.setdefault(region, {})[trainer]['ex_reports'] = 0
-                trainers.setdefault(region, {})[trainer]['egg_reports'] = 0
-                trainers.setdefault(region, {})[trainer]['research_reports'] = 0
-                trainers.setdefault(region, {})[trainer]['joined'] = 0
+                for rtype in trainers[region][trainer]:
+                    trainers[region][trainer][rtype] = 0
             else:
-                trainers.setdefault(region, {})[trainer][type] = 0
+                type_score = trainers[region][trainer].get(type, 0)
+                type_score = 0
             if tgt_trainer:
                 await ctx.send(_("{trainer}'s report stats have been cleared!").format(trainer=tgt_trainer.display_name))
                 return
