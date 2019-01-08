@@ -4624,7 +4624,7 @@ async def _send_pvp_notification_async(ctx):
     channel = message.channel
     guild = message.guild
     trainer = guild.get_member(message.author.id)
-    friends = guild_dict[guild.id]['trainers']['info']['friends']
+    friends = guild_dict[guild.id]['trainers']['info'][message.author.id].setdefault('friends', {})
     outbound_dict = {}
     tag_msg = f'**{trainer.mention}** wants to battle! Who will challenge them?!'
     for friend in friends:
