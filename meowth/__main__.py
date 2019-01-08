@@ -1319,6 +1319,8 @@ async def on_raw_reaction_add(payload):
         if str(payload.emoji) == '\u2694':
             attacker = guild.get_member(payload.user_id)
             defender = guild.get_member(pvp_dict[message.id]['reportauthor'])
+            if attacker == defender:
+                return
             battle_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"{defender.mention} you have been challenged by {attacker.mention}!"))
 
 def get_raid_report(guild, message_id):
