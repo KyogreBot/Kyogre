@@ -4602,13 +4602,35 @@ async def _pvp_available(ctx, exptime=None):
     now = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[guild.id]['configure_dict']['settings']['offset'])
     expire = now + datetime.timedelta(minutes=expiration_minutes)
 
+    league_text = ""
+    prompt = 'Do you have a League Preference?'
+    choices_list = ['Great League', 'Ultra League', 'Master League', 'No Preference',  'Other']
+    match = await utils.ask_list(Meowth, prompt, channel, choices_list, user_list=trainer.id)
+    if match in choices_list:
+        if match == choices_list[4]:
+            specifiy_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description="Please specify your battle criteria:"))
+            try:
+                pref_msg = await Meowth.wait_for('message', timeout=30, check=(lambda reply: reply.author == trainer))
+            except asyncio.TimeoutError:
+                pref_msg = None
+                await specifiy_msg.delete()
+            if pref_msg:
+                league_text = pref_msg.clean_content
+                await specifiy_msg.delete()
+                await pref_msg.delete()
+        else:
+            league_text = match
+    else:
+        league_text = choices_list[3]
+
     pvp_embed = discord.Embed(title=_('{trainer} is available for PvP!').format(trainer=trainer.display_name), colour=guild.me.colour)
 
     pvp_embed.add_field(name=_('**Expires:**'), value=_('{end}').format(end=expire.strftime('%I:%M %p')), inline=True)
+    pvp_embed.add_field(name=_('**League Preference:**'), value=_('{league}').format(league=league_text), inline=True)
     pvp_embed.add_field(name=_('**To challenge:**'), value=_('Use the \u2694 react.'), inline=True)
     pvp_embed.add_field(name=_('**To cancel:**'), value=_('Use the 🚫 react.'), inline=True)
     pvp_embed.set_footer(text=_('{trainer}').format(trainer=trainer.display_name), icon_url=trainer.avatar_url_as(format=None, static_format='jpg', size=32))
-    pvp_embed.set_thumbnail(url="https://github.com/KyogreBot/Kyogre/raw/master/images/misc/pvp.png")
+    pvp_embed.set_thumbnail(url="https://github.com/KyogreBot/Kyogre/blob/master/images/misc/pvpn_large.png?raw=true")
 
     pvp_msg = await channel.send(content=('{trainer} is available for PvP!').format(trainer=trainer.display_name),embed=pvp_embed)
     await pvp_msg.add_reaction('\u2694')
