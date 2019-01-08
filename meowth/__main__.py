@@ -5749,7 +5749,7 @@ async def research(ctx, *, details = None):
                         await asyncio.sleep(15)
                         await err_msg.delete()
                         return
-                await swap_msg.delete()
+                    await swap_msg.delete()
                 if get_existing_research(guild, stop):
                     return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"A quest has already been reported for {stop.name}"))
                 location = stop.name
