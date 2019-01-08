@@ -42,7 +42,7 @@ def is_good_standing(ctx):
     guild = ctx.guild
     if not guild:
         return False
-    return ctx.bot.guild_dict[guild.id]['trainers'].get(ctx.author.id, {}).get('is_banned', False)
+    return ctx.bot.guild_dict[guild.id]['trainers'].setdefault('info', {}).get(ctx.author.id, {}).get('is_banned', False)
 
 def check_permissions(ctx, perms):
     if not perms:
@@ -279,6 +279,14 @@ def check_researchreport(ctx):
     channel_list = [x for x in ctx.bot.guild_dict[guild.id]['configure_dict']['research'].get('report_channels',{}).keys()]
     return channel.id in channel_list
 
+def check_adminchannel(ctx):
+    if ctx.guild is None:
+        return False
+    channel = ctx.channel
+    guild = ctx.guild
+    channel_list = [x for x in ctx.bot.guild_dict[guild.id]['configure_dict'].get('admin',{}).get('command_channels',[])]
+    return channel.id in channel_list
+
 #Decorators
 def allowreports():
     def predicate(ctx):
@@ -330,7 +338,7 @@ def allowwildreport():
 def allowresearchreport():
     def predicate(ctx):
         if check_researchset(ctx):
-            if check_researchreport(ctx):
+            if check_researchreport(ctx) or check_adminchannel(ctx):
                 return True
             else:
                 raise errors.ResearchReportChannelCheckFail()
