@@ -4708,31 +4708,58 @@ async def _sub_adminlist(ctx, *, trainer=None):
     response_msg = ''
 
     if not trainer:
-        response_msg = "Please provide a trainer id"
+        response_msg = "Please provide a trainer name or id"
         response = await channel.send(response_msg)
         await asyncio.sleep(10)
         await response.delete()
         await message.delete()
         return
 
-    await message.add_reaction('✅')
-    results = (SubscriptionTable
-        .select(SubscriptionTable.type, SubscriptionTable.target)
-        .join(TrainerTable, on=(SubscriptionTable.trainer == TrainerTable.snowflake))
-        .where(SubscriptionTable.trainer == trainer)
-        .where(TrainerTable.guild == ctx.guild.id))
+    if trainer.isdigit():
+        trainerid = trainer
+    else:
+        converter = commands.MemberConverter()
+        try:
+            trainer_member = await converter.convert(ctx, trainer)
+            trainerid = trainer_member.id
+        except:
+            response_msg = f"Could not process trainer with name: {trainer}"
+            await channel.send(response_msg)
+            await asyncio.sleep(10)
+            await response.delete()
+            await message.delete()
+            return
+    try:
+        results = (SubscriptionTable
+            .select(SubscriptionTable.type, SubscriptionTable.target)
+            .join(TrainerTable, on=(SubscriptionTable.trainer == TrainerTable.snowflake))
+            .where(SubscriptionTable.trainer == trainerid)
+            .where(TrainerTable.guild == ctx.guild.id))
 
-    results = results.execute()
-    subscription_msg = ''
-    types = set([s.type for s in results])
-    subscriptions = {t: [s.target for s in results if s.type == t] for t in types}
+        results = results.execute()
+        subscription_msg = ''
+        types = set([s.type for s in results])
+        subscriptions = {t: [s.target for s in results if s.type == t] for t in types}
 
-    for sub in subscriptions:
-        subscription_msg += '**{category}**:\n\t{subs}\n\n'.format(category=sub.title(),subs='\n\t'.join(subscriptions[sub]))
-    if subscription_msg:
-        listmsg = _("Listing subscriptions for user with id {id}\n").format(id=trainer)
-        listmsg += _('Current subscriptions are:\n\n{subscriptions}').format(subscriptions=subscription_msg)
-    await author.send(listmsg)
+        for sub in subscriptions:
+            subscription_msg += '**{category}**:\n\t{subs}\n\n'.format(category=sub.title(),subs='\n\t'.join(subscriptions[sub]))
+        if len(subscription_msg) > 0:
+            listmsg = _("Listing subscriptions for user:  {id}\n").format(id=trainer)
+            listmsg += _('Current subscriptions are:\n\n{subscriptions}').format(subscriptions=subscription_msg)
+            await message.add_reaction('✅')
+            await author.send(listmsg)
+        else:
+            none_msg = await channel.send(f"No subscriptions found for user: {trainer}")
+            await message.add_reaction('✅')
+            await asyncio.sleep(10)
+            await none_msg.delete()
+    except:
+        response_msg = f"Encountered an error while looking up subscriptions for trainer with name: {trainer}"
+        await channel.send(response_msg)
+        await asyncio.sleep(10)
+        await response.delete()
+        await message.delete()
+        return
 
 """
 Reporting
