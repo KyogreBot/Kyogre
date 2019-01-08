@@ -4859,8 +4859,8 @@ async def _wild_internal(message, content):
         'omw': []
     }
     guild_dict[guild.id]['wildreport_dict'] = wild_dict
-    wild_reports = guild_dict[guild.id].setdefault('trainers',{}).setdefault(author.id,{}).setdefault('wild_reports',0) + 1
-    guild_dict[guild.id]['trainers'][author.id]['wild_reports'] = wild_reports
+    wild_reports = guild_dict[guild.id].setdefault('trainers',{}).setdefault(channel_regions[0],{}).setdefault(author.id,{}).setdefault('wild_reports',0) + 1
+    guild_dict[guild.id]['trainers'][channel_regions[0]][author.id]['wild_reports'] = wild_reports
     wild_details = {'pokemon': pkmn, 'perfect': is_perfect, 'location': wild_details, 'regions': channel_regions}
     await _update_listing_channels(guild, 'wild', edit=False, regions=channel_regions)
     await _send_notifications_async('wild', wild_details, channel, [author.id])
