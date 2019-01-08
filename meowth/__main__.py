@@ -10,6 +10,7 @@ import itertools
 import json
 import os
 import pickle
+import random
 import re
 import sys
 import tempfile
@@ -4619,7 +4620,23 @@ async def _pvp_available(ctx, *, content=None):
         'reportauthor':trainer.id,
     }
     guild_dict[guild.id]['pvp_dict'] = pvp_dict
+    await _send_pvp_notification_async(ctx)
     event_loop.create_task(pvp_expiry_check(pvp_msg))
+
+async def _send_pvp_notification_async(ctx):
+    message = ctx.message
+    channel = message.channel
+    guild = message.guild
+    trainer = guild.get_member(message.author.id)
+    friends = guild_dict[guild.id]['trainers']['info']['friends']
+    outbound_dict = {}
+    tag_msg = f'**{trainer.mention}** wants to battle! Who will challenge them?!'
+    for friend in friends:
+        friend = guild.get_member(friend)
+        outbound_dict[friend.id] = {'discord_obj': friend, 'message': tag_msg}
+    snowflake = random.randint(1000,9999)
+    role_name = sanitize_name(f"{trainer.name} pvp {snowflake}".title())
+    return await _generate_role_notification_async(role_name, channel, outbound_dict)
 
 @_pvp.command(name="add", aliases=["add"])
 async def _pvp_add_friend(ctx, *, friends):
