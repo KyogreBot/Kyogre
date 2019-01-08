@@ -78,7 +78,7 @@ class TeamTable(BaseModel):
         except:
             pass
         with open('config.json', 'r') as f:
-            team_data = json.loads(f.read())['team_dict']
+            team_data = json.load(f)['team_dict']
         for name, emoji in team_data.items():
             cls.insert(name=name, emoji=emoji).execute()
 
@@ -113,7 +113,7 @@ class PokemonTable(BaseModel):
         except:
             pass
         with open('data/pkmn_data.json', 'r') as f:
-            pkmn_data = json.loads(f.read())
+            pkmn_data = json.load(f)
         with KyogreDB._db.atomic():
             for chunk in chunked(pkmn_data, 50):
                 cls.insert_many(chunk).execute()
@@ -137,7 +137,7 @@ class RegionTable(BaseModel):
         except:
             pass
         with open('data/region_data.json', 'r') as f:
-            region_data = json.loads(f.read())
+            region_data = json.load(f)
         with KyogreDB._db.atomic():
             for region in region_data:
                 try:
@@ -191,9 +191,9 @@ class LocationTable(BaseModel):
                 import pdb; pdb.set_trace()
                 print(e)
         with open('data/gym_data.json', 'r') as f:
-            gym_data = json.loads(f.read())
+            gym_data = json.load(f)
         with open('data/pokestop_data.json', 'r') as f:
-            pokestop_data = json.loads(f.read())
+            pokestop_data = json.load(f)
         for name, data in gym_data.items():
             create_location(name, data)
         for name, data in pokestop_data.items():
@@ -232,7 +232,7 @@ class QuestTable(BaseModel):
         except:
             pass
         with open('data/quest_data.json', 'r') as f:
-            quest_data = json.loads(f.read())
+            quest_data = json.load(f)
         with KyogreDB._db.atomic():
             for quest in quest_data:
                 try:
