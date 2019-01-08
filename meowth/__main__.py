@@ -4638,7 +4638,7 @@ async def _send_pvp_notification_async(ctx):
     role_name = sanitize_name(f"{trainer.name} pvp {snowflake}".title())
     return await _generate_role_notification_async(role_name, channel, outbound_dict)
 
-@_pvp.command(name="add", aliases=["add"])
+@_pvp.command(name="add")
 async def _pvp_add_friend(ctx, *, friends):
     message = ctx.message
     channel = message.channel
@@ -4646,10 +4646,10 @@ async def _pvp_add_friend(ctx, *, friends):
     trainer = message.author
     trainer_dict = copy.deepcopy(guild_dict[guild.id]['trainers'])
     trainer_info_dict = trainer_dict.setdefault('info', {})
-    friend_list = friends.split(',')
+    friend_list = friends.split(' ')
     if len(friend_list) < 1:
         err_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description='Please provide the name of at least one other trainer.\n\
-            Name should be the `@mention` of another Discord user. \nMultiple names should be separated by commas.'))
+            Name should be the `@mention` of another Discord user.'))
         await asyncio.sleep(15)
         await message.delete()
         await err_msg.delete()
@@ -4667,7 +4667,7 @@ async def _pvp_add_friend(ctx, *, friends):
     if len(friend_list_errors) > 0:
         await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Unable to find the following users:\n\
             {', '.join(friend_list_errors)}"))
-    success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Successfully added the following friends:\n\
+    success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=f"Successfully added the following friends:\n\
             {', '.join(friend_list_success)}"))
     guild_dict[guild.id]['trainers'] = trainer_dict
     await message.add_reaction('✅')
@@ -4683,10 +4683,10 @@ async def _pvp_remove_friend(ctx, *, friends):
     trainer = message.author
     trainer_dict = copy.deepcopy(guild_dict[guild.id]['trainers'])
     trainer_info_dict = trainer_dict.setdefault('info', {})
-    friend_list = friends.split(',')
+    friend_list = friends.split(' ')
     if len(friend_list) < 1:
         err_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description='Please provide the name of at least one other trainer.\n\
-            Name should be the `@mention` of another Discord user. \nMultiple names should be separated by commas.'))
+            Name should be the `@mention` of another Discord user.'))
         await asyncio.sleep(15)
         await message.delete()
         await err_msg.delete()
@@ -4697,14 +4697,14 @@ async def _pvp_remove_friend(ctx, *, friends):
         tgt_trainer = await converter.convert(ctx, user)
         if tgt_trainer is not None:
             tgt_friends = trainer_info_dict.setdefault(tgt_trainer.id, {}).setdefault('friends', [])
-            del tgt_friends[trainer.id]
+            tgt_friends.remove(trainer.id)
             friend_list_success.append(user)
         else:
             friend_list_errors.append(user)
     if len(friend_list_errors) > 0:
         await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Unable to find the following users:\n\
             {', '.join(friend_list_errors)}"))
-    success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Successfully removed the following friends:\n\
+    success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=f"Successfully removed the following friends:\n\
             {', '.join(friend_list_success)}"))
     guild_dict[guild.id]['trainers'] = trainer_dict
     await message.add_reaction('✅')
