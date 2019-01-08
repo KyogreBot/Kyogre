@@ -88,6 +88,20 @@ def check_subscriptionchannel(ctx):
     subscription_channels = ctx.bot.guild_dict[guild.id]['configure_dict'].get('subscriptions', {}).get('report_channels',[])
     return channel.id in subscription_channels
 
+def check_pvpset(ctx):
+    if ctx.guild is None:
+        return False
+    guild = ctx.guild
+    return ctx.bot.guild_dict[guild.id]['configure_dict'].get('pvp', {}).get('enabled',False)
+
+def check_pvpchannel(ctx):
+    if ctx.guild is None:
+        return False
+    channel = ctx.channel
+    guild = ctx.guild
+    pvp_channels = ctx.bot.guild_dict[guild.id]['configure_dict'].get('pvp', {}).get('report_channels',[])
+    return channel.id in pvp_channels
+
 def check_citychannel(ctx):
     if ctx.guild is None:
         return False
@@ -373,7 +387,17 @@ def allowsubscription():
             else:
                 raise errors.SubscriptionChannelCheckFail()
         raise errors.SubscriptionSetCheckFail()
-    return commands.check(predicate)
+    return commands.check(predicate) 
+
+def allowpvp():
+    def predicate(ctx):
+        if check_pvpset(ctx):
+            if check_pvpchannel(ctx):
+                return True
+            else:
+                raise errors.PvpChannelCheckFail()
+        raise errors.PvpSetCheckFail()
+    return commands.check(predicate) 
 
 def allowregion():
     def predicate(ctx):

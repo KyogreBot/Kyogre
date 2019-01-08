@@ -13,6 +13,10 @@ class SubscriptionSetCheckFail(CommandError):
     'Exception raised checks.subscriptionset fails'
     pass
 
+class PvpSetCheckFail(CommandError):
+    'Exception raised checks.pvpset fails'
+    pass
+
 class WildSetCheckFail(CommandError):
     'Exception raised checks.wildset fails'
     pass
@@ -59,6 +63,10 @@ class CityChannelCheckFail(CommandError):
 
 class SubscriptionChannelCheckFail(CommandError):
     'Exception raised checks.subscriptionchannel fails'
+    pass
+
+class PvpChannelCheckFail(CommandError):
+    'Exception raised checks.pvpchannel fails'
     pass
 
 class RaidChannelCheckFail(CommandError):
@@ -263,6 +271,27 @@ def custom_error_handling(bot, logger):
                 msg += _(': ')
             counter = 0
             for c in subscription_channels:
+                channel = discord.utils.get(guild.channels, id=c)
+                if counter > 0:
+                    msg += '\n'
+                if channel:
+                    msg += channel.mention
+                else:
+                    msg += '\n#deleted-channel'
+                counter += 1
+            error = await ctx.channel.send(msg)
+            await asyncio.sleep(10)
+            await delete_error(ctx.message, error)
+        elif isinstance(error, PvpChannelCheckFail):
+            guild = ctx.guild
+            msg = _('Please use **{prefix}{cmd_name}** in the following channel').format(cmd_name=ctx.invoked_with, prefix=prefix)
+            pvp_channels = bot.guild_dict[guild.id]['configure_dict']['pvp']['report_channels']
+            if len(pvp_channels) > 1:
+                msg += _('s:\n')
+            else:
+                msg += _(': ')
+            counter = 0
+            for c in pvp_channels:
                 channel = discord.utils.get(guild.channels, id=c)
                 if counter > 0:
                     msg += '\n'

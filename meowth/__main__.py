@@ -10,6 +10,7 @@ import itertools
 import json
 import os
 import pickle
+import random
 import re
 import sys
 import tempfile
@@ -88,6 +89,7 @@ raid_info = {}
 
 active_raids = []
 active_wilds = []
+active_pvp = []
 
 """
 Helper functions
@@ -507,6 +509,43 @@ async def template(ctx, *, sample_message):
 Server Management
 """
 
+async def pvp_expiry_check(message):
+    logger.info('Expiry_Check - ' + message.channel.name)
+    channel = message.channel
+    guild = channel.guild
+    global active_pvp
+    message = await channel.get_message(message.id)
+    if message not in active_pvp:
+        active_pvp.append(message)
+        logger.info(
+        'pvp_expiry_check - Message added to watchlist - ' + channel.name
+        )
+        await asyncio.sleep(0.5)
+        while True:
+            try:
+                if guild_dict[guild.id]['pvp_dict'][message.id]['exp'] <= time.time():
+                    await expire_pvp(message)
+            except KeyError:
+                pass
+            await asyncio.sleep(30)
+            continue
+
+async def expire_pvp(message):
+    channel = message.channel
+    guild = channel.guild
+    pvp_dict = guild_dict[guild.id]['pvp_dict']
+    try:
+        await message.edit(content=pvp_dict[message.id]['expedit']['content'], embed=discord.Embed(description=pvp_dict[message.id]['expedit']['embedcontent'], colour=message.embeds[0].colour.value))
+        await message.clear_reactions()
+    except discord.errors.NotFound:
+        pass
+    try:
+        user_message = await channel.get_message(pvp_dict[message.id]['reportmessage'])
+        await user_message.delete()
+    except (discord.errors.NotFound, discord.errors.Forbidden, discord.errors.HTTPException):
+        pass
+    del guild_dict[guild.id]['pvp_dict'][message.id]
+
 async def wild_expiry_check(message):
     logger.info('Expiry_Check - ' + message.channel.name)
     guild = message.channel.guild
@@ -528,11 +567,11 @@ async def wild_expiry_check(message):
             continue
 
 async def expire_wild(message):
-    guild = message.channel.guild
     channel = message.channel
+    guild = channel.guild
     wild_dict = guild_dict[guild.id]['wildreport_dict']
     try:
-        await message.edit(embed=discord.Embed(description=guild_dict[guild.id]['wildreport_dict'][message.id]['expedit']['embedcontent'], colour=message.embeds[0].colour.value))
+        await message.edit(embed=discord.Embed(description=wild_dict[message.id]['expedit']['embedcontent'], colour=message.embeds[0].colour.value))
         await message.clear_reactions()
     except discord.errors.NotFound:
         pass
@@ -1272,6 +1311,17 @@ async def on_raw_reaction_add(payload):
                 except:
                     pass
                 await _refresh_listing_channels_internal(guild, "raid")
+    pvp_dict = guild_dict[guild.id].setdefault('pvp_dict', {})
+    if message.id in pvp_dict and user.id != Meowth.user.id:
+        if (message.author.id == payload.user_id or can_manage(user)):
+            if str(payload.emoji) == '🚫':
+                return await expire_pvp(message)
+        if str(payload.emoji) == '\u2694':
+            attacker = guild.get_member(payload.user_id)
+            defender = guild.get_member(pvp_dict[message.id]['reportauthor'])
+            if attacker == defender:
+                return
+            battle_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"{defender.mention} you have been challenged by {attacker.mention}!"))
 
 def get_raid_report(guild, message_id):
     raid_dict = guild_dict[guild.id]['raidchannel_dict']
@@ -1630,7 +1680,7 @@ async def _region(ctx):
         raise commands.BadArgument()
 
 @_region.command(name="join")
-async def join(ctx, *, region_names: str = ''):
+async def join(ctx, *, region_names):
     """Joins regional roles from the provided comma-separated list
 
     Examples:
@@ -2116,7 +2166,7 @@ async def _configure(ctx, configlist):
             del guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][session]
     config_dict_temp = getattr(ctx, 'config_dict_temp',copy.deepcopy(guild_dict[guild.id]['configure_dict']))
     firstconfig = False
-    all_commands = ['team', 'welcome', 'regions', 'raid', 'exraid', 'invite', 'counters', 'wild', 'research', 'meetup', 'subscription', 'archive', 'trade', 'timezone']
+    all_commands = ['team', 'welcome', 'regions', 'raid', 'exraid', 'invite', 'counters', 'wild', 'research', 'meetup', 'subscriptions', 'archive', 'trade', 'timezone', 'pvp']
     enabled_commands = []
     configreplylist = []
     config_error = False
@@ -2141,7 +2191,7 @@ async def _configure(ctx, configlist):
             if config_dict_temp[commandconfig].get('enabled',False):
                 enabled_commands.append(commandconfig)
         configmessage += _("\n\n**Enabled Commands:**\n{enabled_commands}").format(enabled_commands=", ".join(enabled_commands))
-        configmessage += _("\n\n**All Commands:**\n**all** - To redo configuration\n**team** - For Team Assignment configuration\n**welcome** - For Welcome Message configuration\n**regions** - for region configuration\n**raid** - for raid command configuration\n**exraid** - for EX raid command configuration\n**invite** - for invite command configuration\n**counters** - for automatic counters configuration\n**wild** - for wild command configuration\n**research** - for !research command configuration\n**meetup** - for !meetup command configuration\n**subscription** - for subscription command configuration\n**archive** - For !archive configuration\n**trade** - For trade command configuration\n**timezone** - For timezone configuration")
+        configmessage += _("\n\n**All Commands:**\n**all** - To redo configuration\n**team** - For Team Assignment configuration\n**welcome** - For Welcome Message configuration\n**regions** - for region configuration\n**raid** - for raid command configuration\n**exraid** - for EX raid command configuration\n**invite** - for invite command configuration\n**counters** - for automatic counters configuration\n**wild** - for wild command configuration\n**research** - for !research command configuration\n**meetup** - for !meetup command configuration\n**subscriptions** - for subscription command configuration\n**archive** - For !archive configuration\n**trade** - For trade command configuration\n**timezone** - For timezone configuration\n**pvp** - For !pvp command configuration")
         configmessage += _('\n\nReply with **cancel** at any time throughout the questions to cancel the configure process.')
         await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=configmessage).set_author(name=_('Kyogre Configuration - {guild}').format(guild=guild.name), icon_url=Meowth.user.avatar_url))
         while True:
@@ -2214,7 +2264,7 @@ async def _configure(ctx, configlist):
             ctx = await _configure_research(ctx)
             if not ctx:
                 return None
-        if "subscription" in configreplylist:
+        if "subscriptions" in configreplylist:
             ctx = await _configure_subscription(ctx)
             if not ctx:
                 return None
@@ -2230,9 +2280,14 @@ async def _configure(ctx, configlist):
             ctx = await _configure_settings(ctx)
             if not ctx:
                 return None
+        if "pvp" in configreplylist:
+            ctx = await _configure_pvp(ctx)
+            if not ctx:
+                return None
     finally:
         if ctx:
             ctx.config_dict_temp['settings']['done'] = True
+            await ctx.channel.send("overwriting config dict")
             guild_dict[guild.id]['configure_dict'] = ctx.config_dict_temp
             await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("Alright! Your settings have been saved and I'm ready to go! If you need to change any of these settings, just type **!configure** in your server again.")).set_author(name=_('Configuration Complete'), icon_url=Meowth.user.avatar_url))
         del guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][owner.id]
@@ -3583,11 +3638,11 @@ async def _configure_meetup(ctx):
     return ctx
 
 @configure.command()
-async def subscription(ctx):
+async def subscriptions(ctx):
     """!subscription settings"""
-    return await _check_sessions_and_invoke(ctx, _configure_subscription)
+    return await _check_sessions_and_invoke(ctx, _configure_subscriptions)
 
-async def _configure_subscription(ctx):
+async def _configure_subscriptions(ctx):
     guild = ctx.message.guild
     owner = ctx.message.author
     config_dict_temp = getattr(ctx, 'config_dict_temp',copy.deepcopy(guild_dict[guild.id]['configure_dict']))
@@ -3644,6 +3699,75 @@ async def _configure_subscription(ctx):
                 break
             else:
                 await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The channel list you provided doesn't match with your servers channels.\n\nThe following aren't in your server: **{invalid_channels}**\n\nPlease double check your channel list and resend your reponse.").format(invalid_channels=', '.join(sub_list_errors))))
+                continue
+    ctx.config_dict_temp = config_dict_temp
+    return ctx
+
+@configure.command()
+async def pvp(ctx):
+    """!pvp settings"""
+    return await _check_sessions_and_invoke(ctx, _configure_pvp)
+
+async def _configure_pvp(ctx):
+    guild = ctx.message.guild
+    owner = ctx.message.author
+    config_dict_temp = getattr(ctx, 'config_dict_temp',copy.deepcopy(guild_dict[guild.id]['configure_dict']))
+    if 'pvp' not in config_dict_temp:
+        config_dict_temp['pvp'] = {}
+    await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("The **!pvp** command allows your users to announce to their friends when they're available for pvp. \
+        Additionally it allows them to add and remove other users as friends. If User A has added User B as a friend, User A will receive a notification when User B announces they're available to battle. \
+        This command requires at least one channel specifically for pvp.\n\nIf you would like to disable this feature, reply with **N**. \
+        Otherwise, just send the names or IDs of the channels you want to allow the **!pvp** command in, separated by commas.")).set_author(name=_('PVP Configuration'), icon_url=Meowth.user.avatar_url))
+    while True:
+        pvpmsg = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+        if pvpmsg.content.lower() == 'cancel':
+            await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
+            return None
+        elif pvpmsg.content.lower() == 'n':
+            config_dict_temp['pvp'] = {'enabled': False, 'report_channels': []}
+            await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('PVP disabled.')))
+            break
+        else:
+            pvp_list = pvpmsg.content.lower().split(',')
+            pvp_list = [x.strip() for x in pvp_list]
+            guild_channel_list = []
+            for channel in guild.text_channels:
+                guild_channel_list.append(channel.id)
+            pvp_list_objs = []
+            pvp_list_names = []
+            pvp_list_errors = []
+            for item in pvp_list:
+                channel = None
+                if item.isdigit():
+                    channel = discord.utils.get(guild.text_channels, id=int(item))
+                if not channel:
+                    item = re.sub('[^a-zA-Z0-9 _\\-]+', '', item)
+                    item = item.replace(" ","-")
+                    name = await letter_case(guild.text_channels, item.lower())
+                    channel = discord.utils.get(guild.text_channels, name=name)
+                if channel:
+                    pvp_list_objs.append(channel)
+                    pvp_list_names.append(channel.name)
+                else:
+                    pvp_list_errors.append(item)
+            pvp_list_set = [x.id for x in pvp_list_objs]
+            diff = set(pvp_list_set) - set(guild_channel_list)
+            if (not diff) and (not pvp_list_errors):
+                config_dict_temp['pvp']['enabled'] = True
+                config_dict_temp['pvp']['report_channels'] = pvp_list_set
+                for channel in pvp_list_objs:
+                    ow = channel.overwrites_for(Meowth.user)
+                    ow.send_messages = True
+                    ow.read_messages = True
+                    ow.manage_roles = True
+                    try:
+                        await channel.set_permissions(Meowth.user, overwrite = ow)
+                    except (discord.errors.Forbidden, discord.errors.HTTPException, discord.errors.InvalidArgument):
+                        await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_('I couldn\'t set my own permissions in this channel. Please ensure I have the correct permissions in {channel} using **{prefix}get perms**.').format(prefix=ctx.prefix, channel=channel.mention)))
+                await owner.send(embed=discord.Embed(colour=discord.Colour.green(), description=_('PVP enabled')))
+                break
+            else:
+                await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The channel list you provided doesn't match with your servers channels.\n\nThe following aren't in your server: **{invalid_channels}**\n\nPlease double check your channel list and resend your reponse.").format(invalid_channels=', '.join(pvp_list_errors))))
                 continue
     ctx.config_dict_temp = config_dict_temp
     return ctx
@@ -3957,6 +4081,7 @@ async def reset_board(ctx, *, user=None, type=None):
         converter = commands.MemberConverter()
         for argument in user.split():
             try:
+                await ctx.channel.send(argument)
                 tgt_trainer = await converter.convert(ctx, argument)
                 tgt_string = tgt_trainer.display_name
             except:
@@ -4434,6 +4559,253 @@ def combine_dicts(a, b):
         'raidchannel_dict':{},
         'trainers':{}
 """
+
+"""
+PVP
+"""
+@Meowth.group(name="pvp", case_insensitive=True)
+@checks.allowpvp()
+async def _pvp(ctx):
+    """Handles pvp related commands"""
+
+    if ctx.invoked_subcommand == None:
+        raise commands.BadArgument()
+
+@_pvp.command(name="available", aliases=["av"])
+async def _pvp_available(ctx, exptime=None):
+    """Announces that you're available for pvp
+    Usage: `!pvp available [time]`
+    Kyogre will post a message stating that you're available for PvP
+    for the next 30 minutes by default, or optionally for the amount 
+    of time you provide.
+
+    Kyogre will also notify any other users who have added you as 
+    a friend that you are now available.
+    """
+    message = ctx.message
+    channel = message.channel
+    guild = message.guild
+    trainer = message.author
+
+    time_msg = None
+    expiration_minutes = False
+    time_err = "Unable to determine the time you provided, your PvP session will remain active for 30 minutes"
+    if exptime:
+        if exptime.isdigit():
+            expiration_minutes = await raid_time_check(channel, exptime, time_err)
+    else:
+        time_err = "No expiration time provided, your PvP session will remain active for 30 minutes"
+    if expiration_minutes is False:
+        time_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.orange(), description=time_err))
+        expiration_minutes = 30
+
+    now = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[guild.id]['configure_dict']['settings']['offset'])
+    expire = now + datetime.timedelta(minutes=expiration_minutes)
+
+    league_text = ""
+    prompt = 'Do you have a League Preference?'
+    choices_list = ['Great League', 'Ultra League', 'Master League', 'No Preference',  'Other']
+    match = await utils.ask_list(Meowth, prompt, channel, choices_list, user_list=trainer.id)
+    if match in choices_list:
+        if match == choices_list[4]:
+            specifiy_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description="Please specify your battle criteria:"))
+            try:
+                pref_msg = await Meowth.wait_for('message', timeout=30, check=(lambda reply: reply.author == trainer))
+            except asyncio.TimeoutError:
+                pref_msg = None
+                await specifiy_msg.delete()
+            if pref_msg:
+                league_text = pref_msg.clean_content
+                await specifiy_msg.delete()
+                await pref_msg.delete()
+        else:
+            league_text = match
+    else:
+        league_text = choices_list[3]
+
+    pvp_embed = discord.Embed(title=_('{trainer} is available for PvP!').format(trainer=trainer.display_name), colour=guild.me.colour)
+
+    pvp_embed.add_field(name=_('**Expires:**'), value=_('{end}').format(end=expire.strftime('%I:%M %p')), inline=True)
+    pvp_embed.add_field(name=_('**League Preference:**'), value=_('{league}').format(league=league_text), inline=True)
+    pvp_embed.add_field(name=_('**To challenge:**'), value=_('Use the \u2694 react.'), inline=True)
+    pvp_embed.add_field(name=_('**To cancel:**'), value=_('Use the 🚫 react.'), inline=True)
+    pvp_embed.set_footer(text=_('{trainer}').format(trainer=trainer.display_name), icon_url=trainer.avatar_url_as(format=None, static_format='jpg', size=32))
+    pvp_embed.set_thumbnail(url="https://github.com/KyogreBot/Kyogre/blob/master/images/misc/pvpn_large.png?raw=true")
+
+    pvp_msg = await channel.send(content=('{trainer} is available for PvP!').format(trainer=trainer.display_name),embed=pvp_embed)
+    await pvp_msg.add_reaction('\u2694')
+    await pvp_msg.add_reaction('🚫')
+    
+    expiremsg = _('**{trainer} is no longer available for PvP!**').format(trainer=trainer.display_name)
+    pvp_dict = copy.deepcopy(guild_dict[guild.id].get('pvp_dict',{}))
+    pvp_dict[pvp_msg.id] = {
+        'exp':time.time() + (expiration_minutes * 60),
+        'expedit': {"content":"","embedcontent":expiremsg},
+        'reportmessage':message.id,
+        'reportchannel':channel.id,
+        'reportauthor':trainer.id,
+    }
+    guild_dict[guild.id]['pvp_dict'] = pvp_dict
+    await _send_pvp_notification_async(ctx)
+    event_loop.create_task(pvp_expiry_check(pvp_msg))
+    if time_msg is not None:
+        await asyncio.sleep(10)
+        await time_msg.delete()
+    
+
+async def _send_pvp_notification_async(ctx):
+    message = ctx.message
+    channel = message.channel
+    guild = message.guild
+    trainer = guild.get_member(message.author.id)
+    friends = guild_dict[guild.id]['trainers']['info'][message.author.id].setdefault('friends', {})
+    outbound_dict = {}
+    tag_msg = f'**{trainer.mention}** wants to battle! Who will challenge them?!'
+    for friend in friends:
+        friend = guild.get_member(friend)
+        outbound_dict[friend.id] = {'discord_obj': friend, 'message': tag_msg}
+    snowflake = random.randint(1000,9999)
+    role_name = sanitize_name(f"{trainer.name} pvp {snowflake}".title())
+    return await _generate_role_notification_async(role_name, channel, outbound_dict)
+
+@_pvp.command(name="add")
+async def _pvp_add_friend(ctx, *, friends):
+    """Adds another user as a friend to your friends list
+    Usage: `!pvp add <friend>`
+    Usage: `!pvp add AshKetchum#1234, ProfessorOak#5309`
+
+    Kyogre will add the friends you list to your friends list.
+    Whenever one of your friends announces they are available to
+    battle, Kyogre will notify you.
+
+    Provide any number of friends using their discord name including
+    the "#0000" discriminator with a comma between each name
+    """
+    message = ctx.message
+    channel = message.channel
+    guild = message.guild
+    trainer = message.author
+    trainer_dict = copy.deepcopy(guild_dict[guild.id]['trainers'])
+    trainer_info_dict = trainer_dict.setdefault('info', {})
+    friend_list = set([r for r in re.split(r'\s*,\s*', friends.strip()) if r])
+    if len(friend_list) < 1:
+        err_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description='Please provide the name of at least one other trainer.\n\
+            Name should be the `@mention` of another Discord user.'))
+        await asyncio.sleep(15)
+        await message.delete()
+        await err_msg.delete()
+    friend_list_success = []
+    friend_list_errors = []
+    friend_list_exist = []
+    for user in friend_list:
+        try:
+            tgt_trainer = await commands.MemberConverter().convert(ctx, user.strip())
+        except:
+            friend_list_errors.append(user)
+            continue
+        if tgt_trainer is not None:
+            tgt_friends = trainer_info_dict.setdefault(tgt_trainer.id, {}).setdefault('friends', [])
+            if trainer.id not in tgt_friends:
+                tgt_friends.append(trainer.id)
+                friend_list_success.append(user)
+            else:
+                friend_list_exist.append(user)
+        else:
+            friend_list_errors.append(user)
+    failed_msg = None
+    exist_msg = None
+    success_msg = None
+    if len(friend_list_errors) > 0:
+        failed_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Unable to find the following users:\n\
+            {', '.join(friend_list_errors)}"))
+        await message.add_reaction('👍')
+    if len(friend_list_exist) > 0:
+        exist_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.orange(), description=f"You're already friends with the following users:\n\
+            {', '.join(friend_list_exist)}"))
+        await message.add_reaction('👍')
+    if len(friend_list_success) > 0:
+        success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=f"Successfully added the following friends:\n\
+            {', '.join(friend_list_success)}"))
+        guild_dict[guild.id]['trainers'] = trainer_dict
+        await message.add_reaction('✅')
+    await asyncio.sleep(10)
+    if failed_msg is not None:
+        await failed_msg.delete()
+    if exist_msg is not None:
+        await exist_msg.delete()
+    if success_msg is not None:
+        await success_msg.delete()
+    return
+
+@_pvp.command(name="remove", aliases=["rem"])
+async def _pvp_remove_friend(ctx, *, friends: str = ''):
+    """Remove a user from your friends list
+
+    Usage: `!pvp [remove|rem] <friend>`
+    Usage: `!pvp add AshKetchum#1234, ProfessorOak#5309`
+
+    Kyogre will remove the friends you list from your friends list.
+
+    Provide any number of friends using their discord name including
+    the "#0000" discriminator with a comma between each name
+    """
+    message = ctx.message
+    channel = message.channel
+    guild = message.guild
+    trainer = message.author
+    trainer_dict = copy.deepcopy(guild_dict[guild.id]['trainers'])
+    trainer_info_dict = trainer_dict.setdefault('info', {})
+    friend_list = set([r for r in re.split(r'\s*,\s*', friends.strip()) if r])
+    if len(friend_list) < 1:
+        err_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description='Please provide the name of at least one other trainer.\n\
+            Name should be the `@mention` of another Discord user.'))
+        await asyncio.sleep(15)
+        await message.delete()
+        await err_msg.delete()
+    friend_list_success = []
+    friend_list_errors = []
+    friend_list_notexist = []
+    for user in friend_list:
+        try:
+            tgt_trainer = await commands.MemberConverter().convert(ctx, user.strip())
+        except:
+            friend_list_errors.append(user)
+            continue
+        if tgt_trainer is not None:
+            tgt_friends = trainer_info_dict.setdefault(tgt_trainer.id, {}).setdefault('friends', [])
+            if trainer.id in tgt_friends:
+                tgt_friends.remove(trainer.id)
+                friend_list_success.append(user)
+            else:
+                friend_list_notexist.append(user)
+        else:
+            friend_list_errors.append(user)
+    
+    failed_msg = None
+    notexist_msg = None
+    success_msg = None
+    if len(friend_list_errors) > 0:
+        failed_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Unable to find the following users:\n\
+            {', '.join(friend_list_errors)}"))
+        await message.add_reaction('👍')
+    if len(friend_list_notexist) > 0:
+        notexist_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.orange(), description=f"You're not friends with the following users:\n\
+            {', '.join(friend_list_notexist)}"))
+        await message.add_reaction('👍')
+    if len(friend_list_success) > 0:
+        success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=f"Successfully removed the following friends:\n\
+            {', '.join(friend_list_success)}"))
+        guild_dict[guild.id]['trainers'] = trainer_dict
+        await message.add_reaction('✅')
+    await asyncio.sleep(10)
+    if failed_msg is not None:
+        await failed_msg.delete()
+    if notexist_msg is not None:
+        await notexist_msg.delete()
+    if success_msg is not None:
+        await success_msg.delete()
+    return
+
 """
 Notifications
 """
@@ -4899,8 +5271,9 @@ async def _wild_internal(message, content):
     wild_reports = guild_dict[guild.id].setdefault('trainers',{}).setdefault(channel_regions[0],{}).setdefault(author.id,{}).setdefault('wild_reports',0) + 1
     guild_dict[guild.id]['trainers'][channel_regions[0]][author.id]['wild_reports'] = wild_reports
     wild_details = {'pokemon': pkmn, 'perfect': is_perfect, 'location': wild_details, 'regions': channel_regions}
-    await _update_listing_channels(guild, 'wild', edit=False, regions=channel_regions)
-    await _send_notifications_async('wild', wild_details, channel, [author.id])
+    event_loop.create_task(wild_expiry_check(wildreportmsg))
+    await _update_listing_channels(message.guild, 'wild', edit=False, regions=channel_regions)
+    await _send_notifications_async('wild', wild_details, message.channel, [message.author.id])
 
 @Meowth.command(name="raid", aliases=['r', 're', 'egg', 'regg', 'raidegg'])
 @checks.allowraidreport()
@@ -5031,16 +5404,14 @@ async def _raid_internal(ctx, content):
     if len(raid_split) == 0:
         return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('Give more details when reporting! Usage: **!raid <pokemon name> <location>**')))
     raidexp = False
-    if raid_split[-1].isdigit() or ':' in raid_split[-1]:
-        raidexp = await raid_time_check(channel, raid_split[-1])
-        if raidexp is False:
+    raidexp = await raid_time_check(channel, raid_split[-1])
+    if raidexp is False:
+        return
+    else:
+        del raid_split[-1]
+        if _timercheck(raidexp, raid_info['raid_eggs'][raid_pokemon.raid_level]['raidtime']):
+            await channel.send(_("That's too long. Level {raidlevel} raids currently last no more than {raidtime} minutes...").format(raidlevel=raid_pokemon.raid_level, raidtime=raid_info['raid_eggs'][raid_pokemon.raid_level]['raidtime']))
             return
-        else:
-            del raid_split[-1]
-            if _timercheck(raidexp, raid_info['raid_eggs'][raid_pokemon.raid_level]['raidtime']):
-                time_embed = discord.Embed(description=_("That's too long. Level {raidlevel} Raid currently last no more than {hatchtime} minutes...\nExpire time will not be set.").format(raidlevel=raid_pokemon.raid_level, hatchtime=raid_info['raid_eggs'][raid_pokemon.raid_level]['hatchtime']), colour=discord.Colour.red())
-                await channel.send(embed=time_embed)
-                raidexp = False
     raid_details = ' '.join(raid_split)
     raid_details = raid_details.strip()
     if raid_details == '':
@@ -5221,16 +5592,14 @@ async def _raidegg(ctx, content):
     else:
         return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('Give more details when reporting! Use at least: **!raidegg <level> <location>**. Type **!help** raidegg for more info.')))
     raidexp = False
-    if raidegg_split[-1].isdigit() or ':' in raidegg_split[-1]:
-        raidexp = await raid_time_check(channel, raidegg_split[-1])
-        if raidexp is False:
+    raidexp = await raid_time_check(channel, raidegg_split[-1])
+    if raidexp is False:
+        return
+    else:
+        del raidegg_split[-1]
+        if _timercheck(raidexp, raid_info['raid_eggs'][str(egg_level)]['hatchtime']):
+            await channel.send(_("That's too long. Level {raidlevel} Raid Eggs currently last no more than {hatchtime} minutes...").format(raidlevel=egg_level, hatchtime=raid_info['raid_eggs'][str(egg_level)]['hatchtime']))
             return
-        else:
-            del raidegg_split[-1]
-            if _timercheck(raidexp, raid_info['raid_eggs'][str(egg_level)]['hatchtime']):
-                time_embed = discord.Embed(description=_("That's too long. Level {raidlevel} Raid Eggs currently last no more than {hatchtime} minutes...\nHatch time will not be set.").format(raidlevel=egg_level, hatchtime=raid_info['raid_eggs'][str(egg_level)]['hatchtime']), colour=discord.Colour.red())
-                await channel.send(embed=time_embed)
-                raidexp = False
     raid_details = ' '.join(raidegg_split)
     raid_details = raid_details.strip()
     if raid_details == '':
@@ -6534,7 +6903,7 @@ async def print_raid_timer(channel):
         timerstr += _("No one told me when the {raidtype} will {raidaction}, so I'm assuming it will {raidaction} at {expiry_time}!").format(raidtype=raidtype, raidaction=raidaction, expiry_time=end.strftime(_('%I:%M %p (%H:%M)')))
     return timerstr
 
-async def raid_time_check(channel,time):
+async def raid_time_check(channel,time, error = None):
     if time.isdigit():
         raidexp = int(time)
         return raidexp
@@ -6579,12 +6948,12 @@ async def timerset(ctx, *,timer):
             raidtype = _('Raid')
             maxtime = raid_info['raid_eggs'][raidlevel]['raidtime']
         raidexp = False
-        if timer.isdigit() or ':' in timer:
-            raidexp = await raid_time_check(channel,timer)
-            if raidexp is False:
-                return
-            if _timercheck(raidexp, maxtime):
-                return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"That's too long. Level {raidlevel} {raidtype.capitalize()}s currently last no more than {maxtime} minutes."))
+        raidexp = await raid_time_check(channel,timer)
+        if raidexp is False:
+            return
+        if _timercheck(raidexp, maxtime):
+            await channel.send(_("That's too long. Level {raidlevel} {raidtype}s currently last no more than {maxtime} minutes...").format(raidlevel=str(raidlevel), raidtype=raidtype.capitalize(), maxtime=str(maxtime)))
+            return
         await _timerset(channel, raidexp)
     if checks.check_exraidchannel(ctx):
         if checks.check_eggchannel(ctx) or checks.check_meetupchannel(ctx):
