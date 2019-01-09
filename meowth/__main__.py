@@ -1293,7 +1293,10 @@ async def on_raw_reaction_add(payload):
                 del questreport_dict[message.id]
                 await _refresh_listing_channels_internal(guild, "research")
     raid_dict = guild_dict[guild.id].setdefault('raidchannel_dict', {})
-    raid_report = get_raid_report(guild, message.id)
+    if channel.id in raid_dict:
+        raid_report = raid_dict[channel.id]
+    else:
+        raid_report = get_raid_report(guild, message.id)
     if raid_report is not None and user.id != Meowth.user.id:
         if (raid_dict.get(raid_report, {}).get('reporter', 0) == payload.user_id or can_manage(user)):
             if str(payload.emoji) == '\u270f':
