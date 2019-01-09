@@ -2167,7 +2167,7 @@ async def _configure(ctx, configlist):
             del guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][session]
     config_dict_temp = getattr(ctx, 'config_dict_temp',copy.deepcopy(guild_dict[guild.id]['configure_dict']))
     firstconfig = False
-    all_commands = ['team', 'welcome', 'regions', 'raid', 'exraid', 'invite', 'counters', 'wild', 'research', 'meetup', 'subscriptions', 'archive', 'trade', 'timezone', 'pvp']
+    all_commands = ['team', 'welcome', 'regions', 'raid', 'exraid', 'exinvite', 'counters', 'wild', 'research', 'meetup', 'subscriptions', 'archive', 'trade', 'timezone', 'pvp', 'join']
     enabled_commands = []
     configreplylist = []
     config_error = False
@@ -2192,7 +2192,15 @@ async def _configure(ctx, configlist):
             if config_dict_temp[commandconfig].get('enabled',False):
                 enabled_commands.append(commandconfig)
         configmessage += _("\n\n**Enabled Commands:**\n{enabled_commands}").format(enabled_commands=", ".join(enabled_commands))
-        configmessage += _("\n\n**All Commands:**\n**all** - To redo configuration\n**team** - For Team Assignment configuration\n**welcome** - For Welcome Message configuration\n**regions** - for region configuration\n**raid** - for raid command configuration\n**exraid** - for EX raid command configuration\n**invite** - for invite command configuration\n**counters** - for automatic counters configuration\n**wild** - for wild command configuration\n**research** - for !research command configuration\n**meetup** - for !meetup command configuration\n**subscriptions** - for subscription command configuration\n**archive** - For !archive configuration\n**trade** - For trade command configuration\n**timezone** - For timezone configuration\n**pvp** - For !pvp command configuration")
+        configmessage += _("\n\n**All Commands:**\n**all** - To redo configuration\n\
+**team** - For Team Assignment configuration\n**welcome** - For Welcome Message configuration\n\
+**regions** - for region configuration\n**raid** - for raid command configuration\n\
+**exraid** - for EX raid command configuration\n**invite** - for invite command configuration\n\
+**counters** - for automatic counters configuration\n**wild** - for wild command configuration\n\
+**research** - for !research command configuration\n**meetup** - for !meetup command configuration\n\
+**subscriptions** - for subscription command configuration\n**archive** - For !archive configuration\n\
+**trade** - For trade command configuration\n**timezone** - For timezone configuration\n\
+**join** - For !join command configuration\n**pvp** - For !pvp command configuration")
         configmessage += _('\n\nReply with **cancel** at any time throughout the questions to cancel the configure process.')
         await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=configmessage).set_author(name=_('Kyogre Configuration - {guild}').format(guild=guild.name), icon_url=Meowth.user.avatar_url))
         while True:
@@ -2249,8 +2257,8 @@ async def _configure(ctx, configlist):
             ctx = await _configure_meetup(ctx)
             if not ctx:
                 return None
-        if "invite" in configreplylist:
-            ctx = await _configure_invite(ctx)
+        if "exinvite" in configreplylist:
+            ctx = await _configure_exinvite(ctx)
             if not ctx:
                 return None
         if "counters" in configreplylist:
@@ -2283,6 +2291,10 @@ async def _configure(ctx, configlist):
                 return None
         if "pvp" in configreplylist:
             ctx = await _configure_pvp(ctx)
+            if not ctx:
+                return None
+        if "join" in configreplylist:
+            ctx = await _configure_join(ctx)
             if not ctx:
                 return None
     finally:
@@ -3184,11 +3196,11 @@ async def _configure_exraid(ctx):
     return ctx
 
 @configure.command()
-async def invite(ctx):
+async def exinvite(ctx):
     """!invite command settings"""
-    return await _check_sessions_and_invoke(ctx, _configure_invite)
+    return await _check_sessions_and_invoke(ctx, _configure_exinvite)
 
-async def _configure_invite(ctx):
+async def _configure_exinvite(ctx):
     guild = ctx.message.guild
     owner = ctx.message.author
     config_dict_temp = getattr(ctx, 'config_dict_temp',copy.deepcopy(guild_dict[guild.id]['configure_dict']))
@@ -3770,6 +3782,39 @@ async def _configure_pvp(ctx):
             else:
                 await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The channel list you provided doesn't match with your servers channels.\n\nThe following aren't in your server: **{invalid_channels}**\n\nPlease double check your channel list and resend your reponse.").format(invalid_channels=', '.join(pvp_list_errors))))
                 continue
+    ctx.config_dict_temp = config_dict_temp
+    return ctx
+
+@configure.command()
+async def join(ctx):
+    """!join settings"""
+    return await _check_sessions_and_invoke(ctx, _configure_join)
+
+async def _configure_join(ctx):
+    guild = ctx.message.guild
+    owner = ctx.message.author
+    config_dict_temp = getattr(ctx, 'config_dict_temp',copy.deepcopy(guild_dict[guild.id]['configure_dict']))
+    if 'join' not in config_dict_temp:
+        config_dict_temp['join'] = {'enabled': False, 'link': ''}
+    await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("The **!join** command allows your users to get an invite link to your server \
+even if they are otherwise prevented from generating invite links.\n\nIf you would like to enable this, please provide a non-expiring invite link to your server.\
+If you would like to disable this feature, reply with **N**. To cancel this configuration session, reply with **cancel**.\
+")).set_author(name=_('Join Link Configuration'), icon_url=Meowth.user.avatar_url))
+    while True:
+        joinmsg = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+        if joinmsg.content.lower() == 'cancel':
+            await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
+            return None
+        elif joinmsg.content.lower() == 'n':
+            config_dict_temp['join'] = {'enabled': False, 'link': ''}
+            await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('Invite link disabled.')))
+            break
+        else:
+            if 'discord.gg/' in joinmsg.content.lower() or 'discordapp.com/invite/' in joinmsg.content.lower():
+                config_dict_temp['join'] = {'enabled': True, 'link': joinmsg.content.lower()}
+                break
+            else:
+                await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_('That does not appear to be a valid invite link. Please try again.')))
     ctx.config_dict_temp = config_dict_temp
     return ctx
 
@@ -4539,6 +4584,15 @@ def combine_dicts(a, b):
         if key != 'trainer':
             a[key] = a[key] + b[key]
     return a
+
+@Meowth.command(aliases=["invite"])
+@checks.allowjoin()
+async def join(ctx):
+    channel = ctx.message.channel
+    guild = ctx.message.guild
+    join_dict = guild_dict[guild.id]['configure_dict'].setdefault('join')
+    if join_dict.get('enabled', False):
+        return await channel.send(join_dict['link'])
 
 ## TODO: UPDATE THIS:
 """
@@ -6093,13 +6147,13 @@ async def _exraid(ctx, location):
 
 @Meowth.command()
 @checks.allowinvite()
-async def invite(ctx):
+async def exinvite(ctx):
     """Join an EX Raid.
 
     Usage: !invite"""
     await _invite(ctx)
 
-async def _invite(ctx):
+async def _exinvite(ctx):
     bot = ctx.bot
     channel = ctx.channel
     author = ctx.author
