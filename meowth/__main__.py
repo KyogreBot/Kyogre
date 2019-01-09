@@ -5621,7 +5621,6 @@ async def _raidegg(ctx, content):
     regions = _get_channel_regions(channel, 'raid')
     gym = None
     gyms = get_gyms(guild.id, regions)
-    await channel.send(regions[0])
     if gyms:
         gym = await location_match_prompt(channel, author.id, raid_details, gyms)
         if not gym:
@@ -5911,12 +5910,16 @@ async def _eggtoraid(entered_raid, raid_channel, author=None):
             user = raid_channel.guild.get_member(trainer)
         except (discord.errors.NotFound, AttributeError):
             continue
-        if (trainer_dict[trainer].get('interest',None)) and (entered_raid not in trainer_dict[trainer]['interest']):
-            guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['trainer_dict'][trainer]['status'] = {'maybe':0, 'coming':0, 'here':0, 'lobby':0}
-            guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['trainer_dict'][trainer]['party'] = {'mystic':0, 'valor':0, 'instinct':0, 'unknown':0}
-            guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['trainer_dict'][trainer]['count'] = 1
-        else:
-            guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['trainer_dict'][trainer]['interest'] = []
+        await raid_channel.send(entered_raid)
+        await raid_channel.send(trainer_dict[trainer]['interest'])
+        # boss interest is currently broken
+        # if (trainer_dict[trainer].get('interest',None)) and (entered_raid not in trainer_dict[trainer]['interest']):
+        #     await raid_channel.send("clearing")
+        #     guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['trainer_dict'][trainer]['status'] = {'maybe':0, 'coming':0, 'here':0, 'lobby':0}
+        #     guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['trainer_dict'][trainer]['party'] = {'mystic':0, 'valor':0, 'instinct':0, 'unknown':0}
+        #     guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['trainer_dict'][trainer]['count'] = 1
+        # else:
+        guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['trainer_dict'][trainer]['interest'] = []
     await asyncio.sleep(1)
     trainer_dict = copy.deepcopy(guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['trainer_dict'])
     for trainer in trainer_dict.keys():
