@@ -6922,11 +6922,11 @@ async def raid_time_check(channel,time, error = None):
             timediff = relativedelta(start, now)
         raidexp = (timediff.hours*60) + timediff.minutes + 1
         if raidexp < 0:
-            return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description='Please enter a time in the future.'))
+            await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description='Please enter a time in the future.'))
             return False
         return raidexp
     else:
-        return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description="I couldn't understand your time format. Try again like this: **!timerset <minutes>**"))
+        await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description="I couldn't understand your time format. Try again like this: **!timerset <minutes>**"))
         return False
 
 @Meowth.command()
