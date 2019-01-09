@@ -5405,14 +5405,16 @@ async def _raid_internal(ctx, content):
     if len(raid_split) == 0:
         return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('Give more details when reporting! Usage: **!raid <pokemon name> <location>**')))
     raidexp = False
-    raidexp = await raid_time_check(channel, raid_split[-1])
-    if raidexp is False:
-        return
-    else:
-        del raid_split[-1]
-        if _timercheck(raidexp, raid_info['raid_eggs'][raid_pokemon.raid_level]['raidtime']):
-            await channel.send(_("That's too long. Level {raidlevel} raids currently last no more than {raidtime} minutes...").format(raidlevel=raid_pokemon.raid_level, raidtime=raid_info['raid_eggs'][raid_pokemon.raid_level]['raidtime']))
+    if raid_split[-1].isdigit() or ':' in raid_split[-1]:
+        raidexp = await raid_time_check(channel, raid_split[-1])
+        if raidexp is False:
             return
+        else:
+            del raid_split[-1]
+            if _timercheck(raidexp, raid_info['raid_eggs'][raid_pokemon.raid_level]['raidtime']):
+                time_embed = discord.Embed(description=_("That's too long. Level {raidlevel} Raid currently last no more than {hatchtime} minutes...\nExpire time will not be set.").format(raidlevel=raid_pokemon.raid_level, hatchtime=raid_info['raid_eggs'][raid_pokemon.raid_level]['hatchtime']), colour=discord.Colour.red())
+                await channel.send(embed=time_embed)
+                raidexp = False
     raid_details = ' '.join(raid_split)
     raid_details = raid_details.strip()
     if raid_details == '':
@@ -5593,14 +5595,15 @@ async def _raidegg(ctx, content):
     else:
         return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('Give more details when reporting! Use at least: **!raidegg <level> <location>**. Type **!help** raidegg for more info.')))
     raidexp = False
-    raidexp = await raid_time_check(channel, raidegg_split[-1])
-    if raidexp is False:
-        return
-    else:
-        del raidegg_split[-1]
-        if _timercheck(raidexp, raid_info['raid_eggs'][str(egg_level)]['hatchtime']):
-            await channel.send(_("That's too long. Level {raidlevel} Raid Eggs currently last no more than {hatchtime} minutes...").format(raidlevel=egg_level, hatchtime=raid_info['raid_eggs'][str(egg_level)]['hatchtime']))
+    if raidegg_split[-1].isdigit() or ':' in raidegg_split[-1]:
+        raidexp = await raid_time_check(channel, raidegg_split[-1])
+        if raidexp is False:
             return
+        else:
+            del raidegg_split[-1]
+            if _timercheck(raidexp, raid_info['raid_eggs'][str(egg_level)]['hatchtime']):
+                await channel.send(_("That's too long. Level {raidlevel} Raid Eggs currently last no more than {hatchtime} minutes...").format(raidlevel=egg_level, hatchtime=raid_info['raid_eggs'][str(egg_level)]['hatchtime']))
+                return
     raid_details = ' '.join(raidegg_split)
     raid_details = raid_details.strip()
     if raid_details == '':
@@ -5618,6 +5621,7 @@ async def _raidegg(ctx, content):
     regions = _get_channel_regions(channel, 'raid')
     gym = None
     gyms = get_gyms(guild.id, regions)
+    await channel.send(regions[0])
     if gyms:
         gym = await location_match_prompt(channel, author.id, raid_details, gyms)
         if not gym:
@@ -6949,12 +6953,12 @@ async def timerset(ctx, *,timer):
             raidtype = _('Raid')
             maxtime = raid_info['raid_eggs'][raidlevel]['raidtime']
         raidexp = False
-        raidexp = await raid_time_check(channel,timer)
-        if raidexp is False:
-            return
-        if _timercheck(raidexp, maxtime):
-            await channel.send(_("That's too long. Level {raidlevel} {raidtype}s currently last no more than {maxtime} minutes...").format(raidlevel=str(raidlevel), raidtype=raidtype.capitalize(), maxtime=str(maxtime)))
-            return
+        if timer.isdigit() or ':' in timer:
+            raidexp = await raid_time_check(channel,timer)
+            if raidexp is False:
+                return
+            if _timercheck(raidexp, maxtime):
+                return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"That's too long. Level {raidlevel} {raidtype.capitalize()}s currently last no more than {maxtime} minutes."))
         await _timerset(channel, raidexp)
     if checks.check_exraidchannel(ctx):
         if checks.check_eggchannel(ctx) or checks.check_meetupchannel(ctx):
