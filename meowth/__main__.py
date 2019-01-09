@@ -602,7 +602,7 @@ async def expiry_check(channel):
                     if start and guild_dict[guild.id]['raidchannel_dict'][channel.id]['type'] == 'egg':
                         if start < now:
                             pokemon = raid_info['raid_eggs']['EX']['pokemon'][0]
-                            await _eggtoraid(pokemon, channel, author=None)
+                            await _eggtoraid(pokemon.lower(), channel, author=None)
                     if end and end < now:
                         event_loop.create_task(expire_channel(channel))
                         try:
@@ -681,7 +681,7 @@ async def expire_channel(channel):
             if (not alreadyexpired):
                 pkmn = guild_dict[guild.id]['raidchannel_dict'][channel.id].get('pokemon', None)
                 if pkmn:
-                    await _eggtoraid(pkmn, channel)
+                    await _eggtoraid(pkmn.lower(), channel)
                     return
                 maybe_list = []
                 trainer_dict = copy.deepcopy(
@@ -1314,7 +1314,7 @@ async def on_raw_reaction_add(payload):
     pvp_dict = guild_dict[guild.id].setdefault('pvp_dict', {})
     if message.id in pvp_dict and user.id != Meowth.user.id:
         trainer = pvp_dict[message.id]['reportauthor']
-        if (trainet == payload.user_id or can_manage(user)):
+        if (trainer == payload.user_id or can_manage(user)):
             if str(payload.emoji) == '🚫':
                 return await expire_pvp(message)
         if str(payload.emoji) == '\u2694':
@@ -4211,7 +4211,7 @@ async def changeraid(ctx, newraid):
             egglevel = Pokemon.get_pokemon(Meowth, newraid).raid_level
         guild_dict[guild.id]['raidchannel_dict'][channel.id]['exp'] -= 60 * raid_info['raid_eggs'][egglevel]['raidtime']
 
-        await _eggtoraid(newraid, channel, author=message.author)
+        await _eggtoraid(newraid.lower(), channel, author=message.author)
 
 @Meowth.command()
 @commands.has_permissions(manage_channels=True)
@@ -5399,9 +5399,9 @@ async def _raid_internal(ctx, content):
     else:
         new_content = ' '.join(content.split()[len(raid_pokemon.full_name.split()):])
     if fromegg:
-        return await _eggtoraid(raid_pokemon.full_name, channel, author)
+        return await _eggtoraid(raid_pokemon.full_name.lower(), channel, author)
     if eggtoraid:
-        return await _eggtoraid(new_content, channel, author)
+        return await _eggtoraid(new_content.lower(), channel, author)
     raid_split = new_content.strip().split()
     if len(raid_split) == 0:
         return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('Give more details when reporting! Usage: **!raid <pokemon name> <location>**')))
@@ -5911,16 +5911,12 @@ async def _eggtoraid(entered_raid, raid_channel, author=None):
             user = raid_channel.guild.get_member(trainer)
         except (discord.errors.NotFound, AttributeError):
             continue
-        await raid_channel.send(entered_raid)
-        await raid_channel.send(trainer_dict[trainer]['interest'])
-        # boss interest is currently broken
-        # if (trainer_dict[trainer].get('interest',None)) and (entered_raid not in trainer_dict[trainer]['interest']):
-        #     await raid_channel.send("clearing")
-        #     guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['trainer_dict'][trainer]['status'] = {'maybe':0, 'coming':0, 'here':0, 'lobby':0}
-        #     guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['trainer_dict'][trainer]['party'] = {'mystic':0, 'valor':0, 'instinct':0, 'unknown':0}
-        #     guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['trainer_dict'][trainer]['count'] = 1
-        # else:
-        guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['trainer_dict'][trainer]['interest'] = []
+        if (trainer_dict[trainer].get('interest',None)) and (entered_raid.lower() not in trainer_dict[trainer]['interest']):
+            guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['trainer_dict'][trainer]['status'] = {'maybe':0, 'coming':0, 'here':0, 'lobby':0}
+            guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['trainer_dict'][trainer]['party'] = {'mystic':0, 'valor':0, 'instinct':0, 'unknown':0}
+            guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['trainer_dict'][trainer]['count'] = 1
+        else:
+            guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['trainer_dict'][trainer]['interest'] = []
     await asyncio.sleep(1)
     trainer_dict = copy.deepcopy(guild_dict[raid_channel.guild.id]['raidchannel_dict'][raid_channel.id]['trainer_dict'])
     for trainer in trainer_dict.keys():
