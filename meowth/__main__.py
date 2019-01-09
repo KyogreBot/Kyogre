@@ -5491,6 +5491,11 @@ async def _raid_internal(ctx, content):
     raidmsg = _("{pokemon} raid reported by {member} in {citychannel} at {location_details} gym. Coordinate here!\n\nClick the question mark reaction to get help on the commands that work in here.\n\nThis channel will be deleted five minutes after the timer expires.").format(pokemon=str(raid_pokemon), member=author.display_name, citychannel=channel.mention, location_details=raid_details)
     raidmessage = await raid_channel.send(content=raidmsg, embed=raid_embed)
     await raidmessage.add_reaction('\u2754')
+    await asyncio.sleep(0.1)
+    await raidmessage.add_reaction('\u270f')
+    await asyncio.sleep(0.1)
+    await raidmessage.add_reaction('🚫')
+    await asyncio.sleep(0.1)
     await raidmessage.pin()
     level = raid_pokemon.raid_level
     if str(level) in guild_dict[guild.id]['configure_dict']['counters']['auto_levels']:
@@ -5681,6 +5686,11 @@ async def _raidegg(ctx, content):
         raidmsg = _("Level {level} raid egg reported by {member} in {citychannel} at {location_details} gym. Coordinate here!\n\nClick the question mark reaction to get help on the commands that work in here.\n\nThis channel will be deleted five minutes after the timer expires.").format(level=egg_level, member=author.display_name, citychannel=channel.mention, location_details=raid_details)
         raidmessage = await raid_channel.send(content=raidmsg, embed=raid_embed)
         await raidmessage.add_reaction('\u2754')
+        await asyncio.sleep(0.1)
+        await raidmessage.add_reaction('\u270f')
+        await asyncio.sleep(0.1)
+        await raidmessage.add_reaction('🚫')
+        await asyncio.sleep(0.1)
         await raidmessage.pin()
         guild_dict[message.guild.id]['raidchannel_dict'][raid_channel.id] = {
             'regions': regions,
@@ -6067,6 +6077,11 @@ async def _exraid(ctx, location):
     raidmsg = _("EX raid reported by {member} in {citychannel}! Details: {location_details}. Coordinate here{invitemsgstr2}!\n\nClick the question mark reaction to get help on the commands that work in here.\n\nThis channel will be deleted five minutes after the timer expires.").format(member=message.author.display_name, citychannel=message.channel.mention, location_details=raid_details, invitemsgstr2=invitemsgstr2)
     raidmessage = await raid_channel.send(content=raidmsg, embed=raid_embed)
     await raidmessage.add_reaction('\u2754')
+    await asyncio.sleep(0.1)
+    await raidmessage.add_reaction('\u270f')
+    await asyncio.sleep(0.1)
+    await raidmessage.add_reaction('🚫')
+    await asyncio.sleep(0.1)
     await raidmessage.pin()
     guild_dict[message.guild.id]['raidchannel_dict'][raid_channel.id] = {
         'regions': regions,
