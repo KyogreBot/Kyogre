@@ -1313,7 +1313,8 @@ async def on_raw_reaction_add(payload):
                 await _refresh_listing_channels_internal(guild, "raid")
     pvp_dict = guild_dict[guild.id].setdefault('pvp_dict', {})
     if message.id in pvp_dict and user.id != Meowth.user.id:
-        if (message.author.id == payload.user_id or can_manage(user)):
+        trainer = pvp_dict[message.id]['reportauthor']
+        if (trainet == payload.user_id or can_manage(user)):
             if str(payload.emoji) == '🚫':
                 return await expire_pvp(message)
         if str(payload.emoji) == '\u2694':
