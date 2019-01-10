@@ -94,6 +94,12 @@ def check_pvpset(ctx):
     guild = ctx.guild
     return ctx.bot.guild_dict[guild.id]['configure_dict'].get('pvp', {}).get('enabled',False)
 
+def check_joinset(ctx):
+    if ctx.guild is None:
+        return False
+    guild = ctx.guild
+    return ctx.bot.guild_dict[guild.id]['configure_dict'].get('join', {}).get('enabled',False)
+
 def check_pvpchannel(ctx):
     if ctx.guild is None:
         return False
@@ -397,6 +403,13 @@ def allowpvp():
             else:
                 raise errors.PvpChannelCheckFail()
         raise errors.PvpSetCheckFail()
+    return commands.check(predicate) 
+
+def allowjoin():
+    def predicate(ctx):
+        if check_joinset(ctx):
+            return True
+        raise errors.JoinSetCheckFail()
     return commands.check(predicate) 
 
 def allowregion():
