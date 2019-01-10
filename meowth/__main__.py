@@ -1488,7 +1488,7 @@ async def modify_raid_report(payload, raid_report):
                             return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"A raid has already been reported for {gym.name}"))
                     await update_raid_location(message, channel, raid_channel, gym)
                     await _refresh_listing_channels_internal(guild, "raid")
-                    await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid location updated")))
+                    success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid location updated")))
                     await gymmsg.delete()
                     await query_msg.delete()
         elif match == choices_list[1]:
@@ -1507,7 +1507,7 @@ async def modify_raid_report(payload, raid_report):
             if raidexp is not False:
                 await _timerset(raid_channel, raidexp)
             await _refresh_listing_channels_internal(guild, "raid")
-            await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid hatch / expire time updated")))
+            success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid hatch / expire time updated")))
             await timewait.delete()
             await timemsg.delete()
         elif match == choices_list[2]:
@@ -1533,7 +1533,7 @@ async def modify_raid_report(payload, raid_report):
             if not bossmsg.clean_content.isdigit():
                 await _timerset(raid_channel, 45)
             await _refresh_listing_channels_internal(guild, "raid")
-            await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid Tier / Boss updated")))
+            success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid Tier / Boss updated")))
             await bosswait.delete()
             await bossmsg.delete()
         await message.clear_reactions()
@@ -1541,7 +1541,8 @@ async def modify_raid_report(payload, raid_report):
         await message.add_reaction('\u270f')
         await asyncio.sleep(0.25)
         await message.add_reaction('🚫')
-        await asyncio.sleep(0.25)
+        await asyncio.sleep(10)
+        await success_msg.delete()
     else:
         return
 
