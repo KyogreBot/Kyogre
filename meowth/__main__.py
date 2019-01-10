@@ -3811,7 +3811,7 @@ If you would like to disable this feature, reply with **N**. To cancel this conf
             break
         else:
             if 'discord.gg/' in joinmsg.content.lower() or 'discordapp.com/invite/' in joinmsg.content.lower():
-                config_dict_temp['join'] = {'enabled': True, 'link': joinmsg.content.lower()}
+                config_dict_temp['join'] = {'enabled': True, 'link': joinmsg.content}
                 break
             else:
                 await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_('That does not appear to be a valid invite link. Please try again.')))
