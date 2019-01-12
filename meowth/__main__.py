@@ -1293,9 +1293,13 @@ async def on_raw_reaction_add(payload):
                 del questreport_dict[message.id]
                 await _refresh_listing_channels_internal(guild, "research")
     raid_dict = guild_dict[guild.id].setdefault('raidchannel_dict', {})
-    raid_report = get_raid_report(guild, message.id)
+    if channel.id in raid_dict:
+        raid_report = channel.id
+    else:
+        raid_report = get_raid_report(guild, message.id)
     if raid_report is not None and user.id != Meowth.user.id:
-        if (raid_dict.get(raid_report, {}).get('reporter', 0) == payload.user_id or can_manage(user)):
+        reporter = raid_dict[raid_report].get('reporter', 0)
+        if (raid_dict[raid_report].get('reporter', 0) == payload.user_id or can_manage(user)):
             if str(payload.emoji) == '\u270f':
                 await modify_raid_report(payload, raid_report)
             elif str(payload.emoji) == '🚫':
@@ -1456,7 +1460,15 @@ async def modify_raid_report(payload, raid_report):
     raid_dict = guild_dict[guild.id].setdefault('raidchannel_dict', {})
     config_dict = guild_dict[guild.id]['configure_dict']
     regions = _get_channel_regions(channel, 'raid')
+    raid_channel = channel.id
+    if channel.id not in guild_dict[guild.id]['raidchannel_dict']:
+        for rchannel in guild_dict[guild.id]['raidchannel_dict']:
+            if guild_dict[guild.id]['raidchannel_dict'][rchannel]['raidreport'] == message.id:
+                raid_channel = rchannel
+                break
     raid_channel = Meowth.get_channel(raid_report)
+    report_channel_id = guild_dict[guild.id]['raidchannel_dict'][raid_channel.id]['reportchannel']
+    report_channel = Meowth.get_channel(report_channel_id)
     gyms = None
     gyms = get_gyms(guild.id, regions)
     choices_list = ['Location', 'Hatch / Expire Time', 'Boss / Tier']
@@ -1486,7 +1498,7 @@ async def modify_raid_report(payload, raid_report):
                         raid_channel = Meowth.get_channel(raid_channel_ids[0])
                         if guild_dict[guild.id]['raidchannel_dict'][raid_channel.id]:
                             return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"A raid has already been reported for {gym.name}"))
-                    await update_raid_location(message, channel, raid_channel, gym)
+                    await update_raid_location(message, report_channel, raid_channel, gym)
                     await _refresh_listing_channels_internal(guild, "raid")
                     success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid location updated")))
                     await gymmsg.delete()
@@ -1522,13 +1534,6 @@ async def modify_raid_report(payload, raid_report):
             elif bossmsg.clean_content.lower() == "cancel":
                 error = _("cancelled the report")
                 await bossmsg.delete()
-            raid_channel = channel.id
-            if channel.id not in guild_dict[guild.id]['raidchannel_dict']:
-                for rchannel in guild_dict[guild.id]['raidchannel_dict']:
-                    if guild_dict[guild.id]['raidchannel_dict'][rchannel]['raidreport'] == message.id:
-                        raid_channel = rchannel
-                        break
-            raid_channel = Meowth.get_channel(raid_channel)
             await changeraid_internal(guild, raid_channel, bossmsg.clean_content)
             if not bossmsg.clean_content.isdigit():
                 await _timerset(raid_channel, 45)
@@ -1537,7 +1542,9 @@ async def modify_raid_report(payload, raid_report):
             await bosswait.delete()
             await bossmsg.delete()
         await message.clear_reactions()
-        await asyncio.sleep(0.25)
+        if message.channel.id == raid_channel.id:
+            await message.add_reaction('\u2754')
+            await asyncio.sleep(0.25)
         await message.add_reaction('\u270f')
         await asyncio.sleep(0.25)
         await message.add_reaction('🚫')
@@ -4235,7 +4242,7 @@ async def changeraid_internal(guild, channel, newraid):
         await channel.send(_('The channel you entered is not a raid channel.'))
         return
     if newraid.isdigit():
-        raid_channel_name = _('{egg_level}-egg-').format(egg_level=newraid)
+        raid_channel_name = _('{egg_level}-egg_').format(egg_level=newraid)
         raid_channel_name += sanitize_name(guild_dict[guild.id]['raidchannel_dict'][channel.id]['address'])
         guild_dict[guild.id]['raidchannel_dict'][channel.id]['egglevel'] = newraid
         guild_dict[guild.id]['raidchannel_dict'][channel.id]['pokemon'] = ''
@@ -5578,6 +5585,11 @@ async def _raid_internal(ctx, content):
     raidmsg = _("{pokemon} raid reported by {member} in {citychannel} at {location_details} gym. Coordinate here!\n\nClick the question mark reaction to get help on the commands that work in here.\n\nThis channel will be deleted five minutes after the timer expires.").format(pokemon=str(raid_pokemon), member=author.display_name, citychannel=channel.mention, location_details=raid_details)
     raidmessage = await raid_channel.send(content=raidmsg, embed=raid_embed)
     await raidmessage.add_reaction('\u2754')
+    await asyncio.sleep(0.1)
+    await raidmessage.add_reaction('\u270f')
+    await asyncio.sleep(0.1)
+    await raidmessage.add_reaction('🚫')
+    await asyncio.sleep(0.1)
     await raidmessage.pin()
     level = raid_pokemon.raid_level
     if str(level) in guild_dict[guild.id]['configure_dict']['counters']['auto_levels']:
@@ -5768,6 +5780,11 @@ async def _raidegg(ctx, content):
         raidmsg = _("Level {level} raid egg reported by {member} in {citychannel} at {location_details} gym. Coordinate here!\n\nClick the question mark reaction to get help on the commands that work in here.\n\nThis channel will be deleted five minutes after the timer expires.").format(level=egg_level, member=author.display_name, citychannel=channel.mention, location_details=raid_details)
         raidmessage = await raid_channel.send(content=raidmsg, embed=raid_embed)
         await raidmessage.add_reaction('\u2754')
+        await asyncio.sleep(0.1)
+        await raidmessage.add_reaction('\u270f')
+        await asyncio.sleep(0.1)
+        await raidmessage.add_reaction('🚫')
+        await asyncio.sleep(0.1)
         await raidmessage.pin()
         guild_dict[message.guild.id]['raidchannel_dict'][raid_channel.id] = {
             'regions': regions,
@@ -6154,6 +6171,11 @@ async def _exraid(ctx, location):
     raidmsg = _("EX raid reported by {member} in {citychannel}! Details: {location_details}. Coordinate here{invitemsgstr2}!\n\nClick the question mark reaction to get help on the commands that work in here.\n\nThis channel will be deleted five minutes after the timer expires.").format(member=message.author.display_name, citychannel=message.channel.mention, location_details=raid_details, invitemsgstr2=invitemsgstr2)
     raidmessage = await raid_channel.send(content=raidmsg, embed=raid_embed)
     await raidmessage.add_reaction('\u2754')
+    await asyncio.sleep(0.1)
+    await raidmessage.add_reaction('\u270f')
+    await asyncio.sleep(0.1)
+    await raidmessage.add_reaction('🚫')
+    await asyncio.sleep(0.1)
     await raidmessage.pin()
     guild_dict[message.guild.id]['raidchannel_dict'][raid_channel.id] = {
         'regions': regions,
