@@ -1463,7 +1463,7 @@ async def modify_raid_report(payload, raid_report):
     raid_channel = Meowth.get_channel(raid_report)
     gyms = None
     gyms = get_gyms(guild.id, regions)
-    choices_list = ['Location', 'Hatch / Expire Time'] #'Boss / Tier',
+    choices_list = ['Location', 'Hatch / Expire Time', 'Boss / Tier']
     prompt = 'Which item would you like to modify?'
     match = await utils.ask_list(Meowth, prompt, channel, choices_list, user_list=user.id)
     if match in choices_list:
@@ -1472,7 +1472,7 @@ async def modify_raid_report(payload, raid_report):
             try:
                 gymmsg = await Meowth.wait_for('message', timeout=30, check=(lambda reply: reply.author == user))
             except asyncio.TimeoutError:
-                await gymmsg.delete()
+                await query_msg.delete()
                 gymmsg = None
             if not gymmsg:
                 error = _("took too long to respond")
@@ -1492,7 +1492,7 @@ async def modify_raid_report(payload, raid_report):
                             return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"A raid has already been reported for {gym.name}"))
                     await update_raid_location(message, channel, raid_channel, gym)
                     await _refresh_listing_channels_internal(guild, "raid")
-                    await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid location updated")))
+                    success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid location updated")))
                     await gymmsg.delete()
                     await query_msg.delete()
         elif match == choices_list[1]:
@@ -1501,7 +1501,7 @@ async def modify_raid_report(payload, raid_report):
                 timemsg = await Meowth.wait_for('message', timeout=30, check=(lambda reply: reply.author == user))
             except asyncio.TimeoutError:
                 timemsg = None
-                await timemsg.delete()
+                await timewait.delete()
             if not timemsg:
                 error = _("took too long to respond")
             elif timemsg.clean_content.lower() == "cancel":
@@ -1511,15 +1511,42 @@ async def modify_raid_report(payload, raid_report):
             if raidexp is not False:
                 await _timerset(raid_channel, raidexp)
             await _refresh_listing_channels_internal(guild, "raid")
-            await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid hatch / expire time updated")))
+            success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid hatch / expire time updated")))
             await timewait.delete()
             await timemsg.delete()
+        elif match == choices_list[2]:
+            bosswait = await channel.send(embed=discord.Embed(colour=discord.Colour.gold(), description=_("What is the Raid Tier / Boss?")))
+            try:
+                bossmsg = await Meowth.wait_for('message', timeout=30, check=(lambda reply: reply.author == user))
+            except asyncio.TimeoutError:
+                bossmsg = None
+                await bosswait.delete()
+            if not bossmsg:
+                error = _("took too long to respond")
+            elif bossmsg.clean_content.lower() == "cancel":
+                error = _("cancelled the report")
+                await bossmsg.delete()
+            raid_channel = channel.id
+            if channel.id not in guild_dict[guild.id]['raidchannel_dict']:
+                for rchannel in guild_dict[guild.id]['raidchannel_dict']:
+                    if guild_dict[guild.id]['raidchannel_dict'][rchannel]['raidreport'] == message.id:
+                        raid_channel = rchannel
+                        break
+            raid_channel = Meowth.get_channel(raid_channel)
+            await changeraid_internal(guild, raid_channel, bossmsg.clean_content)
+            if not bossmsg.clean_content.isdigit():
+                await _timerset(raid_channel, 45)
+            await _refresh_listing_channels_internal(guild, "raid")
+            success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid Tier / Boss updated")))
+            await bosswait.delete()
+            await bossmsg.delete()
         await message.clear_reactions()
         await asyncio.sleep(0.25)
         await message.add_reaction('\u270f')
         await asyncio.sleep(0.25)
         await message.add_reaction('🚫')
-        await asyncio.sleep(0.25)
+        await asyncio.sleep(10)
+        await success_msg.delete()
     else:
         return
 
@@ -4160,6 +4187,9 @@ async def changeraid(ctx, newraid):
     message = ctx.message
     guild = message.guild
     channel = message.channel
+    return await changeraid_internal(guild, channel, newraid)
+
+async def changeraid_internal(guild, channel, newraid):
     if (not channel) or (channel.id not in guild_dict[guild.id]['raidchannel_dict']):
         await channel.send(_('The channel you entered is not a raid channel.'))
         return
@@ -4180,7 +4210,7 @@ async def changeraid(ctx, newraid):
         report_channel = Meowth.get_channel(raid_message.raw_channel_mentions[0])
         report_message = await report_channel.get_message(guild_dict[guild.id]['raidchannel_dict'][channel.id]['raidreport'])
         oldembed = raid_message.embeds[0]
-        raid_embed = discord.Embed(title=oldembed.title, url=oldembed.url, colour=message.guild.me.colour)
+        raid_embed = discord.Embed(title=oldembed.title, url=oldembed.url, colour=guild.me.colour)
         if len(raid_info['raid_eggs'][newraid]['pokemon']) > 1:
             raid_embed.add_field(name=_('**Possible Bosses:**'), value=_('{bosslist1}').format(bosslist1='\n'.join(boss_list[::2])), inline=True)
             raid_embed.add_field(name='\u200b', value=_('{bosslist2}').format(bosslist2='\n'.join(boss_list[1::2])), inline=True)
@@ -4214,8 +4244,11 @@ async def changeraid(ctx, newraid):
         if egglevel == "0":
             egglevel = Pokemon.get_pokemon(Meowth, newraid).raid_level
         guild_dict[guild.id]['raidchannel_dict'][channel.id]['exp'] -= 60 * raid_info['raid_eggs'][egglevel]['raidtime']
-
-        await _eggtoraid(newraid.lower(), channel, author=message.author)
+        author = None
+        author_id = guild_dict[guild.id]['raidchannel_dict'][channel.id].get('reporter', None)
+        if author_id is not None:
+            author = guild.get_member(author_id)
+        await _eggtoraid(newraid.lower(), channel, author=author)
 
 @Meowth.command()
 @commands.has_permissions(manage_channels=True)
