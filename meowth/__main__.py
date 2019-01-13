@@ -1436,7 +1436,9 @@ async def modify_research_report(payload):
         embed.add_field(name=_("**Pokestop:**"),value='\n'.join(textwrap.wrap(location.title(), width=30)),inline=True)
         embed.add_field(name=_("**Quest:**"),value='\n'.join(textwrap.wrap(name.title(), width=30)),inline=True)
         embed.add_field(name=_("**Reward:**"),value='\n'.join(textwrap.wrap(reward.title(), width=30)),inline=True)
-        await message.edit(content=message.content,embed=embed)
+        embed.url = questreport_dict[message.id]['url']
+        new_msg = f'{name} Field Research task, reward: {reward} reported at {location}'
+        await message.edit(content=new_msg,embed=embed)
         await message.clear_reactions()
         await asyncio.sleep(0.25)
         await message.add_reaction('\u270f')
@@ -6386,7 +6388,7 @@ async def research(ctx, *, details = None):
             research_embed.remove_field(0)
             break
     if not error:
-        research_msg = _("Field Research reported by {author}").format(author=author.display_name)
+        research_msg = f'{quest.name} Field Research task, reward: {reward} reported at {location}'
         research_embed.title = _('Click here for my directions to the research!')
         research_embed.description = _("Ask {author} if my directions aren't perfect!").format(author=author.name)
         research_embed.url = loc_url
