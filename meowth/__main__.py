@@ -4996,25 +4996,29 @@ async def _sub_add(ctx, *, content):
     
     Valid types are: pokemon, raid, research, wild, and gym
     Note: 'Pokemon' includes raid, research, and wild reports"""
-    subscription_types = ['pokemon','raid','research','wild','nest','gym']
+    subscription_types = ['pokemon','raid','research','wild','nest','gym','shiny']
     message = ctx.message
     channel = message.channel
     guild = message.guild
     trainer = message.author.id
 
     content = content.strip().lower()
-    error_message = _get_subscription_command_error(content, subscription_types)
-    if error_message:
-        response = await message.channel.send(error_message)
-        await asyncio.sleep(10)
-        await message.delete()
-        await response.delete()
-        return
+    if content == 'shiny':
+        candidate_list = [('shiny', 'shiny', 'shiny')]
+    else:
+        error_message = _get_subscription_command_error(content, subscription_types)
+        if error_message:
+            response = await message.channel.send(error_message)
+            await asyncio.sleep(10)
+            await message.delete()
+            await response.delete()
+            return
 
+        candidate_list, error_list = await _parse_subscription_content(content, message)
+    
     error_list = []
     existing_list = []
-    sub_list = []
-    candidate_list, error_list = await _parse_subscription_content(content, message)
+    sub_list = []    
     guild_obj, __ = GuildTable.get_or_create(snowflake=guild.id)
     trainer_obj, __ = TrainerTable.get_or_create(snowflake=trainer, guild=guild.id)
 
@@ -5056,20 +5060,24 @@ async def _sub_remove(ctx,*,content):
 
     Or remove all subscriptions:
     !sub remove all all"""
-    subscription_types = ['all','pokemon','raid','research','wild','nest','gym']
+    subscription_types = ['all','pokemon','raid','research','wild','nest','gym','shiny']
     message = ctx.message
     channel = message.channel
     guild = message.guild
     trainer = message.author.id
 
     content = content.strip().lower()
-    error_message = _get_subscription_command_error(content, subscription_types)
-    if error_message:
-        response = await message.channel.send(error_message)
-        await asyncio.sleep(10)
-        await message.delete()
-        await response.delete()
-        return
+    if content == 'shiny':
+        sub_type, target = ['shiny','shiny']
+    else:
+        error_message = _get_subscription_command_error(content, subscription_types)
+        if error_message:
+            response = await message.channel.send(error_message)
+            await asyncio.sleep(10)
+            await message.delete()
+            await response.delete()
+            return
+        sub_type, target = content.split(' ', 1)
 
     candidate_list = []
     error_list = []
@@ -5083,7 +5091,7 @@ async def _sub_remove(ctx,*,content):
 
     # check for special cases
     skip_parse = False
-    sub_type, target = content.split(' ', 1)
+    
     if sub_type == 'all':
         if target == 'all':
             try:
@@ -5107,6 +5115,10 @@ async def _sub_remove(ctx,*,content):
                 skip_parse = True
     elif target == 'all':
         candidate_list.append((sub_type, target, target))
+        skip_parse = True
+    elif target == 'shiny':
+        candidate_list = [('shiny', 'shiny', 'shiny')]
+        sub_type, target = ['shiny','shiny']
         skip_parse = True
     if not skip_parse:
         candidate_list, error_list = await _parse_subscription_content(content, message)
@@ -6274,7 +6286,8 @@ async def shinyquest(ctx, *, details):
         await message.delete()
         await err_msg.delete()
         return
-    to_event_end = 14*60*60 - ((timestamp-timestamp.replace(hour=0, minute=0, second=0, microsecond=0)).seconds)
+    timestamp = (message.created_at + datetime.timedelta(hours=guild_dict[message.channel.guild.id]['configure_dict']['settings']['offset']))
+    to_event_end = 24*60*60 - ((timestamp-timestamp.replace(hour=0, minute=0, second=0, microsecond=0)).seconds)
     research_embed = discord.Embed(colour=message.guild.me.colour).set_thumbnail(url='https://raw.githubusercontent.com/klords/Kyogre/master/images/misc/field-research.png?cache=0')
     research_embed.set_footer(text=_('Reported by {author} - {timestamp}').format(author=author.display_name, timestamp=timestamp.strftime(_('%I:%M %p (%H:%M)'))), icon_url=author.avatar_url_as(format=None, static_format='jpg', size=32))
     config_dict = guild_dict[guild.id]['configure_dict']
@@ -6323,9 +6336,9 @@ async def shinyquest(ctx, *, details):
     research_reports = guild_dict[ctx.guild.id].setdefault('trainers',{}).setdefault(regions[0], {}).setdefault(author.id,{}).setdefault('research_reports',0) + 1
     guild_dict[ctx.guild.id]['trainers'][regions[0]][author.id]['research_reports'] = research_reports
     await _update_listing_channels(guild, 'research', edit=False, regions=regions)
-    pokemon = Pokemon.get_pokemon('feebas')
-    research_details = {'pokemon': [Pokemon.get_pokemon(Meowth, p) for p in re.split(r'\s*,\s*', pokemon)], 'location': location, 'regions': regions}
-    await _send_notifications_async('research', research_details, channel, [message.author.id])
+    pokemon = Pokemon.get_pokemon(Meowth, 'feebas')
+    research_details = {'pokemon': pokemon, 'location': location, 'regions': regions}
+    await _send_notifications_async('shiny', research_details, channel, [message.author.id])
 
 @Meowth.command(aliases=['res'])
 @checks.allowresearchreport()
@@ -6637,7 +6650,7 @@ async def _meetup(ctx, location):
     event_loop.create_task(expiry_check(raid_channel))
 
 async def _send_notifications_async(type, details, new_channel, exclusions=[]):
-    valid_types = ['raid', 'research', 'wild', 'nest', 'gym']
+    valid_types = ['raid', 'research', 'wild', 'nest', 'gym', 'shiny']
     if type not in valid_types:
         return
     guild = new_channel.guild
@@ -6646,7 +6659,9 @@ async def _send_notifications_async(type, details, new_channel, exclusions=[]):
         results = (SubscriptionTable
                         .select(SubscriptionTable.trainer, SubscriptionTable.target)
                         .join(TrainerTable, on=(SubscriptionTable.trainer == TrainerTable.snowflake))
-                        .where((SubscriptionTable.type == type) | (SubscriptionTable.type == 'pokemon') | (SubscriptionTable.type == 'gym'))
+                        .where((SubscriptionTable.type == type) | 
+                            (SubscriptionTable.type == 'pokemon') | 
+                            (SubscriptionTable.type == 'gym') )
                         .where(TrainerTable.guild == guild.id)).execute()
     except:
         return
@@ -6692,6 +6707,8 @@ async def _send_notifications_async(type, details, new_channel, exclusions=[]):
             full_name = pkmn_adj + pokemon.name
             descriptors.append(full_name)
         if gym in targets:
+            target_matched = True
+        if 'shiny' in targets:
             target_matched = True
         if not target_matched:
             continue
@@ -8599,7 +8616,7 @@ async def lobby_countdown(ctx):
     if regions:
         await _update_listing_channels(ctx.guild, 'raid', edit=True, regions=regions)
 
-@Meowth.command()
+@Meowth.command(aliases=['s'])
 @checks.activeraidchannel()
 async def starting(ctx, team: str = ''):
     """Signal that a raid is starting.
