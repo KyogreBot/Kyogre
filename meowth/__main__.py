@@ -6261,6 +6261,72 @@ async def _exinvite(ctx):
     await reply.delete()
     await exraidmsg.delete()
 
+@Meowth.command(aliases=['shiny'])
+@checks.allowresearchreport()
+async def shinyquest(ctx, *, details):
+    message = ctx.message
+    channel = message.channel
+    author = message.author
+    guild = message.guild
+    if details is None:
+        err_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Please provide a Pokestop name when using this command!"))
+        await asyncio.sleep(15)
+        await message.delete()
+        await err_msg.delete()
+        return
+    to_event_end = 14*60*60 - ((timestamp-timestamp.replace(hour=0, minute=0, second=0, microsecond=0)).seconds)
+    research_embed = discord.Embed(colour=message.guild.me.colour).set_thumbnail(url='https://raw.githubusercontent.com/klords/Kyogre/master/images/misc/field-research.png?cache=0')
+    research_embed.set_footer(text=_('Reported by {author} - {timestamp}').format(author=author.display_name, timestamp=timestamp.strftime(_('%I:%M %p (%H:%M)'))), icon_url=author.avatar_url_as(format=None, static_format='jpg', size=32))
+    config_dict = guild_dict[guild.id]['configure_dict']
+    regions = _get_channel_regions(channel, 'research')
+    stops = None
+    stops = get_stops(guild.id, regions)
+    stop = await location_match_prompt(channel, author.id, details, stops)
+    if not stop:
+        no_stop_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"No pokestop found with name {details}"))
+        await asyncio.sleep(15)
+        await no_stop_msg.delete()
+        return
+    location = stop.name
+    loc_url = stop.maps_url
+    regions = [stop.region]
+    quest = await _get_quest(ctx, "Feebas Day")
+    reward = await _prompt_reward(ctx, quest)
+
+    research_embed.add_field(name=_("**Pokestop:**"),value='\n'.join(textwrap.wrap(location.title(), width=30)),inline=True)
+    research_embed.add_field(name=_("**Quest:**"),value='\n'.join(textwrap.wrap(quest.name.title(), width=30)),inline=True)
+    research_embed.add_field(name=_("**Reward:**"),value='\n'.join(textwrap.wrap(reward.title(), width=30)),inline=True)
+    research_msg = f'{quest.name} Field Research task, reward: {reward} reported at {location}'
+    research_embed.title = _('Click here for my directions to the research!')
+    research_embed.description = _("Ask {author} if my directions aren't perfect!").format(author=author.name)
+    research_embed.url = loc_url
+    confirmation = await channel.send(research_msg,embed=research_embed)
+    await asyncio.sleep(0.25)
+    await confirmation.add_reaction('\u270f')
+    await asyncio.sleep(0.25)
+    await confirmation.add_reaction('🚫')
+    await asyncio.sleep(0.25)
+    research_dict = copy.deepcopy(guild_dict[guild.id].get('questreport_dict',{}))
+    research_dict[confirmation.id] = {
+        'regions': regions,
+        'exp':time.time() + to_event_end,
+        'expedit':"delete",
+        'reportmessage':message.id,
+        'reportchannel':channel.id,
+        'reportauthor':author.id,
+        'location':location,
+        'url':loc_url,
+        'quest':quest.name,
+        'reward':reward
+    }
+    guild_dict[guild.id]['questreport_dict'] = research_dict
+    research_reports = guild_dict[ctx.guild.id].setdefault('trainers',{}).setdefault(regions[0], {}).setdefault(author.id,{}).setdefault('research_reports',0) + 1
+    guild_dict[ctx.guild.id]['trainers'][regions[0]][author.id]['research_reports'] = research_reports
+    await _update_listing_channels(guild, 'research', edit=False, regions=regions)
+    pokemon = Pokemon.get_pokemon('feebas')
+    research_details = {'pokemon': [Pokemon.get_pokemon(Meowth, p) for p in re.split(r'\s*,\s*', pokemon)], 'location': location, 'regions': regions}
+    await _send_notifications_async('research', research_details, channel, [message.author.id])
+
 @Meowth.command(aliases=['res'])
 @checks.allowresearchreport()
 async def research(ctx, *, details = None):
@@ -6486,7 +6552,8 @@ async def _prompt_reward_v(channel, author, quest, reward_type=None):
     # handle items
     if reward_type == "items":
         if len(target_pool) == 1:
-            target_pool = target_pool[list(target_pool.keys())[0]]
+            tp_key = list(target_pool.keys())[0]
+            return f"{target_pool[tp_key][0]} {tp_key}"
         else:
             candidates = [k for k in target_pool]
             prompt = "Please select an item:"
