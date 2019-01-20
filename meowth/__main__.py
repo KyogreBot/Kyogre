@@ -6274,7 +6274,8 @@ async def _exinvite(ctx):
     await exraidmsg.delete()
 
 @Meowth.command(aliases=['shiny'])
-@checks.allowresearchreport()
+@checks.is_dev_or_owner()
+#@checks.allowresearchreport()
 async def shinyquest(ctx, *, details):
     message = ctx.message
     channel = message.channel
@@ -6287,7 +6288,7 @@ async def shinyquest(ctx, *, details):
         await err_msg.delete()
         return
     timestamp = (message.created_at + datetime.timedelta(hours=guild_dict[message.channel.guild.id]['configure_dict']['settings']['offset']))
-    to_event_end = 24*60*60 - ((timestamp-timestamp.replace(hour=0, minute=0, second=0, microsecond=0)).seconds)
+    to_event_end = 14*60*60 - ((timestamp-timestamp.replace(hour=0, minute=0, second=0, microsecond=0)).seconds)
     research_embed = discord.Embed(colour=message.guild.me.colour).set_thumbnail(url='https://raw.githubusercontent.com/klords/Kyogre/master/images/misc/field-research.png?cache=0')
     research_embed.set_footer(text=_('Reported by {author} - {timestamp}').format(author=author.display_name, timestamp=timestamp.strftime(_('%I:%M %p (%H:%M)'))), icon_url=author.avatar_url_as(format=None, static_format='jpg', size=32))
     config_dict = guild_dict[guild.id]['configure_dict']
