@@ -2,14 +2,13 @@
     {
         "name": "Battle in a Gym",
         "reward_pool": {
-            "encounters": ["mankey"],
+            "encounters": ["mankey", "machop"],
             "stardust": [200],
             "xp": [],
             "items": {
                 "potion": [5],
                 "revive": [2],
-                "nanab berry": [5],
-                "pinap berry": [1]
+                "nanab berry": [5]
             }
         }
     },
@@ -20,9 +19,8 @@
             "stardust": [500],
             "xp": [],
             "items": {
-                "potion": [5],
                 "super potion": [3],
-                "revive": [2, 3, 4],
+                "revive": [4],
                 "nanab berry": [10]
             }
         }
@@ -31,10 +29,10 @@
         "name": "Win a Gym battle",
         "reward_pool": {
             "encounters": ["bulbasaur", "charmander", "squirtle"],
-            "stardust": [],
+            "stardust": [500],
             "xp": [],
             "items": {
-                "potion": [5],
+                "super potion": [3],
                 "revive": [4],
                 "nanab berry": [10]
             }
@@ -44,24 +42,35 @@
         "name": "Win 3 Gym battles",
         "reward_pool": {
             "encounters": ["jynx"],
-            "stardust": [],
+            "stardust": [1000],
             "xp": [],
             "items": {
                 "hyper potion": [3],
+                "revive": [6],
                 "max revive": [1],
                 "rare candy": [1]
             }
         }
     },
     {
+        "name": "Win 5 Gym battles",
+        "reward_pool": {
+            "encounters": ["lapras"],
+            "stardust": [],
+            "xp": [],
+            "items": {}
+        }
+    },
+    {
         "name": "Battle in a Raid",
         "reward_pool": {
-            "encounters": ["minun"],
+            "encounters": ["drowzee"],
             "stardust": [200],
             "xp": [],
             "items": {
                 "potion": [5],
-                "revive": [2]
+                "revive": [2],
+                "nanab berry": [5]
             }
         }
     },
@@ -79,32 +88,9 @@
         }
     },
     {
-        "name": "Win 2 Raid Battles",
-        "reward_pool": {
-            "encounters": ["quilava"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
-        }
-    },
-    {
-        "name": "Win 3 Raid Battles",
-        "reward_pool": {
-            "encounters": [],
-            "stardust": [1500],
-            "xp": [],
-            "items": {
-                "max potion": [3],
-                "revive": [8],
-                "max revive": [3],
-                "fast tm": [1]
-            }
-        }
-    },
-    {
         "name": "Win 5 Raid Battles",
         "reward_pool": {
-            "encounters": ["typhlosion"],
+            "encounters": ["aerodactyl"],
             "stardust": [],
             "xp": [],
             "items": {}
@@ -113,12 +99,13 @@
     {
         "name": "Win a level 3 or higher Raid Battle",
         "reward_pool": {
-            "encounters": ["dratini"],
+            "encounters": ["omanyte", "kabuto"],
             "stardust": [1000],
             "xp": [],
             "items": {
                 "hyper potion": [3],
-                "max revive": [1, 2, 3],
+                "revive": [6],
+                "max revive": [1],
                 "rare candy": [1]
             }
         }
@@ -137,24 +124,13 @@
         }
     },
     {
-        "name": "Use a super-effective Charged attack in 5 Gym battles",
-        "reward_pool": {
-            "encounters": [],
-            "stardust": [],
-            "xp": [],
-            "items": {
-                "charged tm": [1]
-            }
-        }
-    },
-    {
         "name": "Use a super-effective Charged attack in 7 Gym battles",
         "reward_pool": {
             "encounters": ["electabuzz"],
             "stardust": [1000],
             "xp": [],
             "items": {
-                "super potion": [3],
+                "hyper potion": [3],
                 "revive": [6],
                 "max revive": [1],
                 "rare candy": [1]
@@ -164,130 +140,54 @@
     {
         "name": "Catch 10 Pokemon",
         "reward_pool": {
-            "encounters": ["magikarp"],
+            "encounters": ["magikarp", "houndour"],
             "stardust": [200],
             "xp": [],
             "items": {
                 "poke ball": [5],
-                "razz berry": [1],
-                "pinap berry": [3]
+                "razz berry": [3],
+                "pinap berry": [1]
             }
         }
     },
     {
-        "name": "Catch 3 Oddish or Bellsprout",
+        "name": "Catch 10 Ice-type Pokemon",
         "reward_pool": {
-            "encounters": ["tangela"],
-            "stardust": [200, 500],
-            "xp": [],
-            "items": {
-                "poke ball": [5],
-                "great ball": [5],
-                "razz berry": [4, 5, 6],
-                "pinap berry": [1, 2]
-            }
-        }
-    },
-    {
-        "name": "Catch 3 Pidgey or Murkrow",
-        "reward_pool": {
-            "encounters": ["ekans"],
-            "stardust": [200, 500],
-            "xp": [],
-            "items": {
-                "poke ball": [5],
-                "great ball": [5],
-                "razz berry": [4, 5, 6],
-                "pinap berry": [1, 2]
-            }
-        }
-    },
-    {
-        "name": "Catch 3 Treecko or Mudkip",
-        "reward_pool": {
-            "encounters": ["torchic"],
-            "stardust": [200, 500],
-            "xp": [],
-            "items": {
-                "poke ball": [5],
-                "great ball": [5],
-                "razz berry": [4, 5, 6],
-                "pinap berry": [1, 2]
-            }
-        }
-    },
-    {
-        "name": "Catch 3 Meowth or Skitty",
-        "reward_pool": {
-            "encounters": ["growlithe"],
-            "stardust": [200, 500],
-            "xp": [],
-            "items": {
-                "poke ball": [5],
-                "great ball": [5],
-                "razz berry": [4, 5, 6],
-                "pinap berry": [1, 2]
-            }
-        }
-    },
-    {
-        "name": "Catch a Meowth or Growlithe",
-        "reward_pool": {
-            "encounters": ["electrike"],
+            "encounters": ["kabuto"],
             "stardust": [],
             "xp": [],
             "items": {}
         }
     },
     {
-        "name": "Catch a Skitty or Poochyena",
+        "name": "Catch 10 Ground-type Pokemon",
         "reward_pool": {
-            "encounters": ["snubbull"],
+            "encounters": ["sandshrew"],
             "stardust": [],
             "xp": [],
             "items": {}
         }
     },
-    {
-        "name": "Catch 3 Swablu",
+        {
+        "name": "Catch 10 Normal-type Pokemon",
         "reward_pool": {
             "encounters": [],
-            "stardust": [200, 500],
+            "stardust": [500],
             "xp": [],
             "items": {
-                "poke ball": [5],
                 "great ball": [5],
-                "razz berry": [4, 5, 6],
-                "pinap berry": [1, 2]
+                "razz berry": [6],
+                "pinap berry": [2]
             }
         }
     },
     {
-        "name": "Catch 3 Bug-type Pokemon",
+        "name": "Catch 5 Fighting-type Pokemon",
         "reward_pool": {
-            "encounters": ["pinsir"],
-            "stardust": [200, 500],
+            "encounters": ["magnemite"],
+            "stardust": [],
             "xp": [],
-            "items": {
-                "poke ball": [5],
-                "great ball": [5],
-                "razz berry": [3, 4, 5, 6],
-                "pinap berry": [1, 2, 3]
-            }
-        }
-    },
-    {
-        "name": "Catch 3 Dark-type Pokemon",
-        "reward_pool": {
-            "encounters": ["houndour"],
-            "stardust": [200, 500],
-            "xp": [],
-            "items": {
-                "poke ball": [5],
-                "great ball": [5],
-                "razz berry": [3, 4, 5, 6],
-                "pinap berry": [1, 2, 3]
-            }
+            "items": {}
         }
     },
     {
@@ -304,104 +204,6 @@
         }
     },
     {
-        "name": "Catch 3 Dragon-type Pokemon",
-        "reward_pool": {
-            "encounters": [],
-            "stardust": [],
-            "xp": [],
-            "items": {
-                "rare candy": [3]
-            }
-        }
-    },
-    {
-        "name": "Catch 3 Electric-type Pokemon",
-        "reward_pool": {
-            "encounters": ["pikachu"],
-            "stardust": [200, 500],
-            "xp": [],
-            "items": {
-                "poke ball": [5],
-                "great ball": [5],
-                "razz berry": [3, 4, 5, 6],
-                "pinap berry": [1, 2, 3]
-            }
-        }
-    },
-    {
-        "name": "Catch 5 Electric-type Pokemon",
-        "reward_pool": {
-            "encounters": ["mareep"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
-        }
-    },
-    {
-        "name": "Catch 3 Fire-type Pokemon",
-        "reward_pool": {
-            "encounters": ["ponyta", "magcargo"],
-            "stardust": [200, 500],
-            "xp": [],
-            "items": {
-                "poke ball": [5],
-                "great ball": [5],
-                "razz berry": [3, 4, 5, 6],
-                "pinap berry": [1, 2, 3]
-            }
-        }
-    },
-    {
-        "name": "Catch 5 Fire-type Pokemon",
-        "reward_pool": {
-            "encounters": ["flareon"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
-        }
-    },
-    {
-        "name": "Catch 3 Flying-type Pokemon",
-        "reward_pool": {
-            "encounters": ["doduo"],
-            "stardust": [200, 500],
-            "xp": [],
-            "items": {
-                "poke ball": [5],
-                "great ball": [5],
-                "razz berry": [3, 4, 5, 6],
-                "pinap berry": [1, 2, 3]
-            }
-        }
-    },
-    {
-        "name": "Catch 5 Flying-type Pokemon",
-        "reward_pool": {
-            "encounters": ["gligar"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
-        }
-    },
-    {
-        "name": "Catch 2 Ice-type Pokemon",
-        "reward_pool": {
-            "encounters": ["jynx"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
-        }
-    },
-    {
-        "name": "Catch 3 Poison-type Pokemon",
-        "reward_pool": {
-            "encounters": ["grimer"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
-        }
-    },
-    {
         "name": "Catch 3 Grass-, Fire- or Water-Type Pokemon",
         "reward_pool": {
             "encounters": ["pikachu"],
@@ -411,18 +213,18 @@
         }
     },
     {
-        "name": "Catch 3 Grass-, Ground- or Fire-Type Pokemon",
+        "name": "Catch 5 Electric-, Normal-, or Poison-Type Pokemon",
         "reward_pool": {
-            "encounters": ["numel"],
+            "encounters": ["starmie"],
             "stardust": [],
             "xp": [],
             "items": {}
         }
     },
-    {
-        "name": "Catch 3 Water-, Electric- or Bug-Type Pokemon",
+        {
+        "name": "Catch 7 Flying-, Psychic-, or Dark-Type Pokemon",
         "reward_pool": {
-            "encounters": ["electrike"],
+            "encounters": ["anorith"],
             "stardust": [],
             "xp": [],
             "items": {}
@@ -448,18 +250,10 @@
             "stardust": [500],
             "xp": [],
             "items": {
-                "poke ball": [5],
-                "razz berry": [6]
+                "great ball": [5],
+                "razz berry": [6],
+                "pinap berry": [2]
             }
-        }
-    },
-    {
-        "name": "Catch 20 Pokemon with Weather Boost",
-        "reward_pool": {
-            "encounters": ["ninetales"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
         }
     },
     {
@@ -478,19 +272,29 @@
     {
         "name": "Use 5 Berries to help catch Pokemon",
         "reward_pool": {
-            "encounters": ["girafarig"],
+            "encounters": ["growlithe"],
             "stardust": [500],
             "xp": [],
             "items": {
                 "great ball": [5],
-                "razz berry": [6]
+                "razz berry": [6],
+                "pinap berry": [2]
             }
         }
     },
     {
-        "name": "Make a Nice Throw",
+        "name": "Use 5 Razz Berries to help catch Pokemon",
         "reward_pool": {
-            "encounters": ["slowpoke"],
+            "encounters": ["cubone"],
+            "stardust": [],
+            "xp": [],
+            "items": {}
+        }
+    },
+    {
+        "name": "Use 10 Pinap Berries to help catch Pokemon",
+        "reward_pool": {
+            "encounters": ["magikarp"],
             "stardust": [],
             "xp": [],
             "items": {}
@@ -499,24 +303,13 @@
     {
         "name": "Make 5 Nice Throws",
         "reward_pool": {
-            "encounters": ["voltorb"],
+            "encounters": ["voltorb", "bidoof"],
             "stardust": [200],
             "xp": [],
             "items": {
                 "poke ball": [5],
                 "razz berry": [3],
                 "pinap berry": [1]
-            }
-        }
-    },
-    {
-        "name": "Make 2 Nice throws in a row",
-        "reward_pool": {
-            "encounters": [],
-            "stardust": [500],
-            "xp": [],
-            "items": {
-                "nanab berry": [3]
             }
         }
     },
@@ -534,15 +327,6 @@
         }
     },
     {
-        "name": "Make a Nice Curveball throw",
-        "reward_pool": {
-            "encounters": ["gastly"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
-        }
-    },
-    {
         "name": "Make 2 Nice Curveball throws in a row",
         "reward_pool": {
             "encounters": [],
@@ -556,47 +340,26 @@
         }
     },
     {
-        "name": "Make 3 Nice Curveball throws in a row",
-        "reward_pool": {
-            "encounters": ["electrode"],
-            "stardust": [],
-            "xp": [],
-            "items": {
-                "razz berry": [3]
-            }
-        }
-    },
-    {
         "name": "Make 3 Great Throws",
         "reward_pool": {
-            "encounters": ["gastly"],
+            "encounters": ["gastly", "lileep", "anorith"],
             "stardust": [200],
             "xp": [],
             "items": {
                 "poke ball": [5],
                 "razz berry": [3],
-                "pinap berry": [2]
+                "pinap berry": [1]
             }
         }
     },
     {
-        "name": "Make 5 Great throws",
+        "name": "Make 5 Great Curveball throws in a row",
         "reward_pool": {
-            "encounters": [],
+            "encounters": ["spinda"],
             "stardust": [],
             "xp": [],
             "items": {
-                "razz berry": [5]
             }
-        }
-    },
-    {
-        "name": "Make 10 Great throws",
-        "reward_pool": {
-            "encounters": [],
-            "stardust": [],
-            "xp": [500],
-            "items": {}
         }
     },
     {
@@ -606,21 +369,11 @@
             "stardust": [1000],
             "xp": [],
             "items": {
-                "ultra ball": [5, 6, 7, 8, 9, 10],
+                "poke ball": [10],
+                "ultra ball": [5],
                 "razz berry": [9],
                 "pinap berry": [3],
                 "rare candy": [1]
-            }
-        }
-    },
-    {
-        "name": "Make 5 Great throws in a row",
-        "reward_pool": {
-            "encounters": ["flaaffy"],
-            "stardust": [],
-            "xp": [],
-            "items": {
-                "pinap berry": [2]
             }
         }
     },
@@ -631,45 +384,23 @@
             "stardust": [1000],
             "xp": [],
             "items": {
+                "poke ball": [10],
                 "ultra ball": [5],
                 "razz berry": [9],
-                "golden razz berry": [2]
-            }
-        }
-    },
-    {
-        "name": "Make 2 Great Curveball throws in a row",
-        "reward_pool": {
-            "encounters": [],
-            "stardust": [],
-            "xp": [],
-            "items": {
-                "poke ball": [5]
+                "pinap berry": [3]
             }
         }
     },
     {
         "name": "Make 3 Great Curveball throws in a row",
         "reward_pool": {
-            "encounters": ["charmeleon"],
+            "encounters": [],
             "stardust": [1500],
             "xp": [],
             "items": {
                 "ultra ball": [1],
-                "rare candy": [3]
-            }
-        }
-    },
-    {
-        "name": "Make an Excellent throw",
-        "reward_pool": {
-            "encounters": [],
-            "stardust": [500],
-            "xp": [],
-            "items": {
-                "great ball": [5],
-                "ultra ball": [2],
-                "pinap berry": [2]
+                "rare candy": [3],
+                "golden razz berry": [2]
             }
         }
     },
@@ -683,103 +414,31 @@
         }
     },
     {
-        "name": "Make an Excellent Curveball throw",
-        "reward_pool": {
-            "encounters": ["absol"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
-        }
-    },
-    {
-        "name": "Land 3 Curveball throws in a row",
-        "reward_pool": {
-            "encounters": ["spinda"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
-        }
-    },
-    {
         "name": "Make 5 Curveball throws in a row",
         "reward_pool": {
             "encounters": [],
-            "stardust": [],
+            "stardust": [500],
             "xp": [],
             "items": {
                 "great ball": [5],
-                "nanab berry": [6],
-                "pinap berry": [1, 2]
+                "razz berry": [6],
+                "pinap berry": [2]
             }
         }
     },
     {
         "name": "Evolve a Pokemon",
         "reward_pool": {
-            "encounters": ["eevee"],
+            "encounters": ["eevee", "sunkern"],
             "stardust": [],
             "xp": [],
             "items": {}
         }
     },
     {
-        "name": "Evolve a Grass-type Pokemon",
+        "name": "Use an item to evolve a Pokemon",
         "reward_pool": {
-            "encounters": ["bulbasaur"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
-        }
-    },
-    {
-        "name": "Evolve a Fire-type Pokemon",
-        "reward_pool": {
-            "encounters": ["charmander"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
-        }
-    },
-    {
-        "name": "Evolve a Water-type Pokemon",
-        "reward_pool": {
-            "encounters": ["squirtle"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
-        }
-    },
-    {
-        "name": "Evolve an Electric-, Fire- or Water- type Pokemon",
-        "reward_pool": {
-            "encounters": ["eevee"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
-        }
-    },
-    {
-        "name": "Evolve 3 Electric-type Pokemon",
-        "reward_pool": {
-            "encounters": ["jolteon"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
-        }
-    },
-    {
-        "name": "Evolve 5 Fire-type Pokemon",
-        "reward_pool": {
-            "encounters": ["ninetales"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
-        }
-    },
-    {
-        "name": "Evolve a Meowth",
-        "reward_pool": {
-            "encounters": ["houndour"],
+            "encounters": ["aerodactyl"],
             "stardust": [],
             "xp": [],
             "items": {}
@@ -792,34 +451,17 @@
             "stardust": [200],
             "xp": [],
             "items": {
-                "poke ball": [5, 6, 7, 8, 9, 10],
+                "poke ball": [5],
                 "razz berry": [3],
-                "pinap berry": [1]
+                "pinap berry": [1],
+                "silver pinap": [5]
             }
-        }
-    },
-    {
-        "name": "Spin 3 PokeStops that were not previously visited",
-        "reward_pool": {
-            "encounters": ["ponyta"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
-        }
-    },
-    {
-        "name": "Spin 6 PokeStops that were not previously visited",
-        "reward_pool": {
-            "encounters": ["aerodactyl"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
         }
     },
     {
         "name": "Hatch an Egg",
         "reward_pool": {
-            "encounters": ["exeggcute"],
+            "encounters": ["exeggcute", "snubbull"],
             "stardust": [200],
             "xp": [],
             "items": {
@@ -838,9 +480,9 @@
             "items": {
                 "poke ball": [10],
                 "ultra ball": [5],
-                "razz berry": [3],
+                "razz berry": [9],
                 "pinap berry": [3],
-                "rare candy": [1, 2]
+                "rare candy": [1]
             }
         }
     },
@@ -850,25 +492,9 @@
             "encounters": ["chansey"],
             "stardust": [],
             "xp": [],
-            "items": {}
-        }
-    },
-    {
-        "name": "Power Up a Pokemon",
-        "reward_pool": {
-            "encounters": ["plusle"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
-        }
-    },
-    {
-        "name": "Power Up Pokemon 3 times",
-        "reward_pool": {
-            "encounters": ["koffing"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
+            "items": {
+                "rare candy": [1]
+            }
         }
     },
     {
@@ -881,63 +507,36 @@
         }
     },
     {
-        "name": "Power Up Pokemon 7 times",
+        "name": "Earn 5 candies walking a Buddy",
         "reward_pool": {
-            "encounters": ["magneton"],
+            "encounters": ["tentacruel"],
             "stardust": [],
             "xp": [],
             "items": {}
         }
     },
     {
-        "name": "Earn a candy walking a Buddy",
+        "name": "Transfer 3 Pokemon",
         "reward_pool": {
-            "encounters": ["numel"],
+            "encounters": ["vulpix"],
             "stardust": [],
             "xp": [],
             "items": {}
         }
     },
     {
-        "name": "Transfer 10 Pokemon",
+        "name": "Send 2 Gifts to Friends",
         "reward_pool": {
-            "encounters": ["misdreavus"],
+            "encounters": ["gastly"],
             "stardust": [],
             "xp": [],
             "items": {}
         }
     },
     {
-        "name": "Use 10 Berries to help catch Pokemon",
+        "name": "Trade a Pokemon",
         "reward_pool": {
-            "encounters": ["growlithe"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
-        }
-    },
-    {
-        "name": "Catch a Rattata or Pikachu",
-        "reward_pool": {
-            "encounters": ["phanphy"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
-        }
-    },
-    {
-        "name": "Make a Great Curveball Throw",
-        "reward_pool": {
-            "encounters": ["spinda 3"],
-            "stardust": [],
-            "xp": [],
-            "items": {}
-        }
-    },
-    {
-        "name": "Send 5 Gifts to Friends",
-        "reward_pool": {
-            "encounters": ["roselia"],
+            "encounters": ["manectric"],
             "stardust": [],
             "xp": [],
             "items": {}
