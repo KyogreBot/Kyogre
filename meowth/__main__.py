@@ -5255,7 +5255,7 @@ async def _sub_adminlist(ctx, *, trainer=None):
             response_msg = f"Could not process trainer with name: {trainer}"
             await channel.send(response_msg)
             await asyncio.sleep(10)
-            await response.delete()
+            await response_msg.delete()
             await message.delete()
             return
     try:
@@ -5286,7 +5286,7 @@ async def _sub_adminlist(ctx, *, trainer=None):
         response_msg = f"Encountered an error while looking up subscriptions for trainer with name: {trainer}"
         await channel.send(response_msg)
         await asyncio.sleep(10)
-        await response.delete()
+        await response_msg.delete()
         await message.delete()
         return
 
@@ -6532,7 +6532,7 @@ async def _get_quest_v(channel, author, name):
     if name.lower() not in quest_names:
         candidates = utils.get_match(quest_names, name, score_cutoff=60, isPartial=True, limit=20)
         name = await prompt_match_result(channel, author, name, candidates)
-    return next((q for q in result if q.name.lower() == name.lower()), None)
+    return next((q for q in result if q.name is not None and q.name.lower() == name.lower()), None)
 
 async def _prompt_reward(ctx, quest, reward_type=None):
     channel = ctx.channel
