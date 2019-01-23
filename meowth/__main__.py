@@ -6760,6 +6760,49 @@ async def _reports_list(ctx, *, type, regions=''):
         await channel.send(f"'{type}' is either invalid or unsupported. Please use one of the following: {', '.join(valid_types)}")
     await ctx.channel.send(f"This is a {type} listing")
 
+@Meowth.group(name="location")
+async def _location(ctx):
+    """Location data management command"""
+    if ctx.invoked_subcommand == None:
+        raise commands.BadArgument()
+
+@_location.command(name="add")
+@commands.has_permissions(manage_guild=True)
+async def _location_add(ctx, *, info):
+    channel = ctx.channel
+    type = None
+    name = None
+    region = None
+    latitude = None
+    longitude = None
+    ex_eligible = None
+    error_msg = None
+    try:
+        if ',' in info:
+            info_split = info.split(',')
+            if len(info_split) < 5:
+                error_msg = "Please provide the following when using this command: `location type, name, region, latitude, longitude, (optional) ex eligible`"
+            elif len(info_split) == 5:
+                type, name, region, latitude, longitude = info.split(',')
+            elif len(info_split) == 6:
+                type, name, region, latitude, longitude, ex_eligible = info.split(',')
+        else:
+            error_msg = "Please provide the following when using this command: `location type, name, region, latitude, longitude, (optional) ex eligible`"
+    except:
+        error_msg = "Please provide the following when using this command: `location type, name, region, latitude, longitude, (optional) ex eligible`"
+    if error_msg is not None:
+        return await channel.send(error_msg)
+    data = {}
+    data["coordinates"] = f"{latitude},{longitude}"
+    if type == "gym":
+        if ex_eligible is not None:
+            data["ex_eligible"] = bool(ex_eligible)
+        else:
+            data["ex_eligible"] = False
+    data["region"] = region
+    data["guild"] = str(ctx.guild.id)
+    LocationTable.create_location(name, data)
+
 @Meowth.group(name="quest")
 async def _quest(ctx):
     """Quest data management command"""
