@@ -6760,15 +6760,15 @@ async def _reports_list(ctx, *, type, regions=''):
         await channel.send(f"'{type}' is either invalid or unsupported. Please use one of the following: {', '.join(valid_types)}")
     await ctx.channel.send(f"This is a {type} listing")
 
-@Meowth.group(name="location")
-async def _location(ctx):
+@Meowth.group(name="loc")
+async def _loc(ctx):
     """Location data management command"""
     if ctx.invoked_subcommand == None:
         raise commands.BadArgument()
 
-@_location.command(name="add")
+@_loc.command(name="add")
 @commands.has_permissions(manage_guild=True)
-async def _location_add(ctx, *, info):
+async def _loc_add(ctx, *, info):
     channel = ctx.channel
     type = None
     name = None
@@ -6793,15 +6793,16 @@ async def _location_add(ctx, *, info):
     if error_msg is not None:
         return await channel.send(error_msg)
     data = {}
-    data["coordinates"] = f"{latitude},{longitude}"
+    data["coordinates"] = f"{latitude.strip()},{longitude.strip()}"
     if type == "gym":
         if ex_eligible is not None:
-            data["ex_eligible"] = bool(ex_eligible)
+            data["ex_eligible"] = bool(ex_eligible.strip())
         else:
             data["ex_eligible"] = False
-    data["region"] = region
+    data["region"] = region.strip()
     data["guild"] = str(ctx.guild.id)
-    LocationTable.create_location(name, data)
+    LocationTable.create_location(name.strip(), data)
+    await ctx.message.add_reaction('✅')
 
 @Meowth.group(name="quest")
 async def _quest(ctx):
