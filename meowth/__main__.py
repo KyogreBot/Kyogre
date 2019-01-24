@@ -25,7 +25,7 @@ from time import strftime
 
 import aiohttp
 import dateparser
-import hastebin
+import async_hastebin
 from dateutil import tz
 from dateutil.relativedelta import relativedelta
 
@@ -2054,7 +2054,7 @@ async def outputlog(ctx):
     Output is a link to hastebin."""
     with open(os.path.join('logs', 'kyogre.log'), 'r', encoding='latin-1', errors='replace') as logfile:
         logdata = logfile.read()
-    await ctx.channel.send(hastebin.post(logdata))
+    await ctx.channel.send(async_hastebin.post(logdata))
 
 @Meowth.command(aliases=['say'])
 @commands.has_permissions(manage_guild=True)
