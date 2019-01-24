@@ -267,7 +267,7 @@ def custom_error_handling(bot, logger):
                         msg += '\n' + channel.mention
                     else:
                         msg += '\n#deleted-channel'
-            error = await ctx.channel.send(msg)
+            error = await ctx.channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=msg))
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
         elif isinstance(error, SubscriptionChannelCheckFail):
@@ -326,7 +326,7 @@ def custom_error_handling(bot, logger):
                         msg += '\n' + channel.mention
                     else:
                         msg += '\n#deleted-channel'
-            error = await ctx.channel.send(msg)
+            error = await ctx.channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=msg))
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
         elif isinstance(error, EggChannelCheckFail):
@@ -343,7 +343,7 @@ def custom_error_handling(bot, logger):
                         msg += '\n' + channel.mention
                     else:
                         msg += '\n#deleted-channel'
-            error = await ctx.channel.send(msg)
+            error = await ctx.channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=msg))
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
         elif isinstance(error, NonRaidChannelCheckFail):

@@ -5435,7 +5435,7 @@ async def _raid_internal(ctx, content):
         elif guild_dict[guild.id]['raidchannel_dict'][channel.id]['active'] == False:
             eggtoraid = True
         ## This is a hack but it allows users to report the just hatched boss before Kyogre catches up with hatching the egg.
-        elif guild_dict[guild.id]['raidchannel_dict'][channel.id]['exp'] - 30 < datetime.datetime.now().timestamp():
+        elif guild_dict[guild.id]['raidchannel_dict'][channel.id]['exp'] - 60 < datetime.datetime.now().timestamp():
             eggtoraid = True
         else:            
             return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('Please wait until the egg has hatched before changing it to an open raid!')))
@@ -8645,7 +8645,10 @@ async def starting(ctx, team: str = ''):
     ctx.trainer_dict = copy.deepcopy(guild_dict[guild.id]['raidchannel_dict'][channel.id]['trainer_dict'])
     regions = guild_dict[guild.id]['raidchannel_dict'][channel.id]['regions']
     if guild_dict[guild.id]['raidchannel_dict'][channel.id].get('type',None) == 'egg':
-        starting_str = _("How can you start when the egg hasn't hatched!?")
+        if guild_dict[guild.id]['raidchannel_dict'][channel.id]['exp'] - 60 < datetime.datetime.now().timestamp():
+            starting_str = "Please tell me which raid boss has hatched before starting your lobby."
+        else:
+            starting_str = "How can you start when the egg hasn't hatched!?"
         await channel.send(starting_str)
         return
     if guild_dict[guild.id]['raidchannel_dict'][channel.id].get('lobby',False):
