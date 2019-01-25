@@ -6804,6 +6804,51 @@ async def _loc_add(ctx, *, info):
     LocationTable.create_location(name.strip(), data)
     await ctx.message.add_reaction('✅')
 
+@_loc.command(name="convert", aliases=["c"])
+@commands.has_permissions(manage_guild=True)
+async def _loc_convert(ctx, *, info):
+    """Changes a pokestop into a gym"""
+    channel = ctx.channel
+    author = ctx.message.author
+    stops = None
+    stops = get_stops(guild.id, None)
+    stop = await location_match_prompt(channel, author.id, info, stops)
+    if not stop:
+        no_stop_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"No pokestop found with name {details}"))
+        await asyncio.sleep(15)
+        await no_stop_msg.delete()
+        return
+    # TODO Figure out where this actually needs to go
+    def stopToGym(name):
+    deleted = 0
+    created = 0
+    with KyogreDB._db.atomic() as txn:
+        try:
+            locationresult = (LocationTable
+                .get((LocationTable.guild == guild_id) &
+                       (LocationTable.name == name)))
+            deleted = PokestopTable.delete().where(PokestopTable.location_id == locationresult).execute()
+            location = LocationTable.get_by_id(locationresult)
+            created = GymTable.create(location = location, ex_eligible = False)
+            txn.commit()
+        except:
+            txn.rollback()
+    return (deleted, created)
+
+    def toggleEX(name):
+        with KyogreDB._db.atomic() as txn:
+            try:
+                locationresult = (LocationTable
+                    .get((LocationTable.guild == guild_id) &
+                           (LocationTable.name == name)))
+                location = LocationTable.get_by_id(locationresult)
+                GymTable.update(ex_eligible = ~GymTable.ex_eligible).where(GymTable.location_id == location.id).execute()
+                txn.commit()
+            except:
+                print("something failed")
+                txn.rollback()
+
+
 @Meowth.group(name="quest")
 async def _quest(ctx):
     """Quest data management command"""
