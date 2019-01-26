@@ -6735,7 +6735,7 @@ async def _generate_role_notification_async(role_name, channel, outbound_dict):
     # send notification message in channel
     obj = next(iter(outbound_dict.values()))
     message = obj['message']
-    msg_obj = await channel.send(f'{temp_role.mention} {message}')
+    msg_obj = await channel.send(f'~{temp_role.mention} {message}')
     async def cleanup():
         await asyncio.sleep(300)
         await temp_role.delete()
