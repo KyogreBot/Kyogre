@@ -5558,7 +5558,7 @@ async def _raid_internal(ctx, content):
             except:
                 return await message.add_reaction('\u274c')
             enabled = raid_channels_enabled(guild, channel)
-            if raid_dict_entry and raid_dict_entry['active']:
+            if raid_dict_entry and not (raid_dict_entry['exp'] - 60 < datetime.datetime.now().timestamp()):
                 msg = f"A raid has already been reported for {gym.name}."
                 if enabled:
                     msg += f" Coordinate in {raid_channel.mention}"
