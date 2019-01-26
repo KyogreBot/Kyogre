@@ -6116,7 +6116,7 @@
                 "Water"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 419,
@@ -7090,7 +7090,7 @@
                 "Steel"
             ]
         },
-        "released": false
+        "released": true
     },
     {
         "id": 486,

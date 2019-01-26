@@ -267,7 +267,7 @@ def custom_error_handling(bot, logger):
                         msg += '\n' + channel.mention
                     else:
                         msg += '\n#deleted-channel'
-            error = await ctx.channel.send(msg)
+            error = await ctx.channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=msg))
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
         elif isinstance(error, SubscriptionChannelCheckFail):
@@ -288,7 +288,7 @@ def custom_error_handling(bot, logger):
                 else:
                     msg += '\n#deleted-channel'
                 counter += 1
-            error = await ctx.channel.send(msg)
+            error = await ctx.channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=msg))
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
         elif isinstance(error, PvpChannelCheckFail):
@@ -309,7 +309,7 @@ def custom_error_handling(bot, logger):
                 else:
                     msg += '\n#deleted-channel'
                 counter += 1
-            error = await ctx.channel.send(msg)
+            error = await ctx.channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=msg))
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
         elif isinstance(error, RaidChannelCheckFail):
@@ -326,7 +326,7 @@ def custom_error_handling(bot, logger):
                         msg += '\n' + channel.mention
                     else:
                         msg += '\n#deleted-channel'
-            error = await ctx.channel.send(msg)
+            error = await ctx.channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=msg))
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
         elif isinstance(error, EggChannelCheckFail):
@@ -343,12 +343,12 @@ def custom_error_handling(bot, logger):
                         msg += '\n' + channel.mention
                     else:
                         msg += '\n#deleted-channel'
-            error = await ctx.channel.send(msg)
+            error = await ctx.channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=msg))
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
         elif isinstance(error, NonRaidChannelCheckFail):
             msg = _("**{prefix}{cmd_name}** can't be used in a Raid channel.").format(cmd_name=ctx.invoked_with, prefix=prefix)
-            error = await ctx.channel.send(msg)
+            error = await ctx.channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=msg))
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
         elif isinstance(error, ActiveRaidChannelCheckFail):
@@ -373,7 +373,7 @@ def custom_error_handling(bot, logger):
                         msg += '\n#deleted-channel'
             if egg_check == "egg" and not meetup:
                 msg += _('\nThis is an egg channel. The channel needs to be activated with **{prefix}raid <pokemon>** before I accept commands!').format(prefix=prefix)
-            error = await ctx.channel.send(msg)
+            error = await ctx.channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=msg))
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
         elif isinstance(error, ActiveChannelCheckFail):
@@ -398,7 +398,7 @@ def custom_error_handling(bot, logger):
                         msg += '\n#deleted-channel'
             if egg_check == "egg" and not meetup:
                 msg += _('\nThis is an egg channel. The channel needs to be activated with **{prefix}raid <pokemon>** before I accept commands!').format(prefix=prefix)
-            error = await ctx.channel.send(msg)
+            error = await ctx.channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=msg))
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
         elif isinstance(error, CityRaidChannelCheckFail):
@@ -415,7 +415,7 @@ def custom_error_handling(bot, logger):
                         msg += '\n' + channel.mention
                     else:
                         msg += '\n#deleted-channel'
-            error = await ctx.channel.send(msg)
+            error = await ctx.channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=msg))
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
         elif isinstance(error, RegionEggChannelCheckFail):
@@ -432,7 +432,7 @@ def custom_error_handling(bot, logger):
                         msg += '\n' + channel.mention
                     else:
                         msg += '\n#deleted-channel'
-            error = await ctx.channel.send(msg)
+            error = await ctx.channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=msg))
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
         elif isinstance(error, RegionExRaidChannelCheckFail):
@@ -449,7 +449,7 @@ def custom_error_handling(bot, logger):
                         msg += '\n' + channel.mention
                     else:
                         msg += '\n#deleted-channel'
-            error = await ctx.channel.send(msg)
+            error = await ctx.channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=msg))
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
         elif isinstance(error, ExRaidChannelCheckFail):
@@ -466,7 +466,7 @@ def custom_error_handling(bot, logger):
                         msg += '\n' + channel.mention
                     else:
                         msg += '\n#deleted-channel'
-            error = await ctx.channel.send(msg)
+            error = await ctx.channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=msg))
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
         elif isinstance(error, ResearchReportChannelCheckFail):
@@ -483,7 +483,7 @@ def custom_error_handling(bot, logger):
                         msg += '\n' + channel.mention
                     else:
                         msg += '\n#deleted-channel'
-            error = await ctx.channel.send(msg)
+            error = await ctx.channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=msg))
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
         elif isinstance(error, MeetupReportChannelCheckFail):
@@ -500,7 +500,7 @@ def custom_error_handling(bot, logger):
                         msg += '\n' + channel.mention
                     else:
                         msg += '\n#deleted-channel'
-            error = await ctx.channel.send(msg)
+            error = await ctx.channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=msg))
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
         elif isinstance(error, WildReportChannelCheckFail):
@@ -517,7 +517,7 @@ def custom_error_handling(bot, logger):
                         msg += '\n' + channel.mention
                     else:
                         msg += '\n#deleted-channel'
-            error = await ctx.channel.send(msg)
+            error = await ctx.channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=msg))
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
         elif isinstance(error, RegionChangeCheckFail):
@@ -531,7 +531,7 @@ def custom_error_handling(bot, logger):
                     msg += '\n' + channel.mention
                 else:
                     msg += '\n#deleted-channel'
-            error = await ctx.channel.send(msg)
+            error = await ctx.channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=msg))
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
         elif isinstance(error, UserBanned):
