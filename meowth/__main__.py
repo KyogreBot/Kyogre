@@ -1464,16 +1464,18 @@ async def modify_raid_report(payload, raid_report):
     raid_channel = channel.id
     if channel.id not in guild_dict[guild.id]['raidchannel_dict']:
         for rchannel in guild_dict[guild.id]['raidchannel_dict']:
-            if guild_dict[guild.id]['raidchannel_dict'][rchannel]['raidreport'] == message.id:
+            if raid_dict[rchannel]['raidreport'] == message.id:
                 raid_channel = rchannel
                 break
     raid_channel = Meowth.get_channel(raid_report)
-    report_channel_id = guild_dict[guild.id]['raidchannel_dict'][raid_channel.id]['reportchannel']
+    raid_report = raid_dict[raid_channel.id]
+    report_channel_id = raid_report['reportchannel']
     report_channel = Meowth.get_channel(report_channel_id)
     gyms = None
     gyms = get_gyms(guild.id, regions)
     choices_list = ['Location', 'Hatch / Expire Time', 'Boss / Tier']
-    prompt = 'Which item would you like to modify?'
+    gym = raid_report["address"]
+    prompt = f'Modifying details for **raid** at **{gym}**\nWhich item would you like to modify ***{user.display_name}***?'
     match = await utils.ask_list(Meowth, prompt, channel, choices_list, user_list=user.id)
     if match in choices_list:
         if match == choices_list[0]:
