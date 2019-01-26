@@ -25,7 +25,6 @@ from time import strftime
 
 import aiohttp
 import dateparser
-import async_hastebin
 from dateutil import tz
 from dateutil.relativedelta import relativedelta
 
@@ -2045,7 +2044,7 @@ async def welcome(ctx, user: discord.Member=None):
         user = ctx.author
     await on_member_join(user)
 
-@Meowth.command(hidden=True)
+@Meowth.command(hidden=True,aliases=['opl'])
 @commands.has_permissions(manage_guild=True)
 async def outputlog(ctx):
     """Get current Kyogre log.
@@ -2054,7 +2053,11 @@ async def outputlog(ctx):
     Output is a link to hastebin."""
     with open(os.path.join('logs', 'kyogre.log'), 'r', encoding='latin-1', errors='replace') as logfile:
         logdata = logfile.read()
-    await ctx.channel.send(async_hastebin.post(logdata))
+        async with aiohttp.ClientSession() as session:
+            async with session.post("https://hastebin.com/documents",data=logdata.encode('utf-8')) as post:
+                post = await post.json()
+                reply = "https://hastebin.com/{}".format(post['key'])
+    await ctx.channel.send(reply)
 
 @Meowth.command(aliases=['say'])
 @commands.has_permissions(manage_guild=True)
