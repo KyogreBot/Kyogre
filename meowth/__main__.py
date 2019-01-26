@@ -6818,8 +6818,25 @@ async def _loc_convert(ctx, *, info):
         await asyncio.sleep(15)
         await no_stop_msg.delete()
         return
+    stopToGym(stop)
+
+@_loc.command(name="extoggle", aliases=["ext"])
+@commands.has_permissions(manage_guild=True)
+async def _loc_extoggle(ctx, *, info):
+    """Toggles gym ex status"""
+    channel = ctx.channel
+    author = ctx.message.author
+    stops = None
+    gyms = get_gyms(guild.id, None)
+    gym = await location_match_prompt(channel, author.id, info, gyms)
+    if not gym:
+        no_gym_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"No pokestop found with name {details}"))
+        await asyncio.sleep(15)
+        await no_gym_msg.delete()
+        return
+    toggleEX(gym)
     # TODO Figure out where this actually needs to go
-    def stopToGym(name):
+def stopToGym(name):
     deleted = 0
     created = 0
     with KyogreDB._db.atomic() as txn:
@@ -6835,18 +6852,18 @@ async def _loc_convert(ctx, *, info):
             txn.rollback()
     return (deleted, created)
 
-    def toggleEX(name):
-        with KyogreDB._db.atomic() as txn:
-            try:
-                locationresult = (LocationTable
-                    .get((LocationTable.guild == guild_id) &
-                           (LocationTable.name == name)))
-                location = LocationTable.get_by_id(locationresult)
-                GymTable.update(ex_eligible = ~GymTable.ex_eligible).where(GymTable.location_id == location.id).execute()
-                txn.commit()
-            except:
-                print("something failed")
-                txn.rollback()
+def toggleEX(name):
+    with KyogreDB._db.atomic() as txn:
+        try:
+            locationresult = (LocationTable
+                .get((LocationTable.guild == guild_id) &
+                       (LocationTable.name == name)))
+            location = LocationTable.get_by_id(locationresult)
+            GymTable.update(ex_eligible = ~GymTable.ex_eligible).where(GymTable.location_id == location.id).execute()
+            txn.commit()
+        except:
+            print("something failed")
+            txn.rollback()
 
 
 @Meowth.group(name="quest")
