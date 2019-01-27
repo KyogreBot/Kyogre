@@ -1342,6 +1342,7 @@ async def on_raw_reaction_add(payload):
                     pass
                 del questreport_dict[message.id]
                 await _refresh_listing_channels_internal(guild, "research")
+            await message.remove_reaction(payload.emoji, user)
     raid_dict = guild_dict[guild.id].setdefault('raidchannel_dict', {})
     if channel.id in raid_dict:
         raid_report = channel.id
@@ -1365,6 +1366,7 @@ async def on_raw_reaction_add(payload):
                 except:
                     pass
                 await _refresh_listing_channels_internal(guild, "raid")
+            await message.remove_reaction(payload.emoji, user)
     pvp_dict = guild_dict[guild.id].setdefault('pvp_dict', {})
     if message.id in pvp_dict and user.id != Meowth.user.id:
         trainer = pvp_dict[message.id]['reportauthor']
@@ -1401,11 +1403,7 @@ async def on_raw_reaction_add(payload):
                 else:
                     embed.add_field(name=_('**Expires:**'), value=_('{end}').format(end=expire_str), inline=True)
                 await message.edit(embed=embed)
-                await message.clear_reactions()
-                await message.add_reaction('\u23f2')
-                await asyncio.sleep(0.25)
-                await message.add_reaction('🚫')
-                await asyncio.sleep(0.25)
+                await message.remove_reaction(payload.emoji, user)
 
 
 def get_raid_report(guild, message_id):
@@ -1519,12 +1517,6 @@ async def modify_research_report(payload):
         embed.url = questreport_dict[message.id]['url']
         new_msg = f'{name} Field Research task, reward: {reward} reported at {location}'
         await message.edit(content=new_msg,embed=embed)
-        await message.clear_reactions()
-        await asyncio.sleep(0.25)
-        await message.add_reaction('\u270f')
-        await asyncio.sleep(0.25)
-        await message.add_reaction('🚫')
-        await asyncio.sleep(0.25)
     else:
         return
 
@@ -1623,15 +1615,6 @@ async def modify_raid_report(payload, raid_report):
             success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid Tier / Boss updated")))
             await bosswait.delete()
             await bossmsg.delete()
-        await message.clear_reactions()
-        if message.channel.id == raid_channel.id:
-            await message.add_reaction('\u2754')
-            await asyncio.sleep(0.25)
-        await message.add_reaction('\u270f')
-        await asyncio.sleep(0.25)
-        await message.add_reaction('🚫')
-        await asyncio.sleep(10)
-        await success_msg.delete()
     else:
         return
 
