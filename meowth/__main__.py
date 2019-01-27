@@ -1360,9 +1360,12 @@ async def modify_research_report(payload):
     regions = _get_channel_regions(channel, 'research')
     stops = None
     stops = get_stops(guild.id, regions)
-    prompt = 'Which item would you like to modify?'
+    stop = questreport_dict[message.id]['location']
+    prompt = f'Modifying details for **research task** at **{stop}**\nWhich item would you like to modify ***{user.display_name}***?'
     choices_list = ['Pokestop','Task', 'Reward']
     match = await utils.ask_list(Meowth, prompt, channel, choices_list, user_list=user.id)
+    err_msg = None
+    confirmed = None
     if match in choices_list:
         if match == choices_list[0]:
             query_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.gold(), description="What is the correct Pokestop?"))
@@ -1380,17 +1383,19 @@ async def modify_research_report(payload):
                 if stops:
                     stop = await location_match_prompt(channel, user.id, pokestopmsg.clean_content, stops)
                     if not stop:
-                        return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"I couldn't find a pokestop named '{location}'. Try again using the exact pokestop name!"))
-                    if get_existing_research(guild, stop):
-                        return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"A quest has already been reported for {stop.name}"))
-                    location = stop.name
-                    loc_url = stop.maps_url
-                    questreport_dict[message.id]['location'] = location
-                    questreport_dict[message.id]['url'] = loc_url
-                    await _refresh_listing_channels_internal(guild, "research")
-                    await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description="Research listing updated"))
-                    await pokestopmsg.delete()
-                    await query_msg.delete()
+                        err_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"I couldn't find a pokestop named '{pokestopmsg.clean_content}'. Try again using the exact pokestop name!"))
+                    else:
+                        if get_existing_research(guild, stop):
+                            err_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"A quest has already been reported for {stop.name}"))
+                        else:
+                            location = stop.name
+                            loc_url = stop.maps_url
+                            questreport_dict[message.id]['location'] = location
+                            questreport_dict[message.id]['url'] = loc_url
+                            await _refresh_listing_channels_internal(guild, "research")
+                            confirmed = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description="Research listing updated"))
+                            await pokestopmsg.delete()
+                            await query_msg.delete()
         elif match == choices_list[1]:
             questwait = await channel.send(embed=discord.Embed(colour=discord.Colour.gold(), description="What is the correct research task?"))
             try:
@@ -1413,7 +1418,7 @@ async def modify_research_report(payload):
             questreport_dict[message.id]['quest'] = quest.name
             questreport_dict[message.id]['reward'] = reward
             await _refresh_listing_channels_internal(guild, "research")
-            await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description="Research listing updated"))
+            confirmed = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description="Research listing updated"))
             await questmsg.delete()
         elif match == choices_list[2]:
             rewardwait = await channel.send(embed=discord.Embed(colour=discord.Colour.gold(), description="What is the correct reward?"))
@@ -1425,7 +1430,7 @@ async def modify_research_report(payload):
                 error = "didn't identify the reward"
             questreport_dict[message.id]['reward'] = reward
             await _refresh_listing_channels_internal(guild, "research")
-            await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description="Research listing updated"))
+            confirmed = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description="Research listing updated"))
             await rewardwait.delete()
         embed = message.embeds[0]
         embed.clear_fields()
@@ -1444,6 +1449,11 @@ async def modify_research_report(payload):
         await asyncio.sleep(0.25)
         await message.add_reaction('🚫')
         await asyncio.sleep(0.25)
+        await asyncio.sleep(10)
+        if confirmed is not None:
+            await confirmed.delete()
+        if err_msg is not None:
+            await err_msg.delete()
     else:
         return
 
@@ -1477,6 +1487,8 @@ async def modify_raid_report(payload, raid_report):
     gym = raid_report["address"]
     prompt = f'Modifying details for **raid** at **{gym}**\nWhich item would you like to modify ***{user.display_name}***?'
     match = await utils.ask_list(Meowth, prompt, channel, choices_list, user_list=user.id)
+    err_msg = None
+    success_msg = None
     if match in choices_list:
         if match == choices_list[0]:
             query_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.gold(), description=_("What is the correct Location?")))
@@ -1494,18 +1506,20 @@ async def modify_raid_report(payload, raid_report):
                 if gyms:
                     gym = await location_match_prompt(channel, user.id, gymmsg.clean_content, gyms)
                     if not gym:
-                        return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"I couldn't find a gym named '{gymmsg.clean_content}'. Try again using the exact gym name!"))
-                    location = gym.name
-                    raid_channel_ids = get_existing_raid(guild, gym)
-                    if raid_channel_ids:
-                        raid_channel = Meowth.get_channel(raid_channel_ids[0])
-                        if guild_dict[guild.id]['raidchannel_dict'][raid_channel.id]:
-                            return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"A raid has already been reported for {gym.name}"))
-                    await update_raid_location(message, report_channel, raid_channel, gym)
-                    await _refresh_listing_channels_internal(guild, "raid")
-                    success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid location updated")))
-                    await gymmsg.delete()
-                    await query_msg.delete()
+                        err_msg =  await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"I couldn't find a gym named '{gymmsg.clean_content}'. Try again using the exact gym name!"))
+                    else:
+                        location = gym.name
+                        raid_channel_ids = get_existing_raid(guild, gym)
+                        if raid_channel_ids:
+                            raid_channel = Meowth.get_channel(raid_channel_ids[0])
+                            if guild_dict[guild.id]['raidchannel_dict'][raid_channel.id]:
+                                err_msg =  await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"A raid has already been reported for {gym.name}"))
+                            else:
+                                await update_raid_location(message, report_channel, raid_channel, gym)
+                                await _refresh_listing_channels_internal(guild, "raid")
+                                success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid location updated")))
+                                await gymmsg.delete()
+                                await query_msg.delete()
         elif match == choices_list[1]:
             timewait = await channel.send(embed=discord.Embed(colour=discord.Colour.gold(), description=_("What is the Hatch / Expire time?")))
             try:
@@ -1552,7 +1566,10 @@ async def modify_raid_report(payload, raid_report):
         await asyncio.sleep(0.25)
         await message.add_reaction('🚫')
         await asyncio.sleep(10)
-        await success_msg.delete()
+        if err_msg is not None:
+            await err_msg.delete()
+        if success_msg is not None:
+            await success_msg.delete()
     else:
         return
 
