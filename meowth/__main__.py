@@ -6853,11 +6853,10 @@ async def _loc_extoggle(ctx, *, info):
     """Toggles gym ex status"""
     channel = ctx.channel
     author = ctx.message.author
-    stops = None
     gyms = get_gyms(ctx.guild.id, None)
     gym = await location_match_prompt(channel, author.id, info, gyms)
     if not gym:
-        no_gym_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"No pokestop found with name {details}"))
+        no_gym_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"No gym found with name {details}"))
         await asyncio.sleep(15)
         await no_gym_msg.delete()
         return
@@ -6875,6 +6874,47 @@ async def _loc_extoggle(ctx, *, info):
         await success.delete()
         return
     
+@_loc.command(name="changeregion", aliases=["cr"])
+@commands.has_permissions(manage_guild=True)
+async def _loc_change_region(ctx, *, info):
+    channel = ctx.channel
+    message = ctx.message
+    author = message.author
+    info = info.split(',')
+    if len(info) != 3:
+        failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Please provide (comma separated) the location type (stop or gym), name of the Pokestop or gym, and the new region it should be assigned to."))
+        await message.add_reaction('❌')        
+        await asyncio.sleep(10)
+        await failed.delete()
+        return
+    if info[0].lower() == "stop":
+        stops = get_stops(ctx.guild.id, None)
+        stop = await location_match_prompt(channel, author.id, info[1], stops)
+        name = stop.name
+    else if info[0].lower() == "gym":
+        gyms = get_gyms(ctx.guild.id, None)
+        gym = await location_match_prompt(channel, author.id, info[1], gyms)
+        name = gym.name
+    if not stop and not gym:
+        failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"No {info[0]} found with name {info[1]}."))
+        await message.add_reaction('❌')        
+        await asyncio.sleep(10)
+        await failed.delete()
+        return
+    result = await changeRegion(name, info[2])
+    if result == 0:
+        failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Failed to change location for {name}."))
+        await message.add_reaction('❌')        
+        await asyncio.sleep(10)
+        await failed.delete()
+        return
+    else:
+        success = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=f"Successfully changed location for {name}."))
+        await message.add_reaction('✅')
+        await asyncio.sleep(10)
+        await success.delete()
+        return
+
 async def stopToGym(ctx, name):
     channel = ctx.channel
     guild = ctx.guild
@@ -6911,6 +6951,36 @@ async def toggleEX(ctx, name):
             txn.rollback()
     return success
 
+async def changeRegion(ctx, name, region):
+    with KyogreDB._db.atomic() as txn:
+        try:
+            current = (LocationTable
+                      .select(LocationTable.id.alias('loc_id'))
+                      .join(LocationRegionRelation)
+                      .join(RegionTable)
+                      .where((LocationTable.guild == guild_id) &
+                             (LocationTable.guild == RegionTable.guild) &
+                             (LocationTable.name == name)))
+            loc_id = current[0].loc_id
+            current = (RegionTable
+                       .select(RegionTable.id.alias('reg_id'))
+                       .join(LocationRegionRelation)
+                       .join(LocationTable)
+                       .where((LocationTable.guild == guild_id) &
+                              (LocationTable.guild == RegionTable.guild) &
+                              (LocationTable.id == loc_id)))
+            reg_id = current[0].reg_id            
+            deleted = LocationRegionRelation.delete().where((LocationRegionRelation.location_id == loc_id) &
+                                                            (LocationRegionRelation.region_id == reg_id)).execute()
+            new = (RegionTable
+                   .select(RegionTable.id)
+                   .where((RegionTable.name == region) &
+                          (RegionTable.guild_id == guild_id)))
+            success = LocationRegionRelation.create(location=loc_id, region=new[0].id)
+        except Exception as e: 
+            await ctx.channel.send(e)
+            txn.rollback()
+    return success
 
 @Meowth.group(name="quest")
 async def _quest(ctx):
