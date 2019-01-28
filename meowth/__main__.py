@@ -1637,6 +1637,18 @@ async def _save():
             raise
     os.rename(tempname, os.path.join('data', 'serverdict'))
 
+    location_save_cog = Meowth.cogs.get('LocationSave')
+    if not location_save_cog:
+        await _print(Meowth.owner, 'Pokestop and Gym data not saved!')
+        return None
+    stop_save = location_save_cog.saveStopsToJson()
+    gym_save = location_save_cog.saveGymsToJson()
+    if stop_save is not None:
+        await _print(Meowth.owner, f'Failed to save pokestop data with error: {stop_save}!')
+    if gym_save is not None:
+        await _print(Meowth.owner, f'Failed to save pokestop data with error: {gym_save}!')
+
+
 @Meowth.command()
 @checks.is_owner()
 async def restart(ctx):

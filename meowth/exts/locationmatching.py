@@ -1,5 +1,6 @@
-import os
+import datetime
 import json
+import os
 
 from discord.ext import commands
 
@@ -138,6 +139,63 @@ class LocationMatching:
                 result.append(Pokestop(name, coords[0], coords[1], None))
         return result
 
+class LocationSave:
+    def __init__(self, bot):
+        self.bot = bot
+
+    def saveStopsToJson():
+        try:
+            filename = datetime.datetime.now().strftime("%m-%d_%H%M%S-pokestop_data.json")
+            with open(filename, 'w') as f:
+                stops = (PokestopTable
+                        .select(LocationTable.name, 
+                                LocationTable.latitude, 
+                                LocationTable.longitude, 
+                                RegionTable.name.alias('region'))
+                        .join(LocationTable)
+                        .join(LocationRegionRelation)
+                        .join(RegionTable)
+                        .where((LocationTable.guild == guild_id) &
+                               (LocationTable.guild == RegionTable.guild)))
+                stops = stops.objects(Location)
+                s = {}
+                for stop in stops:
+                    s[stop.name] = {}
+                    s[stop.name]["coordinates"] = f"{stop.latitude},{stop.longitude}"
+                    s[stop.name]["region"] = stop.region
+                    s[stop.name]["guild"] = str(guild_id)
+                f.write(json.dumps(s, indent=4))
+            return None
+        except Exception as err:
+            return err
+
+    def saveGymsToJson():
+        try:
+            filename = datetime.datetime.now().strftime("%m-%d_%H%M%S-gym_data.json")
+            with open(filename, 'w') as f:
+                gyms = (GymTable
+                            .select(LocationTable.name, 
+                                    LocationTable.latitude, 
+                                    LocationTable.longitude, 
+                                    RegionTable.name.alias('region'),
+                                    GymTable.ex_eligible)
+                            .join(LocationTable)
+                            .join(LocationRegionRelation)
+                            .join(RegionTable)
+                            .where((LocationTable.guild == guild_id) &
+                                   (LocationTable.guild == RegionTable.guild)))
+                gyms = gyms.objects(Gym)
+                g = {}
+                for gym in gyms:
+                    g[gym.name] = {}
+                    g[gym.name]["coordinates"] = f"{gym.latitude},{gym.longitude}"
+                    g[gym.name]["ex-eligible"] = gym.ex_eligible
+                    g[gym.name]["region"] = gym.region
+                    g[gym.name]["guild"] = str(guild_id)
+                f.write(json.dumps(g, indent=4))
+            return None
+        except Exception as err:
+            return err
 
 def setup(bot):
     bot.add_cog(LocationMatching(bot))
