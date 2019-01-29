@@ -6919,6 +6919,73 @@ async def _loc_change_region(ctx, *, info):
         await success.delete()
         return
 
+@_loc.command(name="deletelocation", aliases=["del"])
+@commands.has_permissions(manage_guild=True)
+async def _loc_deletelocation(ctx, *, info):
+    channel = ctx.channel
+    message = ctx.message
+    author = message.author
+    info = info.split(',')
+    if len(info) != 2:
+        failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Please provide (comma separated) the location type (stop or gym) and the name of the Pokestop or gym."))
+        await message.add_reaction('❌')        
+        await asyncio.sleep(10)
+        await failed.delete()
+        return
+    type = info[0].lower()
+    stop = None
+    gym = None
+    if type == "stop":
+        stops = get_stops(ctx.guild.id, None)
+        stop = await location_match_prompt(channel, author.id, info[1], stops)
+        if stop is not None:
+            name = stop.name
+    elif type == "gym":
+        gyms = get_gyms(ctx.guild.id, None)
+        gym = await location_match_prompt(channel, author.id, info[1], gyms)
+        if gym is not None:
+            name = gym.name
+    if not stop and not gym:
+        failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"No {info[0]} found with name {info[1]}."))
+        await message.add_reaction('❌')        
+        await asyncio.sleep(10)
+        await failed.delete()
+        return
+    result = await deleteLocation(ctx, type, name)
+    if result == 0:
+        failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Failed to change location for {name}."))
+        await message.add_reaction('❌')        
+        await asyncio.sleep(10)
+        await failed.delete()
+        return
+    else:
+        success = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=f"Successfully changed location for {name}."))
+        await message.add_reaction('✅')
+        await asyncio.sleep(10)
+        await success.delete()
+        return
+
+async def deleteLocation(ctx, type, name):
+    channel = ctx.channel
+    guild = ctx.guild
+    with KyogreDB._db.atomic() as txn:
+        try:
+            locationresult = (LocationTable
+                .get((LocationTable.guild == guild.id) &
+                       (LocationTable.name == name)))
+            location = LocationTable.get_by_id(locationresult)
+            location.delete_instance()
+            if type =="stop":
+                deleted = PokestopTable.delete().where(PokestopTable.location_id == locationresult).execute()
+            elif type == "gym":
+                deleted = GymTable.delete().where(GymTable.location_id == locationresult).execute()
+            location.delete_instance()
+            txn.commit()
+        except Exception as e: 
+            await channel.send(e)
+            txn.rollback()
+    return success
+
 async def stopToGym(ctx, name):
     channel = ctx.channel
     guild = ctx.guild
