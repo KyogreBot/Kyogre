@@ -894,9 +894,9 @@ async def channel_cleanup(loop=True):
         # save server_dict changes after cleanup
         logger.info('Channel_Cleanup - SAVING CHANGES')
         try:
-            await _save(ctx)
+            await _save(guildid)
         except Exception as err:
-            logger.info('Channel_Cleanup - SAVING FAILED' + err)
+            logger.info('Channel_Cleanup - SAVING FAILED' + str(err))
         logger.info('Channel_Cleanup ------ END ------')
         await asyncio.sleep(600)
         continue
@@ -913,6 +913,7 @@ async def guild_cleanup(loop=True):
             dict_guild_list.append(guildid)
         for guild in Meowth.guilds:
             bot_guild_list.append(guild.id)
+            guild_id = guild.id
         guild_diff = set(dict_guild_list) - set(bot_guild_list)
         for s in guild_diff:
             dict_guild_delete.append(s)
@@ -925,9 +926,9 @@ async def guild_cleanup(loop=True):
                 pass
         logger.info('Server_Cleanup - SAVING CHANGES')
         try:
-            await _save()
+            await _save(guild_id)
         except Exception as err:
-            logger.info('Server_Cleanup - SAVING FAILED' + err)
+            logger.info('Server_Cleanup - SAVING FAILED' + str(err))
         logger.info('Server_Cleanup ------ END ------')
         await asyncio.sleep(7200)
         continue
@@ -938,6 +939,7 @@ async def message_cleanup(loop=True):
         guilddict_temp = copy.deepcopy(guild_dict)
         update_ids = set()
         for guildid in guilddict_temp.keys():
+            guild_id = guildid
             questreport_dict = guilddict_temp[guildid].get('questreport_dict',{})
             wildreport_dict = guilddict_temp[guildid].get('wildreport_dict',{})
             report_dict_dict = {
@@ -984,9 +986,9 @@ async def message_cleanup(loop=True):
             await _update_listing_channels(guild, 'research', edit=True)
         logger.info('message_cleanup - SAVING CHANGES')
         try:
-            await _save(ctx)
+            await _save(guild_id)
         except Exception as err:
-            logger.info('message_cleanup - SAVING FAILED' + err)
+            logger.info('message_cleanup - SAVING FAILED' + str(err))
         logger.info('message_cleanup ------ END ------')
         await asyncio.sleep(600)
         continue
@@ -1616,13 +1618,13 @@ async def save(ctx):
     Usage: !save
     File path is relative to current directory."""
     try:
-        await _save(ctx)
+        await _save(ctx.guild.id)
         logger.info('CONFIG SAVED')
     except Exception as err:
         await _print(Meowth.owner, _('Error occured while trying to save!'))
         await _print(Meowth.owner, err)
 
-async def _save(ctx):
+async def _save(guildid):
     with tempfile.NamedTemporaryFile('wb', dir=os.path.dirname(os.path.join('data', 'serverdict')), delete=False) as tf:
         pickle.dump(guild_dict, tf, -1)
         tempname = tf.name
@@ -1641,8 +1643,8 @@ async def _save(ctx):
     if not location_matching_cog:
         await _print(Meowth.owner, 'Pokestop and Gym data not saved!')
         return None
-    stop_save = location_matching_cog.saveStopsToJson(ctx.guild.id)
-    gym_save = location_matching_cog.saveGymsToJson(ctx.guild.id)
+    stop_save = location_matching_cog.saveStopsToJson(guildid)
+    gym_save = location_matching_cog.saveGymsToJson(guildid)
     if stop_save is not None:
         await _print(Meowth.owner, f'Failed to save pokestop data with error: {stop_save}!')
     if gym_save is not None:
@@ -1657,7 +1659,7 @@ async def restart(ctx):
     Usage: !restart.
     Calls the save function and restarts Meowth."""
     try:
-        await _save(ctx)
+        await _save(ctx.guild.id)
     except Exception as err:
         await _print(Meowth.owner, _('Error occured while trying to save!'))
         await _print(Meowth.owner, err)
@@ -1673,7 +1675,7 @@ async def exit(ctx):
     Usage: !exit.
     Calls the save function and quits the script."""
     try:
-        await _save(ctx)
+        await _save(ctx.guild.id)
     except Exception as err:
         await _print(Meowth.owner, _('Error occured while trying to save!'))
         await _print(Meowth.owner, err)
