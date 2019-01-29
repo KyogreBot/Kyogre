@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+import tempfile
 
 from discord.ext import commands
 
@@ -139,14 +140,9 @@ class LocationMatching:
                 result.append(Pokestop(name, coords[0], coords[1], None))
         return result
 
-class LocationSave:
-    def __init__(self, bot):
-        self.bot = bot
-
-    def saveStopsToJson():
+    def saveStopsToJson(self, guild_id):
         try:
-            filename = datetime.datetime.now().strftime("%m-%d_%H%M%S-pokestop_data.json")
-            with open(filename, 'w') as f:
+            with tempfile.NamedTemporaryFile('w', dir=os.path.dirname(os.path.join('data', 'pokestop_data_backup1')), delete=False) as f:
                 stops = (PokestopTable
                         .select(LocationTable.name, 
                                 LocationTable.latitude, 
@@ -165,14 +161,23 @@ class LocationSave:
                     s[stop.name]["region"] = stop.region
                     s[stop.name]["guild"] = str(guild_id)
                 f.write(json.dumps(s, indent=4))
+                tempname = f.name
+            try:
+                os.remove(os.path.join('data', 'pokestop_data_backup1'))
+            except OSError as e:
+                pass
+            try:
+                os.rename(os.path.join('data', 'pokestop_data_backup1'), os.path.join('data', 'pokestop_data_backup2'))
+            except OSError as e:
+                pass
+            os.rename(tempname, os.path.join('data', 'pokestop_data_backup1'))
             return None
         except Exception as err:
             return err
 
-    def saveGymsToJson():
+    def saveGymsToJson(self, guild_id):
         try:
-            filename = datetime.datetime.now().strftime("%m-%d_%H%M%S-gym_data.json")
-            with open(filename, 'w') as f:
+            with tempfile.NamedTemporaryFile('w', dir=os.path.dirname(os.path.join('data', 'gym_data_backup1')), delete=False) as f:
                 gyms = (GymTable
                             .select(LocationTable.name, 
                                     LocationTable.latitude, 
@@ -193,6 +198,16 @@ class LocationSave:
                     g[gym.name]["region"] = gym.region
                     g[gym.name]["guild"] = str(guild_id)
                 f.write(json.dumps(g, indent=4))
+                tempname = f.name
+            try:
+                os.remove(os.path.join('data', 'gym_data_backup1'))
+            except OSError as e:
+                pass
+            try:
+                os.rename(os.path.join('data', 'gym_data_backup1'), os.path.join('data', 'gym_data_backup2'))
+            except OSError as e:
+                pass
+            os.rename(tempname, os.path.join('data', 'gym_data_backup1'))
             return None
         except Exception as err:
             return err
