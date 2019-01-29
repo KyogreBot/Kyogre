@@ -2325,7 +2325,7 @@ async def _configure(ctx, configlist):
             if not ctx:
                 return None
         if "subscriptions" in configreplylist:
-            ctx = await _configure_subscription(ctx)
+            ctx = await _configure_subscriptions(ctx)
             if not ctx:
                 return None
         if "archive" in configreplylist:
@@ -2740,8 +2740,8 @@ async def _get_listings(guild, owner, config_dict_temp):
     else:
         await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("I can also provide a listing that I will keep updated automatically as events are reported, updated, or expired. To enable this, please provide a channel name where this listing should be shown.\n\n**IMPORTANT** I recommend you set the permissions for this channel to allow only me to post to it. I will moderate the channel to remove other messages, but it will save me some work!")).set_author(name=_('Listing Channels'), icon_url=Meowth.user.avatar_url))
         while True:
-            listing_channel = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
-            listing_channel = listing_channel.content.lower()
+            listing_channels = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+            listing_channels = listing_channel.content.lower()
             if listing_channel == 'n':
                 listing_dict['enabled'] = False
                 await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('Listing disabled')))
