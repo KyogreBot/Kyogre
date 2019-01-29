@@ -894,7 +894,7 @@ async def channel_cleanup(loop=True):
         # save server_dict changes after cleanup
         logger.info('Channel_Cleanup - SAVING CHANGES')
         try:
-            await _save()
+            await _save(ctx)
         except Exception as err:
             logger.info('Channel_Cleanup - SAVING FAILED' + err)
         logger.info('Channel_Cleanup ------ END ------')
@@ -984,7 +984,7 @@ async def message_cleanup(loop=True):
             await _update_listing_channels(guild, 'research', edit=True)
         logger.info('message_cleanup - SAVING CHANGES')
         try:
-            await _save()
+            await _save(ctx)
         except Exception as err:
             logger.info('message_cleanup - SAVING FAILED' + err)
         logger.info('message_cleanup ------ END ------')
@@ -1616,13 +1616,13 @@ async def save(ctx):
     Usage: !save
     File path is relative to current directory."""
     try:
-        await _save()
+        await _save(ctx)
         logger.info('CONFIG SAVED')
     except Exception as err:
         await _print(Meowth.owner, _('Error occured while trying to save!'))
         await _print(Meowth.owner, err)
 
-async def _save():
+async def _save(ctx):
     with tempfile.NamedTemporaryFile('wb', dir=os.path.dirname(os.path.join('data', 'serverdict')), delete=False) as tf:
         pickle.dump(guild_dict, tf, -1)
         tempname = tf.name
@@ -1637,12 +1637,12 @@ async def _save():
             raise
     os.rename(tempname, os.path.join('data', 'serverdict'))
 
-    location_save_cog = Meowth.cogs.get('LocationSave')
-    if not location_save_cog:
+    location_matching_cog = Meowth.cogs.get('LocationMatching')
+    if not location_matching_cog:
         await _print(Meowth.owner, 'Pokestop and Gym data not saved!')
         return None
-    stop_save = location_save_cog.saveStopsToJson()
-    gym_save = location_save_cog.saveGymsToJson()
+    stop_save = location_matching_cog.saveStopsToJson(ctx.guild.id)
+    gym_save = location_matching_cog.saveGymsToJson(ctx.guild.id)
     if stop_save is not None:
         await _print(Meowth.owner, f'Failed to save pokestop data with error: {stop_save}!')
     if gym_save is not None:
@@ -1657,7 +1657,7 @@ async def restart(ctx):
     Usage: !restart.
     Calls the save function and restarts Meowth."""
     try:
-        await _save()
+        await _save(ctx)
     except Exception as err:
         await _print(Meowth.owner, _('Error occured while trying to save!'))
         await _print(Meowth.owner, err)
@@ -1673,7 +1673,7 @@ async def exit(ctx):
     Usage: !exit.
     Calls the save function and quits the script."""
     try:
-        await _save()
+        await _save(ctx)
     except Exception as err:
         await _print(Meowth.owner, _('Error occured while trying to save!'))
         await _print(Meowth.owner, err)
@@ -6890,18 +6890,20 @@ async def _loc_change_region(ctx, *, info):
     if info[0].lower() == "stop":
         stops = get_stops(ctx.guild.id, None)
         stop = await location_match_prompt(channel, author.id, info[1], stops)
-        name = stop.name
-    else if info[0].lower() == "gym":
+        if stop is not None:
+            name = stop.name
+    elif info[0].lower() == "gym":
         gyms = get_gyms(ctx.guild.id, None)
         gym = await location_match_prompt(channel, author.id, info[1], gyms)
-        name = gym.name
+        if gym is not None:
+            name = gym.name
     if not stop and not gym:
         failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"No {info[0]} found with name {info[1]}."))
         await message.add_reaction('❌')        
         await asyncio.sleep(10)
         await failed.delete()
         return
-    result = await changeRegion(name, info[2])
+    result = await changeRegion(ctx, name, info[2].strip())
     if result == 0:
         failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Failed to change location for {name}."))
         await message.add_reaction('❌')        
@@ -6958,7 +6960,7 @@ async def changeRegion(ctx, name, region):
                       .select(LocationTable.id.alias('loc_id'))
                       .join(LocationRegionRelation)
                       .join(RegionTable)
-                      .where((LocationTable.guild == guild_id) &
+                      .where((LocationTable.guild == ctx.guild.id) &
                              (LocationTable.guild == RegionTable.guild) &
                              (LocationTable.name == name)))
             loc_id = current[0].loc_id
@@ -6966,16 +6968,16 @@ async def changeRegion(ctx, name, region):
                        .select(RegionTable.id.alias('reg_id'))
                        .join(LocationRegionRelation)
                        .join(LocationTable)
-                       .where((LocationTable.guild == guild_id) &
+                       .where((LocationTable.guild == ctx.guild.id) &
                               (LocationTable.guild == RegionTable.guild) &
                               (LocationTable.id == loc_id)))
-            reg_id = current[0].reg_id            
+            reg_id = current[0].reg_id 
             deleted = LocationRegionRelation.delete().where((LocationRegionRelation.location_id == loc_id) &
                                                             (LocationRegionRelation.region_id == reg_id)).execute()
             new = (RegionTable
                    .select(RegionTable.id)
                    .where((RegionTable.name == region) &
-                          (RegionTable.guild_id == guild_id)))
+                          (RegionTable.guild_id == ctx.guild.id)))
             success = LocationRegionRelation.create(location=loc_id, region=new[0].id)
         except Exception as e: 
             await ctx.channel.send(e)
