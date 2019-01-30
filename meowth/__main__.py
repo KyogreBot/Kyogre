@@ -6818,11 +6818,16 @@ async def _loc_add(ctx, *, info):
             data["ex_eligible"] = False
     data["region"] = region.strip()
     data["guild"] = str(ctx.guild.id)
-    region = RegionTable.select(RegionTable.name == region.strip() & RegionTable.guild == ctx.guild.id)
+    region = region.strip().lower()
+    region = RegionTable.get(RegionTable.name == region & RegionTable.guild == ctx.guild.id)
+    await channel.send(region)
     location = LocationTable.create_location(name.strip(), data)
+    await channel.send(location)
     LocationRegionRelation.create(location=location, region=region)
-    GymTable.create(location=location, ex_eligible=data['ex_eligible'])
-    PokestopTable.create(location=location)
+    if type == "gym":
+        GymTable.create(location=location, ex_eligible=data['ex_eligible'])
+    elif type == "stop":
+        PokestopTable.create(location=location)
     await ctx.message.add_reaction('✅')
 
 @_loc.command(name="convert", aliases=["c"])
