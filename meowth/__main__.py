@@ -6953,13 +6953,13 @@ async def _loc_deletelocation(ctx, *, info):
         return
     result = await deleteLocation(ctx, type, name)
     if result == 0:
-        failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Failed to change location for {name}."))
+        failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Failed to delete {type}: {name}."))
         await message.add_reaction('❌')        
         await asyncio.sleep(10)
         await failed.delete()
         return
     else:
-        success = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=f"Successfully changed location for {name}."))
+        success = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=f"Successfully deleted {type}: {name}."))
         await message.add_reaction('✅')
         await asyncio.sleep(10)
         await success.delete()
@@ -6968,23 +6968,26 @@ async def _loc_deletelocation(ctx, *, info):
 async def deleteLocation(ctx, type, name):
     channel = ctx.channel
     guild = ctx.guild
+    deleted = 0
     with KyogreDB._db.atomic() as txn:
         try:
             locationresult = (LocationTable
                 .get((LocationTable.guild == guild.id) &
                        (LocationTable.name == name)))
             location = LocationTable.get_by_id(locationresult)
-            location.delete_instance()
-            if type =="stop":
+            loc_reg = (LocationRegionRelation
+                .get(LocationRegionRelation.location_id == locationresult))
+            if type == "stop":
                 deleted = PokestopTable.delete().where(PokestopTable.location_id == locationresult).execute()
             elif type == "gym":
                 deleted = GymTable.delete().where(GymTable.location_id == locationresult).execute()
-            location.delete_instance()
+            deleted += LocationRegionRelation.delete().where(LocationRegionRelation.id == loc_reg).execute()
+            deleted += location.delete_instance()
             txn.commit()
         except Exception as e: 
             await channel.send(e)
             txn.rollback()
-    return success
+    return deleted
 
 async def stopToGym(ctx, name):
     channel = ctx.channel
