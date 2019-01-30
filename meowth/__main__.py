@@ -6810,25 +6810,19 @@ async def _loc_add(ctx, *, info):
     if error_msg is not None:
         return await channel.send(error_msg)
     data = {}
-    data["coordinates"] = f"{latitude.strip()},{longitude.strip()}"
+    data["coordinates"] = f"{latitude},{longitude}"
     if type == "gym":
         if ex_eligible is not None:
-            data["ex_eligible"] = bool(ex_eligible.strip())
+            data["ex_eligible"] = bool(ex_eligible)
         else:
             data["ex_eligible"] = False
-    data["region"] = region.strip()
+    data["region"] = region
     data["guild"] = str(ctx.guild.id)
-    region = region.strip().lower()
-    region = RegionTable.get(RegionTable.name == region & RegionTable.guild == ctx.guild.id)
-    await channel.send(region)
-    location = LocationTable.create_location(name.strip(), data)
-    await channel.send(location)
-    LocationRegionRelation.create(location=location, region=region)
-    if type == "gym":
-        GymTable.create(location=location, ex_eligible=data['ex_eligible'])
-    elif type == "stop":
-        PokestopTable.create(location=location)
-    await ctx.message.add_reaction('✅')
+    error_msg = LocationTable.create_location(name, data)
+    if error_msg is None:
+        return await ctx.message.add_reaction('✅')
+    else:
+        await ctx.channel.send("Failed to add new location")
 
 @_loc.command(name="convert", aliases=["c"])
 @commands.has_permissions(manage_guild=True)
