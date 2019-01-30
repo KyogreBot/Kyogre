@@ -9082,7 +9082,7 @@ async def _get_raid_listing_messages(channel, region=None):
                 map_url = rc_d[r]['gym'].maps_url
             except:
                 pass
-            output += _('\t{tier} **{raidchannel}**{ex_eligibility}{expiry_text} \nDirections: {map_url}\n').format(tier=t_emoji, raidchannel=channel_name, ex_eligibility=ex_eligibility, expiry_text=expirytext, total_count=sum([ctx_maybecount, ctx_comingcount, ctx_herecount, ctx_lobbycount]), starttime=start_str,map_url=map_url)
+            output += _('\t{tier} **{raidchannel}**{ex_eligibility}{expiry_text} \n[Click for directions]({map_url})\n').format(tier=t_emoji, raidchannel=channel_name, ex_eligibility=ex_eligibility, expiry_text=expirytext, total_count=sum([ctx_maybecount, ctx_comingcount, ctx_herecount, ctx_lobbycount]), starttime=start_str,map_url=map_url)
         return output
     
     def process_category(listmsg_list, category_title, category_list):
