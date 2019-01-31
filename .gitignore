@@ -34,4 +34,8 @@ data/region_data.json
 data/gym_data.json
 data/pokestop_data.json
 data/region_data.json
+data/gym_data_backup1
+data/gym_data_backup2
+data/pokestop_data_backup1
+data/pokestop_data_backup2
 data/raid_info.json

@@ -945,9 +945,9 @@ async def channel_cleanup(loop=True):
         # save server_dict changes after cleanup
         logger.info('Channel_Cleanup - SAVING CHANGES')
         try:
-            await _save()
+            await _save(guildid)
         except Exception as err:
-            logger.info('Channel_Cleanup - SAVING FAILED' + err)
+            logger.info('Channel_Cleanup - SAVING FAILED' + str(err))
         logger.info('Channel_Cleanup ------ END ------')
         await asyncio.sleep(600)
         continue
@@ -964,6 +964,7 @@ async def guild_cleanup(loop=True):
             dict_guild_list.append(guildid)
         for guild in Meowth.guilds:
             bot_guild_list.append(guild.id)
+            guild_id = guild.id
         guild_diff = set(dict_guild_list) - set(bot_guild_list)
         for s in guild_diff:
             dict_guild_delete.append(s)
@@ -976,9 +977,9 @@ async def guild_cleanup(loop=True):
                 pass
         logger.info('Server_Cleanup - SAVING CHANGES')
         try:
-            await _save()
+            await _save(guild_id)
         except Exception as err:
-            logger.info('Server_Cleanup - SAVING FAILED' + err)
+            logger.info('Server_Cleanup - SAVING FAILED' + str(err))
         logger.info('Server_Cleanup ------ END ------')
         await asyncio.sleep(7200)
         continue
@@ -989,6 +990,7 @@ async def message_cleanup(loop=True):
         guilddict_temp = copy.deepcopy(guild_dict)
         update_ids = set()
         for guildid in guilddict_temp.keys():
+            guild_id = guildid
             questreport_dict = guilddict_temp[guildid].get('questreport_dict',{})
             wildreport_dict = guilddict_temp[guildid].get('wildreport_dict',{})
             report_dict_dict = {
@@ -1035,9 +1037,9 @@ async def message_cleanup(loop=True):
             await _update_listing_channels(guild, 'research', edit=True)
         logger.info('message_cleanup - SAVING CHANGES')
         try:
-            await _save()
+            await _save(guild_id)
         except Exception as err:
-            logger.info('message_cleanup - SAVING FAILED' + err)
+            logger.info('message_cleanup - SAVING FAILED' + str(err))
         logger.info('message_cleanup ------ END ------')
         await asyncio.sleep(600)
         continue
@@ -1691,13 +1693,13 @@ async def save(ctx):
     Usage: !save
     File path is relative to current directory."""
     try:
-        await _save()
+        await _save(ctx.guild.id)
         logger.info('CONFIG SAVED')
     except Exception as err:
         await _print(Meowth.owner, _('Error occured while trying to save!'))
         await _print(Meowth.owner, err)
 
-async def _save():
+async def _save(guildid):
     with tempfile.NamedTemporaryFile('wb', dir=os.path.dirname(os.path.join('data', 'serverdict')), delete=False) as tf:
         pickle.dump(guild_dict, tf, -1)
         tempname = tf.name
@@ -1712,6 +1714,18 @@ async def _save():
             raise
     os.rename(tempname, os.path.join('data', 'serverdict'))
 
+    location_matching_cog = Meowth.cogs.get('LocationMatching')
+    if not location_matching_cog:
+        await _print(Meowth.owner, 'Pokestop and Gym data not saved!')
+        return None
+    stop_save = location_matching_cog.saveStopsToJson(guildid)
+    gym_save = location_matching_cog.saveGymsToJson(guildid)
+    if stop_save is not None:
+        await _print(Meowth.owner, f'Failed to save pokestop data with error: {stop_save}!')
+    if gym_save is not None:
+        await _print(Meowth.owner, f'Failed to save pokestop data with error: {gym_save}!')
+
+
 @Meowth.command()
 @checks.is_owner()
 async def restart(ctx):
@@ -1720,7 +1734,7 @@ async def restart(ctx):
     Usage: !restart.
     Calls the save function and restarts Meowth."""
     try:
-        await _save()
+        await _save(ctx.guild.id)
     except Exception as err:
         await _print(Meowth.owner, _('Error occured while trying to save!'))
         await _print(Meowth.owner, err)
@@ -1736,7 +1750,7 @@ async def exit(ctx):
     Usage: !exit.
     Calls the save function and quits the script."""
     try:
-        await _save()
+        await _save(ctx.guild.id)
     except Exception as err:
         await _print(Meowth.owner, _('Error occured while trying to save!'))
         await _print(Meowth.owner, err)
@@ -2388,7 +2402,7 @@ async def _configure(ctx, configlist):
             if not ctx:
                 return None
         if "subscriptions" in configreplylist:
-            ctx = await _configure_subscription(ctx)
+            ctx = await _configure_subscriptions(ctx)
             if not ctx:
                 return None
         if "archive" in configreplylist:
@@ -2823,8 +2837,8 @@ async def _get_listings(guild, owner, config_dict_temp):
     else:
         await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_("I can also provide a listing that I will keep updated automatically as events are reported, updated, or expired. To enable this, please provide a channel name where this listing should be shown.\n\n**IMPORTANT** I recommend you set the permissions for this channel to allow only me to post to it. I will moderate the channel to remove other messages, but it will save me some work!")).set_author(name=_('Listing Channels'), icon_url=Meowth.user.avatar_url))
         while True:
-            listing_channel = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
-            listing_channel = listing_channel.content.lower()
+            listing_channels = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+            listing_channels = listing_channel.content.lower()
             if listing_channel == 'n':
                 listing_dict['enabled'] = False
                 await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('Listing disabled')))
@@ -6950,6 +6964,297 @@ async def _reports_list(ctx, *, type, regions=''):
     if type not in valid_types:
         await channel.send(f"'{type}' is either invalid or unsupported. Please use one of the following: {', '.join(valid_types)}")
     await ctx.channel.send(f"This is a {type} listing")
+
+@Meowth.group(name="loc")
+async def _loc(ctx):
+    """Location data management command"""
+    if ctx.invoked_subcommand == None:
+        raise commands.BadArgument()
+
+@_loc.command(name="add")
+@commands.has_permissions(manage_guild=True)
+async def _loc_add(ctx, *, info):
+    channel = ctx.channel
+    message = ctx.message
+    type = None
+    name = None
+    region = None
+    latitude = None
+    longitude = None
+    ex_eligible = None
+    error_msg = None
+    try:
+        if ',' in info:
+            info_split = info.split(',')
+            if len(info_split) < 5:
+                error_msg = "Please provide the following when using this command: `location type, name, region, latitude, longitude, (optional) ex eligible`"
+            elif len(info_split) == 5:
+                type, name, region, latitude, longitude = [x.strip() for x in info.split(',')]
+            elif len(info_split) == 6:
+                type, name, region, latitude, longitude, ex_eligible = [x.strip() for x in info.split(',')]
+        else:
+            error_msg = "Please provide the following when using this command: `location type, name, region, latitude, longitude, (optional) ex eligible`"
+    except:
+        error_msg = "Please provide the following when using this command: `location type, name, region, latitude, longitude, (optional) ex eligible`"
+    if error_msg is not None:
+        return await channel.send(error_msg)
+    data = {}
+    data["coordinates"] = f"{latitude},{longitude}"
+    if type == "gym":
+        if ex_eligible is not None:
+            data["ex_eligible"] = bool(ex_eligible)
+        else:
+            data["ex_eligible"] = False
+    data["region"] = region
+    data["guild"] = str(ctx.guild.id)
+    error_msg = LocationTable.create_location(name, data)
+    if error_msg is None:
+        success = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=f"Successfully added {type}: {name}."))
+        await message.add_reaction('✅')
+        await asyncio.sleep(10)
+        await success.delete()
+        return
+    else:
+        failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Failed to add {type}: {name}."))
+        await message.add_reaction('❌')        
+        await asyncio.sleep(10)
+        await failed.delete()
+        return
+
+@_loc.command(name="convert", aliases=["c"])
+@commands.has_permissions(manage_guild=True)
+async def _loc_convert(ctx, *, info):
+    """Changes a pokestop into a gym"""
+    channel = ctx.channel
+    author = ctx.message.author
+    stops = None
+    stops = get_stops(ctx.guild.id, None)
+    stop = await location_match_prompt(channel, author.id, info, stops)
+    if not stop:
+        no_stop_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"No pokestop found with name **{info}**"))
+        await asyncio.sleep(15)
+        await no_stop_msg.delete()
+        return
+    result = await stopToGym(ctx, stop.name)
+    if (result[0] == 0):
+        failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Failed to convert stop to gym."))
+        await ctx.message.add_reaction('❌')        
+        await asyncio.sleep(15)
+        await failed.delete()
+        return
+    else:
+        success = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=f"Converted {result[0]} stop(s) to gym(s)."))
+        await ctx.message.add_reaction('✅')
+        await asyncio.sleep(15)
+        await success.delete()
+        return
+
+@_loc.command(name="extoggle", aliases=["ext"])
+@commands.has_permissions(manage_guild=True)
+async def _loc_extoggle(ctx, *, info):
+    """Toggles gym ex status"""
+    channel = ctx.channel
+    author = ctx.message.author
+    gyms = get_gyms(ctx.guild.id, None)
+    gym = await location_match_prompt(channel, author.id, info, gyms)
+    if not gym:
+        no_gym_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"No gym found with name {details}"))
+        await asyncio.sleep(15)
+        await no_gym_msg.delete()
+        return
+    result = await toggleEX(ctx, gym.name)
+    if result == 0:
+        failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Failed to change gym's EX status."))
+        await ctx.message.add_reaction('❌')        
+        await asyncio.sleep(15)
+        await failed.delete()
+        return
+    else:
+        success = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=f"Successfully changed EX status for {result} gym(s)."))
+        await ctx.message.add_reaction('✅')
+        await asyncio.sleep(15)
+        await success.delete()
+        return
+    
+@_loc.command(name="changeregion", aliases=["cr"])
+@commands.has_permissions(manage_guild=True)
+async def _loc_change_region(ctx, *, info):
+    channel = ctx.channel
+    message = ctx.message
+    author = message.author
+    info = info.split(',')
+    if len(info) != 3:
+        failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Please provide (comma separated) the location type (stop or gym), name of the Pokestop or gym, and the new region it should be assigned to."))
+        await message.add_reaction('❌')        
+        await asyncio.sleep(10)
+        await failed.delete()
+        return
+    if info[0].lower() == "stop":
+        stops = get_stops(ctx.guild.id, None)
+        stop = await location_match_prompt(channel, author.id, info[1], stops)
+        if stop is not None:
+            name = stop.name
+    elif info[0].lower() == "gym":
+        gyms = get_gyms(ctx.guild.id, None)
+        gym = await location_match_prompt(channel, author.id, info[1], gyms)
+        if gym is not None:
+            name = gym.name
+    if not stop and not gym:
+        failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"No {info[0]} found with name {info[1]}."))
+        await message.add_reaction('❌')        
+        await asyncio.sleep(10)
+        await failed.delete()
+        return
+    result = await changeRegion(ctx, name, info[2].strip())
+    if result == 0:
+        failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Failed to change location for {name}."))
+        await message.add_reaction('❌')        
+        await asyncio.sleep(10)
+        await failed.delete()
+        return
+    else:
+        success = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=f"Successfully changed location for {name}."))
+        await message.add_reaction('✅')
+        await asyncio.sleep(10)
+        await success.delete()
+        return
+
+@_loc.command(name="deletelocation", aliases=["del"])
+@commands.has_permissions(manage_guild=True)
+async def _loc_deletelocation(ctx, *, info):
+    channel = ctx.channel
+    message = ctx.message
+    author = message.author
+    info = info.split(',')
+    if len(info) != 2:
+        failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Please provide (comma separated) the location type (stop or gym) and the name of the Pokestop or gym."))
+        await message.add_reaction('❌')        
+        await asyncio.sleep(10)
+        await failed.delete()
+        return
+    type = info[0].lower()
+    stop = None
+    gym = None
+    if type == "stop":
+        stops = get_stops(ctx.guild.id, None)
+        stop = await location_match_prompt(channel, author.id, info[1], stops)
+        if stop is not None:
+            name = stop.name
+    elif type == "gym":
+        gyms = get_gyms(ctx.guild.id, None)
+        gym = await location_match_prompt(channel, author.id, info[1], gyms)
+        if gym is not None:
+            name = gym.name
+    if not stop and not gym:
+        failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"No {info[0]} found with name {info[1]}."))
+        await message.add_reaction('❌')        
+        await asyncio.sleep(10)
+        await failed.delete()
+        return
+    result = await deleteLocation(ctx, type, name)
+    if result == 0:
+        failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Failed to delete {type}: {name}."))
+        await message.add_reaction('❌')        
+        await asyncio.sleep(10)
+        await failed.delete()
+        return
+    else:
+        success = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=f"Successfully deleted {type}: {name}."))
+        await message.add_reaction('✅')
+        await asyncio.sleep(10)
+        await success.delete()
+        return
+
+async def deleteLocation(ctx, type, name):
+    channel = ctx.channel
+    guild = ctx.guild
+    deleted = 0
+    with KyogreDB._db.atomic() as txn:
+        try:
+            locationresult = (LocationTable
+                .get((LocationTable.guild == guild.id) &
+                       (LocationTable.name == name)))
+            location = LocationTable.get_by_id(locationresult)
+            loc_reg = (LocationRegionRelation
+                .get(LocationRegionRelation.location_id == locationresult))
+            if type == "stop":
+                deleted = PokestopTable.delete().where(PokestopTable.location_id == locationresult).execute()
+            elif type == "gym":
+                deleted = GymTable.delete().where(GymTable.location_id == locationresult).execute()
+            deleted += LocationRegionRelation.delete().where(LocationRegionRelation.id == loc_reg).execute()
+            deleted += location.delete_instance()
+            txn.commit()
+        except Exception as e: 
+            await channel.send(e)
+            txn.rollback()
+    return deleted
+
+async def stopToGym(ctx, name):
+    channel = ctx.channel
+    guild = ctx.guild
+    deleted = 0
+    created = 0
+    with KyogreDB._db.atomic() as txn:
+        try:
+            locationresult = (LocationTable
+                .get((LocationTable.guild == guild.id) &
+                       (LocationTable.name == name)))
+            deleted = PokestopTable.delete().where(PokestopTable.location_id == locationresult).execute()
+            location = LocationTable.get_by_id(locationresult)
+            created = GymTable.create(location = location, ex_eligible = False)
+            txn.commit()
+        except Exception as e: 
+            await channel.send(e)
+            txn.rollback()
+    return (deleted, created)
+
+async def toggleEX(ctx, name):
+    channel = ctx.channel
+    guild = ctx.guild
+    success = 0
+    with KyogreDB._db.atomic() as txn:
+        try:
+            locationresult = (LocationTable
+                .get((LocationTable.guild == guild.id) &
+                       (LocationTable.name == name)))
+            location = LocationTable.get_by_id(locationresult)
+            success = GymTable.update(ex_eligible = ~GymTable.ex_eligible).where(GymTable.location_id == location.id).execute()
+            txn.commit()
+        except Exception as e: 
+            await channel.send(e)
+            txn.rollback()
+    return success
+
+async def changeRegion(ctx, name, region):
+    with KyogreDB._db.atomic() as txn:
+        try:
+            current = (LocationTable
+                      .select(LocationTable.id.alias('loc_id'))
+                      .join(LocationRegionRelation)
+                      .join(RegionTable)
+                      .where((LocationTable.guild == ctx.guild.id) &
+                             (LocationTable.guild == RegionTable.guild) &
+                             (LocationTable.name == name)))
+            loc_id = current[0].loc_id
+            current = (RegionTable
+                       .select(RegionTable.id.alias('reg_id'))
+                       .join(LocationRegionRelation)
+                       .join(LocationTable)
+                       .where((LocationTable.guild == ctx.guild.id) &
+                              (LocationTable.guild == RegionTable.guild) &
+                              (LocationTable.id == loc_id)))
+            reg_id = current[0].reg_id 
+            deleted = LocationRegionRelation.delete().where((LocationRegionRelation.location_id == loc_id) &
+                                                            (LocationRegionRelation.region_id == reg_id)).execute()
+            new = (RegionTable
+                   .select(RegionTable.id)
+                   .where((RegionTable.name == region) &
+                          (RegionTable.guild_id == ctx.guild.id)))
+            success = LocationRegionRelation.create(location=loc_id, region=new[0].id)
+        except Exception as e: 
+            await ctx.channel.send(e)
+            txn.rollback()
+    return success
 
 @Meowth.group(name="quest")
 async def _quest(ctx):

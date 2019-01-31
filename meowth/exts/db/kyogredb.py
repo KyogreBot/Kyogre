@@ -159,6 +159,32 @@ class LocationTable(BaseModel):
     guild = ForeignKeyField(GuildTable, field=GuildTable.snowflake, backref='locations', index=True)
 
     @classmethod
+    def create_location(ctx, name, data):
+        try:
+            latitude, longitude = data['coordinates'].split(',')
+            if 'guild' in data and data['guild']:
+                for guild_id in data['guild'].split(','):
+                    with KyogreDB._db.atomic():
+                        guild, __ = GuildTable.get_or_create(snowflake=guild_id)
+                        location = LocationTable.create(name=name, latitude=latitude, longitude=longitude, guild=guild)
+                        if 'region' in data and data['region']:
+                            for region_name in data['region'].split(','):
+                                with KyogreDB._db.atomic():
+                                    # guild_id used here because peewee will not get correctly if obj used and throw error
+                                    region, __ = RegionTable.get_or_create(name=region_name, area=None, guild=guild_id)
+                                    LocationRegionRelation.create(location=location, region=region)
+                        if 'notes' in data:
+                            for note in data['notes']:
+                                LocationNoteTable.create(location=location, note=note)
+                        if 'ex_eligible' in data:
+                            GymTable.create(location=location, ex_eligible=data['ex_eligible'])
+                        else:
+                            PokestopTable.create(location=location)
+        except Exception as e:
+            import pdb; pdb.set_trace()
+            print(e)
+
+    @classmethod
     def reload_default(cls):
         if not KyogreDB._db:
             return
@@ -166,38 +192,14 @@ class LocationTable(BaseModel):
             cls.delete().execute()
         except:
             pass
-        def create_location(name, data):
-            try:
-                latitude, longitude = data['coordinates'].split(',')
-                if 'guild' in data and data['guild']:
-                    for guild_id in data['guild'].split(','):
-                        with KyogreDB._db.atomic():
-                            guild, __ = GuildTable.get_or_create(snowflake=guild_id)
-                            location = LocationTable.create(name=name, latitude=latitude, longitude=longitude, guild=guild)
-                            if 'region' in data and data['region']:
-                                for region_name in data['region'].split(','):
-                                    with KyogreDB._db.atomic():
-                                        # guild_id used here because peewee will not get correctly if obj used and throw error
-                                        region, __ = RegionTable.get_or_create(name=region_name, area=None, guild=guild_id)
-                                        LocationRegionRelation.create(location=location, region=region)
-                            if 'notes' in data:
-                                for note in data['notes']:
-                                    LocationNoteTable.create(location=location, note=note)
-                            if 'ex_eligible' in data:
-                                GymTable.create(location=location, ex_eligible=data['ex_eligible'])
-                            else:
-                                PokestopTable.create(location=location)
-            except Exception as e:
-                import pdb; pdb.set_trace()
-                print(e)
         with open('data/gym_data.json', 'r') as f:
             gym_data = json.load(f)
         with open('data/pokestop_data.json', 'r') as f:
             pokestop_data = json.load(f)
         for name, data in gym_data.items():
-            create_location(name, data)
+            LocationTable.create_location(name, data)
         for name, data in pokestop_data.items():
-            create_location(name, data)
+            LocationTable.create_location(name, data)
 
 class LocationNoteTable(BaseModel):
     location = ForeignKeyField(LocationTable, backref='notes')

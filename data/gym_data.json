@@ -3,727 +3,727 @@
     "Petrovitsky Park": {
         "coordinates": "47.441533,-122.120511",
         "ex_eligible": true,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Cedar River Trail": {
         "coordinates": "47.461841,-122.088952",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Black Bear": {
         "coordinates": "47.43087,-122.19647",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Echo Quarry Trail": {
         "coordinates": "47.440593,-122.097241",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "NW Life Church": {
         "coordinates": "47.430463,-122.165951",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Fairwood Water Tower": {
         "coordinates": "47.434022,-122.188119",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Cedar Grove Road Natural Area": {
         "coordinates": "47.438522,-122.066384",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Starbucks Landing Target": {
         "coordinates": "47.496483,-122.200356",
         "ex_eligible": true,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Starbucks Renton Highlands": {
         "coordinates": "47.48895467,-122.1631391",
         "ex_eligible": true,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Starbucks DT Renton Safeway": {
         "coordinates": "47.480233,-122.214421",
         "ex_eligible": true,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Renton Sign": {
         "coordinates": "47.467857,-122.233971",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "387717261487505411,471174283133976598"
     },
     "Starbucks Benson Fred Meyer": {
         "coordinates": "47.442903,-122.199249",
         "ex_eligible": true,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Skyway Park Bowl": {
         "coordinates": "47.496909,-122.246047",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Skyway Water Tower west": {
         "coordinates": "47.492409,-122.248894",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Skyway Water Tower east": {
         "coordinates": "47.490119,-122.230399",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Stained Glass Cross": {
         "coordinates": "47.487415,-122.257871",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "St. Luke's Lutheran Church": {
         "coordinates": "47.503895,-122.265224",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Alajawan Brown Memorial": {
         "coordinates": "47.502477,-122.238368",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Wat Lao Mixayaram": {
         "coordinates": "47.502477,-122.238368",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Renton Library Turtle": {
         "coordinates": "47.503491,-122.181123",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Renton Technical College Trans": {
         "coordinates": "47.491226,-122.175982",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Hazen Water Tower": {
         "coordinates": "47.503198,-122.153707",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Renton Diamond Jubilee": {
         "coordinates": "47.485838,-122.217327",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Dog And Pony Alehouse": {
         "coordinates": "47.48827,-122.202548",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Coulon Park": {
         "coordinates": "47.503822,-122.203948",
         "ex_eligible": true,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Coulon Park Dedication Plaque": {
         "coordinates": "47.506856,-122.202667",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Union Plaque at Renton Technical College": {
         "coordinates": "47.49368,-122.176582",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Sprint Renton Highlands": {
         "coordinates": "47.488829,-122.155423",
         "ex_eligible": true,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "St. Matthew's Lutheran Church": {
         "coordinates": "47.506376,-122.185405",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Nishiwaki Lane": {
         "coordinates": "47.494916,-122.213145",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Seed of Abraham Pentecostal": {
         "coordinates": "47.486572,-122.204357",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Community Garden": {
         "coordinates": "47.484984,-122.206252",
         "ex_eligible": true,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Renton Landing": {
         "coordinates": "47.497826,-122.204628",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Highlands Newcastle Trail Marker": {
         "coordinates": "47.520208,-122.157445",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Renton Uhaul Space Needle": {
         "coordinates": "47.489835,-122.21817",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Mt.Olivet Cemetery": {
         "coordinates": "47.484903,-122.188582",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Tucker Lee Wales Memorial": {
         "coordinates": "47.49995,-122.21505",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Ann Chism Dedicated Bench": {
         "coordinates": "47.490438,-122.211765",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Church of Nazarene": {
         "coordinates": "47.497344,-122.164351",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Coalfield Park": {
         "coordinates": "47.492614,-122.122251",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "First Ukrainian Pentecostal Church": {
         "coordinates": "47.510143,-122.167571",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Windsor Hill Park Playground": {
         "coordinates": "47.489547,-122.186767",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "De Leo Wall Trail And Indian Trail Intersection": {
         "coordinates": "47.52142,-122.127016",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Kiwanis Park": {
         "coordinates": "47.496787,-122.164995",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "May Creek Trail Above Boren Creek Bridge": {
         "coordinates": "47.521859,-122.165353",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Highland Community Church": {
         "coordinates": "47.498497,-122.177836",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Renton Highlands Post Office": {
         "coordinates": "47.48829,-122.161011",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Heritage Park, Renton": {
         "coordinates": "47.485968,-122.164345",
         "ex_eligible": true,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "BTOM Marker": {
         "coordinates": "47.526844,-122.121478",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Standing Stones @ The Landing": {
         "coordinates": "47.498326,-122.20323",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Rogers and Post Memorial": {
         "coordinates": "47.500412,-122.218284",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Manzanita": {
         "coordinates": "47.507939,-122.20186",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Stairs with WA Wildlife & Recreation Program Plaque": {
         "coordinates": "47.524542,-122.149197",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Gene Coulon Memorial Beach Park": {
         "coordinates": "47.503224,-122.200147",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "In Loving Memory; Paula & Cameron Hackman": {
         "coordinates": "47.512429,-122.204233",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Bethlehem Lutheran Church": {
         "coordinates": "47.500174,-122.174971",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Interface": {
         "coordinates": "47.507521,-122.201994",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Welcome to Kennydale Sign": {
         "coordinates": "47.518546,-122.199315",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "De Leo Wall Viewpoint Detour Sign": {
         "coordinates": "47.523731,-122.140106",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Lord of Life Lutheran Church": {
         "coordinates": "47.488054,-122.127635",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Sculptuer at Bristol Waterfront": {
         "coordinates": "47.503719,-122.204819",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Metal Man And Woman": {
         "coordinates": "47.51415,-122.145491",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Marble Balls": {
         "coordinates": "47.497181,-122.198212",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Heron Waterfall": {
         "coordinates": "47.463867,-122.225283",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "WSDOT Wetlands": {
         "coordinates": "47.45182,-122.227852",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Thomas Teasdale Park": {
         "coordinates": "47.459097,-122.208235",
         "ex_eligible": true,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Woodside Skagit Park": {
         "coordinates": "47.457906,-122.116805",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Untitled Mural by Bonnie Branson 1989": {
         "coordinates": "47.481489,-122.196868",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Pilgrim Rest Baptist Church": {
         "coordinates": "47.479816,-122.211782",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Edward Aliment Memorial Bench": {
         "coordinates": "47.478395,-122.206975",
         "ex_eligible": true,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Fairwood Library": {
         "coordinates": "47.450278,-122.154129",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Henry Moses Honoring Pole": {
         "coordinates": "47.47838,-122.219237",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "8-Bit Arcade-Bar": {
         "coordinates": "47.479732,-122.204959",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Dragon Sentinels": {
         "coordinates": "47.482629,-122.21701",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Who's Who Cedar River Style": {
         "coordinates": "47.480825,-122.198997",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "US Post Office, 116th Ave Southeast, Renton": {
         "coordinates": "47.448642,-122.185487",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "The Owls are not What They Seem": {
         "coordinates": "47.483118,-122.188378",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Cedar River Trail Public Gazebo": {
         "coordinates": "47.476165,-122.179815",
         "ex_eligible": true,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "City View Church": {
         "coordinates": "47.479835,-122.219822",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Wizards Fountain": {
         "coordinates": "47.464624,-122.220916",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Boeing": {
         "coordinates": "47.41921,-122.249791",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Mural at Cedar River Market": {
         "coordinates": "47.475164,-122.172671",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Life Community Church": {
         "coordinates": "47.446388,-122.19624",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Burnett Linear Park": {
         "coordinates": "47.476491,-122.208042",
         "ex_eligible": true,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "The Salvation Army Renton Corps": {
         "coordinates": "47.483912,-122.20676",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Philip Arnold Park - Tapeworm Trail": {
         "coordinates": "47.468377,-122.196568",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "King County Park": {
         "coordinates": "47.481105,-122.145474",
         "ex_eligible": true,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Cedar River Trail and Dog Park Entry Sign": {
         "coordinates": "47.47969,-122.202338",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Woodside Commons Park": {
         "coordinates": "47.452715,-122.120257",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Squiggle Chomp Pole": {
         "coordinates": "47.462958,-122.135853",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Ron Regis Park": {
         "coordinates": "47.4671,-122.142398",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Renton Library": {
         "coordinates": "47.481917,-122.202103",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Old Mine Cart": {
         "coordinates": "47.465076,-122.207889",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Jimmy Mac's Roadhouse": {
         "coordinates": "47.473523,-122.219097",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Uwajimaya Glass Mural": {
         "coordinates": "47.470035,-122.21253",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Kingdom Hall of Jehovah's Witnesses": {
         "coordinates": "47.459421,-122.186563",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "East Renton Community Church Park": {
         "coordinates": "47.483527,-122.130351",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "The Duwamish People - Doug Kyes": {
         "coordinates": "47.481448,-122.1954",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Renton Community Center": {
         "coordinates": "47.481197,-122.197153",
         "ex_eligible": true,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Chateau De Ville Fountain": {
         "coordinates": "47.482396,-122.206361",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Renton Brown Bear": {
         "coordinates": "47.473377,-122.209078",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "United Christian Church": {
         "coordinates": "47.464311,-122.186099",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Raccoon Tree": {
         "coordinates": "47.454121,-122.173126",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Fairwood Community United Methodist Church": {
         "coordinates": "47.447379,-122.136464",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Philip Arnold Park": {
         "coordinates": "47.473689,-122.196571",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Cedar River Trail Etiquette": {
         "coordinates": "47.474847,-122.175991",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Victoria Park": {
         "coordinates": "47.456738,-122.212626",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Orca of Oakesdale": {
         "coordinates": "47.473873,-122.231094",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Weeping Angel": {
         "coordinates": "47.482214,-122.185629",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Cascade Park": {
         "coordinates": "47.459668,-122.176331",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Renton Civic Theatre": {
         "coordinates": "47.479642,-122.210194",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Skykomish Park": {
         "coordinates": "47.450289,-122.118175",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Central School - 1892": {
         "coordinates": "47.476701,-122.204429",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Living Water Statue": {
         "coordinates": "47.44678,-122.181742",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Minter's Earlington Greenhouse": {
         "coordinates": "47.485435,-122.229126",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Cavanaugh Pond Natural Area": {
         "coordinates": "47.463954,-122.111954",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Maple Hills Park Pool": {
         "coordinates": "47.464506,-122.068255",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "Heritage Estates Playgrounds": {
         "coordinates": "47.478752,-122.110538",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "renton foursquare celebration church": {
         "coordinates": "47.496221,-122.143026",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "saint andrew presbyterian church": {
         "coordinates": "47.500188,-122.17064",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     },
     "seattle car and manufacturing - 1908": {
         "coordinates": "47.488558,-122.198303",
         "ex_eligible": false,
-        "region": "renton,tukwila",
+        "region": "renton",
         "guild": "521087630885126187"
     }
 }
