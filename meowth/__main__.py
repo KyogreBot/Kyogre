@@ -1723,7 +1723,7 @@ async def _save(guildid):
     if stop_save is not None:
         await _print(Meowth.owner, f'Failed to save pokestop data with error: {stop_save}!')
     if gym_save is not None:
-        await _print(Meowth.owner, f'Failed to save pokestop data with error: {gym_save}!')
+        await _print(Meowth.owner, f'Failed to save gym data with error: {gym_save}!')
 
 
 @Meowth.command()
