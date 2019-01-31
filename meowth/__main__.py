@@ -545,6 +545,57 @@ async def expire_pvp(message):
         pass
     del guild_dict[guild.id]['pvp_dict'][message.id]
 
+async def raid_notice_expiry_check(message):
+    logger.info('Expiry_Check - ' + message.channel.name)
+    channel = message.channel
+    guild = channel.guild
+    global active_pvp
+    message = await channel.get_message(message.id)
+    if message not in active_pvp:
+        active_pvp.append(message)
+        logger.info(
+        'raid_notice_expiry_check - Message added to watchlist - ' + channel.name
+        )
+        await asyncio.sleep(0.5)
+        while True:
+            try:
+                if guild_dict[guild.id]['raid_notice_dict'][message.id]['exp'] <= time.time():
+                    await expire_raid_notice(message)
+            except KeyError:
+                pass
+            await asyncio.sleep(60)
+            continue
+
+async def expire_raid_notice(message):
+    channel = message.channel
+    guild = channel.guild
+    raid_notice_dict = guild_dict[guild.id]['raid_notice_dict']
+    try:
+        trainer = raid_notice_dict[message.id]['reportauthor']
+        user = guild.get_member(trainer)
+        channel = guild.get_channel(raid_notice_dict[message.id]['reportchannel'])
+        regions = _get_channel_regions(channel, 'raid')
+        if len(regions) > 0:
+            region = regions[0]
+        if region is not None:
+            role_to_remove = discord.utils.get(guild.roles, name=region + '-raids')
+            await user.remove_roles(*[role_to_remove], reason="Raid availability expired or was cancelled by user.")
+        else:
+            logger.info('expire_raid_notice - Failed to remove role for user ' + user.display_name)
+    except:
+        logger.info('expire_raid_notice - Failed to remove role. User unknown')
+    try:
+        await message.edit(content=raid_notice_dict[message.id]['expedit']['content'], embed=discord.Embed(description=raid_notice_dict[message.id]['expedit']['embedcontent'], colour=message.embeds[0].colour.value))
+        await message.clear_reactions()
+    except discord.errors.NotFound:
+        pass
+    try:
+        user_message = await channel.get_message(raid_notice_dict[message.id]['reportmessage'])
+        await user_message.delete()
+    except (discord.errors.NotFound, discord.errors.Forbidden, discord.errors.HTTPException):
+        pass
+    del guild_dict[guild.id]['raid_notice_dict'][message.id]
+
 async def wild_expiry_check(message):
     logger.info('Expiry_Check - ' + message.channel.name)
     guild = message.channel.guild
@@ -1268,10 +1319,10 @@ async def on_raw_reaction_add(payload):
             await message.remove_reaction(payload.emoji, user)
     wildreport_dict = guild_dict[guild.id].setdefault('wildreport_dict', {})
     if message.id in wildreport_dict and user.id != Meowth.user.id:
-        wild_dict = guild_dict[guild.id]['wildreport_dict'].get(message.id, None)
+        wild_dict = wildreport_dict.get(message.id, None)
         if str(payload.emoji) == '🏎':
             wild_dict['omw'].append(user.mention)
-            guild_dict[guild.id]['wildreport_dict'][message.id] = wild_dict
+            wildreport_dict[message.id] = wild_dict
         elif str(payload.emoji) == '💨':
             for reaction in message.reactions:
                 if reaction.emoji == '💨' and reaction.count >= 2:
@@ -1281,7 +1332,7 @@ async def on_raw_reaction_add(payload):
                     await expire_wild(message)
     questreport_dict = guild_dict[guild.id].setdefault('questreport_dict', {})
     if message.id in questreport_dict and user.id != Meowth.user.id:
-        quest_dict = guild_dict[guild.id]['questreport_dict'].get(message.id, None)        
+        quest_dict = questreport_dict.get(message.id, None)        
         if quest_dict and (quest_dict['reportauthor'] == payload.user_id or can_manage(user)):
             if str(payload.emoji) == '\u270f':
                 await modify_research_report(payload)
@@ -1293,6 +1344,7 @@ async def on_raw_reaction_add(payload):
                     pass
                 del questreport_dict[message.id]
                 await _refresh_listing_channels_internal(guild, "research")
+            await message.remove_reaction(payload.emoji, user)
     raid_dict = guild_dict[guild.id].setdefault('raidchannel_dict', {})
     if channel.id in raid_dict:
         raid_report = channel.id
@@ -1316,6 +1368,7 @@ async def on_raw_reaction_add(payload):
                 except:
                     pass
                 await _refresh_listing_channels_internal(guild, "raid")
+            await message.remove_reaction(payload.emoji, user)
     pvp_dict = guild_dict[guild.id].setdefault('pvp_dict', {})
     if message.id in pvp_dict and user.id != Meowth.user.id:
         trainer = pvp_dict[message.id]['reportauthor']
@@ -1328,6 +1381,32 @@ async def on_raw_reaction_add(payload):
             if attacker == defender:
                 return
             battle_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"{defender.mention} you have been challenged by {attacker.mention}!"))
+    raid_notice_dict = guild_dict[guild.id].setdefault('raid_notice_dict', {})
+    if message.id in raid_notice_dict and user.id != Meowth.user.id:
+        trainer = raid_notice_dict[message.id]['reportauthor']
+        if (trainer == payload.user_id or can_manage(user)):
+            if str(payload.emoji) == '🚫':
+                return await expire_raid_notice(message)
+            if str(payload.emoji) == '\u23f2':
+                exp = raid_notice_dict[message.id]['exp'] + 1800
+                raid_notice_dict[message.id]['exp'] = exp
+                expire = datetime.datetime.fromtimestamp(exp)
+                expire_str = expire.strftime('%b %d %I:%M %p')
+                embed = message.embeds[0]
+                index = 0
+                found = False
+                for field in embed.fields:
+                    if "expire" in field.name.lower():
+                        found = True
+                        break
+                    index += 1
+                if found:
+                    embed.set_field_at(index, name=embed.fields[index].name, value=expire_str, inline=True)
+                else:
+                    embed.add_field(name=_('**Expires:**'), value=_('{end}').format(end=expire_str), inline=True)
+                await message.edit(embed=embed)
+                await message.remove_reaction(payload.emoji, user)
+
 
 def get_raid_report(guild, message_id):
     raid_dict = guild_dict[guild.id]['raidchannel_dict']
@@ -1362,9 +1441,12 @@ async def modify_research_report(payload):
     regions = _get_channel_regions(channel, 'research')
     stops = None
     stops = get_stops(guild.id, regions)
-    prompt = 'Which item would you like to modify?'
+    stop = questreport_dict[message.id]['location']
+    prompt = f'Modifying details for **research task** at **{stop}**\nWhich item would you like to modify ***{user.display_name}***?'
     choices_list = ['Pokestop','Task', 'Reward']
     match = await utils.ask_list(Meowth, prompt, channel, choices_list, user_list=user.id)
+    err_msg = None
+    confirmed = None
     if match in choices_list:
         if match == choices_list[0]:
             query_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.gold(), description="What is the correct Pokestop?"))
@@ -1382,17 +1464,19 @@ async def modify_research_report(payload):
                 if stops:
                     stop = await location_match_prompt(channel, user.id, pokestopmsg.clean_content, stops)
                     if not stop:
-                        return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"I couldn't find a pokestop named '{location}'. Try again using the exact pokestop name!"))
-                    if get_existing_research(guild, stop):
-                        return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"A quest has already been reported for {stop.name}"))
-                    location = stop.name
-                    loc_url = stop.maps_url
-                    questreport_dict[message.id]['location'] = location
-                    questreport_dict[message.id]['url'] = loc_url
-                    await _refresh_listing_channels_internal(guild, "research")
-                    await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description="Research listing updated"))
-                    await pokestopmsg.delete()
-                    await query_msg.delete()
+                        err_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"I couldn't find a pokestop named '{pokestopmsg.clean_content}'. Try again using the exact pokestop name!"))
+                    else:
+                        if get_existing_research(guild, stop):
+                            err_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"A quest has already been reported for {stop.name}"))
+                        else:
+                            location = stop.name
+                            loc_url = stop.maps_url
+                            questreport_dict[message.id]['location'] = location
+                            questreport_dict[message.id]['url'] = loc_url
+                            await _refresh_listing_channels_internal(guild, "research")
+                            confirmed = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description="Research listing updated"))
+                            await pokestopmsg.delete()
+                            await query_msg.delete()
         elif match == choices_list[1]:
             questwait = await channel.send(embed=discord.Embed(colour=discord.Colour.gold(), description="What is the correct research task?"))
             try:
@@ -1415,7 +1499,7 @@ async def modify_research_report(payload):
             questreport_dict[message.id]['quest'] = quest.name
             questreport_dict[message.id]['reward'] = reward
             await _refresh_listing_channels_internal(guild, "research")
-            await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description="Research listing updated"))
+            confirmed = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description="Research listing updated"))
             await questmsg.delete()
         elif match == choices_list[2]:
             rewardwait = await channel.send(embed=discord.Embed(colour=discord.Colour.gold(), description="What is the correct reward?"))
@@ -1427,7 +1511,7 @@ async def modify_research_report(payload):
                 error = "didn't identify the reward"
             questreport_dict[message.id]['reward'] = reward
             await _refresh_listing_channels_internal(guild, "research")
-            await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description="Research listing updated"))
+            confirmed = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description="Research listing updated"))
             await rewardwait.delete()
         embed = message.embeds[0]
         embed.clear_fields()
@@ -1440,12 +1524,6 @@ async def modify_research_report(payload):
         embed.url = questreport_dict[message.id]['url']
         new_msg = f'{name} Field Research task, reward: {reward} reported at {location}'
         await message.edit(content=new_msg,embed=embed)
-        await message.clear_reactions()
-        await asyncio.sleep(0.25)
-        await message.add_reaction('\u270f')
-        await asyncio.sleep(0.25)
-        await message.add_reaction('🚫')
-        await asyncio.sleep(0.25)
     else:
         return
 
@@ -1466,17 +1544,21 @@ async def modify_raid_report(payload, raid_report):
     raid_channel = channel.id
     if channel.id not in guild_dict[guild.id]['raidchannel_dict']:
         for rchannel in guild_dict[guild.id]['raidchannel_dict']:
-            if guild_dict[guild.id]['raidchannel_dict'][rchannel]['raidreport'] == message.id:
+            if raid_dict[rchannel]['raidreport'] == message.id:
                 raid_channel = rchannel
                 break
     raid_channel = Meowth.get_channel(raid_report)
-    report_channel_id = guild_dict[guild.id]['raidchannel_dict'][raid_channel.id]['reportchannel']
+    raid_report = raid_dict[raid_channel.id]
+    report_channel_id = raid_report['reportchannel']
     report_channel = Meowth.get_channel(report_channel_id)
     gyms = None
     gyms = get_gyms(guild.id, regions)
     choices_list = ['Location', 'Hatch / Expire Time', 'Boss / Tier']
-    prompt = 'Which item would you like to modify?'
+    gym = raid_report["address"]
+    prompt = f'Modifying details for **raid** at **{gym}**\nWhich item would you like to modify ***{user.display_name}***?'
     match = await utils.ask_list(Meowth, prompt, channel, choices_list, user_list=user.id)
+    err_msg = None
+    success_msg = None
     if match in choices_list:
         if match == choices_list[0]:
             query_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.gold(), description=_("What is the correct Location?")))
@@ -1494,18 +1576,20 @@ async def modify_raid_report(payload, raid_report):
                 if gyms:
                     gym = await location_match_prompt(channel, user.id, gymmsg.clean_content, gyms)
                     if not gym:
-                        return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"I couldn't find a gym named '{gymmsg.clean_content}'. Try again using the exact gym name!"))
-                    location = gym.name
-                    raid_channel_ids = get_existing_raid(guild, gym)
-                    if raid_channel_ids:
-                        raid_channel = Meowth.get_channel(raid_channel_ids[0])
-                        if guild_dict[guild.id]['raidchannel_dict'][raid_channel.id]:
-                            return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"A raid has already been reported for {gym.name}"))
-                    await update_raid_location(message, report_channel, raid_channel, gym)
-                    await _refresh_listing_channels_internal(guild, "raid")
-                    success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid location updated")))
-                    await gymmsg.delete()
-                    await query_msg.delete()
+                        err_msg =  await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"I couldn't find a gym named '{gymmsg.clean_content}'. Try again using the exact gym name!"))
+                    else:
+                        location = gym.name
+                        raid_channel_ids = get_existing_raid(guild, gym)
+                        if raid_channel_ids:
+                            raid_channel = Meowth.get_channel(raid_channel_ids[0])
+                            if guild_dict[guild.id]['raidchannel_dict'][raid_channel.id]:
+                                err_msg =  await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"A raid has already been reported for {gym.name}"))
+                            else:
+                                await update_raid_location(message, report_channel, raid_channel, gym)
+                                await _refresh_listing_channels_internal(guild, "raid")
+                                success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid location updated")))
+                                await gymmsg.delete()
+                                await query_msg.delete()
         elif match == choices_list[1]:
             timewait = await channel.send(embed=discord.Embed(colour=discord.Colour.gold(), description=_("What is the Hatch / Expire time?")))
             try:
@@ -1544,15 +1628,6 @@ async def modify_raid_report(payload, raid_report):
             success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid Tier / Boss updated")))
             await bosswait.delete()
             await bossmsg.delete()
-        await message.clear_reactions()
-        if message.channel.id == raid_channel.id:
-            await message.add_reaction('\u2754')
-            await asyncio.sleep(0.25)
-        await message.add_reaction('\u270f')
-        await asyncio.sleep(0.25)
-        await message.add_reaction('🚫')
-        await asyncio.sleep(10)
-        await success_msg.delete()
     else:
         return
 
@@ -2604,11 +2679,12 @@ async def _configure_regions(ctx):
             region_locations_list = re.split(r'\s*,\s*', response)
             if len(region_locations_list) == len(region_names_list):
                 for i in range(len(region_names_list)):
-                    region_dict[region_names_list[i]] = {'location': region_locations_list[i], 'role': sanitize_name(region_names_list[i])}
+                    region_dict[region_names_list[i]] = {'location': region_locations_list[i], 'role': sanitize_name(region_names_list[i]), 'raidrole': sanitize_name(region_names_list[i] + "-raids")}
                 break
             else:
                 await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The number of locations doesn't match the number of regions you gave me earlier!\n\nI'll show you the two lists to compare:\n\n{region_names_list}\n{region_locations_list}\n\nPlease double check that your locations match up with your provided region names and resend your response.").format(region_names_list=', '.join(region_names_list), region_locations_list=', '.join(region_locations_list))))
                 continue
+        await owner.send(region_dict)
         await owner.send(embed=discord.Embed(colour=discord.Colour.green(), description=_('Region locations are set')))
         await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('Lastly, I need to know what channels should be flagged to allow users to modify their region assignments. Please enter the channels to be used for this as a comma-separated list. \n\nExample: `general, region-assignment`\n\nNote that this answer does *not* directly correspond to the previously entered channels/regions.\n\n')).set_author(name=_('Region Command Channels'), icon_url=Meowth.user.avatar_url))
         while True:
@@ -2658,6 +2734,7 @@ async def _configure_regions(ctx):
                 continue
     # set up roles
     new_region_roles = set([r['role'] for r in region_dict.values()])
+    new_region_raid_roles = set([r['raidrole'] for r in region_dict.values()])
     existing_region_dict = config_dict_temp['regions'].get('info', None)
     if existing_region_dict:
         existing_region_roles = set([r['role'] for r in existing_region_dict.values()])
@@ -2671,7 +2748,25 @@ async def _configure_regions(ctx):
                     await temp_role.delete(reason="Removed from region configuration")
                 except discord.errors.HTTPException:
                     pass
+        existing_region_roles = set([r.setdefault('raidrole', '') for r in existing_region_dict.values()])
+        obsolete_roles = existing_region_roles - new_region_raid_roles
+        new_region_raid_roles = new_region_raid_roles - existing_region_roles
+        # remove obsolete roles
+        for role in obsolete_roles:
+            temp_role = discord.utils.get(guild.roles, name=role)
+            if temp_role:
+                try:
+                    await temp_role.delete(reason="Removed from region configuration")
+                except discord.errors.HTTPException:
+                    pass
     for role in new_region_roles:
+        temp_role = discord.utils.get(guild.roles, name=role)
+        if not temp_role:
+            try:
+                await guild.create_role(name=role, hoist=False, mentionable=True)
+            except discord.errors.HTTPException:
+                pass
+    for role in new_region_raid_roles:
         temp_role = discord.utils.get(guild.roles, name=role)
         if not temp_role:
             try:
@@ -4519,7 +4614,7 @@ async def team(ctx,*,content):
                 await ctx.author.remove_roles(harmony)
             await ctx.author.add_roles(role)
             await ctx.channel.send(_('Added {member} to Team {team_name}! {team_emoji}').format(member=ctx.author.mention, team_name=role.name.capitalize(), team_emoji=parse_emoji(ctx.guild, config['team_dict'][entered_team])))
-            await ctx.author.send(_("Now that you've set your team, head to <#449654496168247296> to set up your desired regions"))
+            await ctx.author.send(_("Now that you've set your team, head to <#538883360953729025> to set up your desired regions"))
         except discord.Forbidden:
             await ctx.channel.send(_("I can't add roles!"))
 
@@ -5402,7 +5497,7 @@ async def _wild_internal(message, content):
     await _update_listing_channels(message.guild, 'wild', edit=False, regions=channel_regions)
     await _send_notifications_async('wild', wild_details, message.channel, [message.author.id])
 
-@Meowth.command(name="raid", aliases=['r', 're', 'egg', 'regg', 'raidegg'])
+@Meowth.group(name="raid", aliases=['r', 're', 'egg', 'regg', 'raidegg'])
 @checks.allowraidreport()
 async def _raid(ctx,pokemon,*,location:commands.clean_content(fix_channel_mentions=True)="", weather=None, timer=None):
     """Report an ongoing raid or a raid egg.
@@ -5572,7 +5667,7 @@ async def _raid_internal(ctx, content):
             except:
                 return await message.add_reaction('\u274c')
             enabled = raid_channels_enabled(guild, channel)
-            if raid_dict_entry and raid_dict_entry['active']:
+            if raid_dict_entry and not (raid_dict_entry['exp'] - 60 < datetime.datetime.now().timestamp()):
                 msg = f"A raid has already been reported for {gym.name}."
                 if enabled:
                     msg += f" Coordinate in {raid_channel.mention}"
@@ -6126,6 +6221,99 @@ async def _eggtoraid(entered_raid, raid_channel, author=None):
         await _edit_party(raid_channel, author)
     await _update_listing_channels(raid_channel.guild, 'raid', edit=False, regions=regions)
     event_loop.create_task(expiry_check(raid_channel))
+
+@Meowth.group(name="raidnotice", aliases=['rn'], case_insensitive=True)
+@checks.allowraidreport()
+async def _raidnotice(ctx):
+    """Handles raid notification related commands"""
+
+    if ctx.invoked_subcommand == None:
+        raise commands.BadArgument()
+
+@_raidnotice.command(name="available", aliases=["av"])
+async def _raid_available(ctx, exptime=None):
+    """Announces that you're available for raids
+    Usage: `!pvp available [time]`
+    Kyogre will post a message stating that you're available for PvP
+    for the next 30 minutes by default, or optionally for the amount 
+    of time you provide.
+
+    Kyogre will also notify any other users who have added you as 
+    a friend that you are now available.
+    """
+    message = ctx.message
+    channel = message.channel
+    guild = message.guild
+    trainer = message.author
+    regions = _get_channel_regions(channel, 'raid')
+    if len(regions) > 0:
+        region = regions[0]
+    role_to_assign = discord.utils.get(guild.roles, name=region + '-raids')
+    for role in trainer.roles:
+        if role.name == role_to_assign.name:
+            raid_notice_dict = copy.deepcopy(guild_dict[guild.id].get('raid_notice_dict',{}))
+            for rnmessage in raid_notice_dict:
+                try:
+                    if raid_notice_dict[rnmessage]['reportauthor'] == trainer.id:
+                        rnmessage = await channel.get_message(rnmessage)
+                        await expire_raid_notice(rnmessage)
+                        await message.delete()
+                except:
+                    pass
+            role_to_remove = discord.utils.get(guild.roles, name=role_to_assign)
+            try:
+                await user.remove_roles(*[role_to_remove], reason="Raid availability expired or was cancelled by user.")
+            except:
+                pass
+            return
+    time_msg = None
+    expiration_minutes = False
+    time_err = "Unable to determine the time you provided, you will be notified for raids for the next 60 minutes"
+    if exptime:
+        if exptime.isdigit():
+            if int(exptime) == 0:
+                expiration_minutes = 262800
+            else:
+                expiration_minutes = await raid_time_check(channel, exptime, time_err)
+    else:
+        time_err = "No expiration time provided, you will be notified for raids for the next 60 minutes"
+    if expiration_minutes is False:
+        time_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.orange(), description=time_err))
+        expiration_minutes = 60
+
+    now = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[guild.id]['configure_dict']['settings']['offset'])
+    expire = now + datetime.timedelta(minutes=expiration_minutes)
+
+    raid_notice_embed = discord.Embed(title=_('{trainer} is available for Raids!').format(trainer=trainer.display_name), colour=guild.me.colour)
+    if exptime != "0":
+        raid_notice_embed.add_field(name=_('**Expires:**'), value=_('{end}').format(end=expire.strftime('%b %d %I:%M %p')), inline=True)
+    raid_notice_embed.add_field(name=_('**To add 30 minutes:**'), value=_('Use the ⏲️ react.'), inline=True)
+    raid_notice_embed.add_field(name=_('**To cancel:**'), value=_('Use the 🚫 react.'), inline=True)
+
+    if region is not None:
+        footer_text = f"Use the **@{region}-raids** tag to notify all trainers who are currently available"
+        raid_notice_embed.set_footer(text=footer_text)
+    raid_notice_msg = await channel.send(content=('{trainer} is available for Raids!').format(trainer=trainer.display_name),embed=raid_notice_embed)
+    await raid_notice_msg.add_reaction('\u23f2')
+    await raid_notice_msg.add_reaction('🚫')
+    #pvp_embed.set_thumbnail(url="https://github.com/KyogreBot/Kyogre/blob/master/images/misc/pvpn_large.png?raw=true")
+    expiremsg = _('**{trainer} is no longer available for Raids!**').format(trainer=trainer.display_name)
+    raid_notice_dict = copy.deepcopy(guild_dict[guild.id].get('raid_notice_dict',{}))
+    raid_notice_dict[raid_notice_msg.id] = {
+        'exp':time.time() + (expiration_minutes * 60),
+        'expedit': {"content":"","embedcontent":expiremsg},
+        'reportmessage':message.id,
+        'reportchannel':channel.id,
+        'reportauthor':trainer.id,
+    }
+    guild_dict[guild.id]['raid_notice_dict'] = raid_notice_dict
+    event_loop.create_task(raid_notice_expiry_check(raid_notice_msg))
+    
+    await trainer.add_roles(*[role_to_assign], reason="User announced raid availability.")
+    if time_msg is not None:
+        await asyncio.sleep(10)
+        await time_msg.delete()
+    await message.delete()
 
 @Meowth.command(aliases=['ex'])
 @checks.allowexraidreport()
@@ -6749,7 +6937,7 @@ async def _generate_role_notification_async(role_name, channel, outbound_dict):
     # send notification message in channel
     obj = next(iter(outbound_dict.values()))
     message = obj['message']
-    msg_obj = await channel.send(f'{temp_role.mention} {message}')
+    msg_obj = await channel.send(f'~{temp_role.mention} {message}')
     async def cleanup():
         await asyncio.sleep(300)
         await temp_role.delete()
@@ -9199,7 +9387,7 @@ async def _get_raid_listing_messages(channel, region=None):
                 map_url = rc_d[r]['gym'].maps_url
             except:
                 pass
-            output += _('\t{tier} **{raidchannel}**{ex_eligibility}{expiry_text} \nDirections: {map_url}\n').format(tier=t_emoji, raidchannel=channel_name, ex_eligibility=ex_eligibility, expiry_text=expirytext, total_count=sum([ctx_maybecount, ctx_comingcount, ctx_herecount, ctx_lobbycount]), starttime=start_str,map_url=map_url)
+            output += _('\t{tier} **{raidchannel}**{ex_eligibility}{expiry_text} \n[Click for directions]({map_url})\n').format(tier=t_emoji, raidchannel=channel_name, ex_eligibility=ex_eligibility, expiry_text=expirytext, total_count=sum([ctx_maybecount, ctx_comingcount, ctx_herecount, ctx_lobbycount]), starttime=start_str,map_url=map_url)
         return output
     
     def process_category(listmsg_list, category_title, category_list):

@@ -54,7 +54,8 @@
             "egg": "legendary",
             "egg_img": "5.png",
             "pokemon": [
-                "heatran"
+                "kyogre",
+                "groudon"
             ],
             "hatchtime": 60,
             "raidtime": 45
