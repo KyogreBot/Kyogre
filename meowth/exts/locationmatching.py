@@ -9,11 +9,13 @@ from meowth import utils, checks
 from meowth.exts.db.kyogredb import *
 
 class Location:
-    def __init__(self, name, latitude, longitude, region):
+    def __init__(self, name, latitude, longitude, region, note):
         self.name = name
         self.latitude = latitude
         self.longitude = longitude
         self.region = region
+        if note is not None:
+            self.note = note
     
     @property
     def coordinates(self):
@@ -33,14 +35,14 @@ class Location:
 
 class Gym(Location):
     __name__ = "Gym"
-    def __init__(self, name, latitude, longitude, region, ex_eligible):
-        super().__init__(name, latitude, longitude, region)
+    def __init__(self, name, latitude, longitude, region, ex_eligible, note):
+        super().__init__(name, latitude, longitude, region, note)
         self.ex_eligible = ex_eligible
 
 class Pokestop(Location):
     __name__ = "Pokestop"
-    def __init__(self, name, latitude, longitude, region):
-        super().__init__(name, latitude, longitude, region)
+    def __init__(self, name, latitude, longitude, region, note):
+        super().__init__(name, latitude, longitude, region, note)
 
 class LocationMatching:
     def __init__(self, bot):
@@ -183,10 +185,12 @@ class LocationMatching:
                                     LocationTable.latitude, 
                                     LocationTable.longitude, 
                                     RegionTable.name.alias('region'),
-                                    GymTable.ex_eligible)
+                                    GymTable.ex_eligible,
+                                    LocationNoteTable.note))
                             .join(LocationTable)
                             .join(LocationRegionRelation)
                             .join(RegionTable)
+                            .join(LocationNoteTable, JOIN.LEFT_OUTER, on=(LocationNoteTable.location_id == LocationTable.id))
                             .where((LocationTable.guild == guild_id) &
                                    (LocationTable.guild == RegionTable.guild)))
                 gyms = gyms.objects(Gym)
@@ -197,6 +201,10 @@ class LocationMatching:
                     g[gym.name]["ex-eligible"] = gym.ex_eligible
                     g[gym.name]["region"] = gym.region
                     g[gym.name]["guild"] = str(guild_id)
+                    try:
+                        g[gym.name]["notes"] = [gym.note]
+                    except:
+                        pass
                 f.write(json.dumps(g, indent=4))
                 tempname = f.name
             try:
