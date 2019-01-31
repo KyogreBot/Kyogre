@@ -6787,6 +6787,7 @@ async def _loc(ctx):
 @commands.has_permissions(manage_guild=True)
 async def _loc_add(ctx, *, info):
     channel = ctx.channel
+    message = ctx.message
     type = None
     name = None
     region = None
@@ -6800,9 +6801,9 @@ async def _loc_add(ctx, *, info):
             if len(info_split) < 5:
                 error_msg = "Please provide the following when using this command: `location type, name, region, latitude, longitude, (optional) ex eligible`"
             elif len(info_split) == 5:
-                type, name, region, latitude, longitude = info.split(',')
+                type, name, region, latitude, longitude = [x.strip() for x in info.split(',')]
             elif len(info_split) == 6:
-                type, name, region, latitude, longitude, ex_eligible = info.split(',')
+                type, name, region, latitude, longitude, ex_eligible = [x.strip() for x in info.split(',')]
         else:
             error_msg = "Please provide the following when using this command: `location type, name, region, latitude, longitude, (optional) ex eligible`"
     except:
@@ -6820,9 +6821,17 @@ async def _loc_add(ctx, *, info):
     data["guild"] = str(ctx.guild.id)
     error_msg = LocationTable.create_location(name, data)
     if error_msg is None:
-        return await ctx.message.add_reaction('✅')
+        success = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=f"Successfully added {type}: {name}."))
+        await message.add_reaction('✅')
+        await asyncio.sleep(10)
+        await success.delete()
+        return
     else:
-        await ctx.channel.send("Failed to add new location")
+        failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Failed to add {type}: {name}."))
+        await message.add_reaction('❌')        
+        await asyncio.sleep(10)
+        await failed.delete()
+        return
 
 @_loc.command(name="convert", aliases=["c"])
 @commands.has_permissions(manage_guild=True)
