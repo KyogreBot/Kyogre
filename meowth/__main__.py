@@ -6974,6 +6974,10 @@ async def _loc(ctx):
 @_loc.command(name="add")
 @commands.has_permissions(manage_guild=True)
 async def _loc_add(ctx, *, info):
+    """Adds a new location to the database
+
+    Requires type (gym/stop), name, region name, latitude, longitude in that order.
+    Optionally a true/false for ex eligibility can be provided as well."""
     channel = ctx.channel
     message = ctx.message
     type = None
@@ -7024,7 +7028,9 @@ async def _loc_add(ctx, *, info):
 @_loc.command(name="convert", aliases=["c"])
 @commands.has_permissions(manage_guild=True)
 async def _loc_convert(ctx, *, info):
-    """Changes a pokestop into a gym"""
+    """Changes a pokestop into a gym
+
+    Requires the name of a Pokestop."""
     channel = ctx.channel
     author = ctx.message.author
     stops = None
@@ -7052,7 +7058,10 @@ async def _loc_convert(ctx, *, info):
 @_loc.command(name="extoggle", aliases=["ext"])
 @commands.has_permissions(manage_guild=True)
 async def _loc_extoggle(ctx, *, info):
-    """Toggles gym ex status"""
+    """Toggles gym ex status
+
+    Requires the name of a gym. Ex status can't be set directly,
+    only swapped from its current state."""
     channel = ctx.channel
     author = ctx.message.author
     gyms = get_gyms(ctx.guild.id, None)
@@ -7079,10 +7088,15 @@ async def _loc_extoggle(ctx, *, info):
 @_loc.command(name="changeregion", aliases=["cr"])
 @commands.has_permissions(manage_guild=True)
 async def _loc_change_region(ctx, *, info):
+    """Changes the region associated with a Location.
+
+    Requires type (stop/gym), the name of the location,
+    and the name of the new region it should be assigned to."""
     channel = ctx.channel
     message = ctx.message
     author = message.author
-    info = info.split(',')
+    info = [x.strip() for x in info.split(',')]
+    stop, gym = None, None
     if len(info) != 3:
         failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Please provide (comma separated) the location type (stop or gym), name of the Pokestop or gym, and the new region it should be assigned to."))
         await message.add_reaction('❌')        
@@ -7105,7 +7119,7 @@ async def _loc_change_region(ctx, *, info):
         await asyncio.sleep(10)
         await failed.delete()
         return
-    result = await changeRegion(ctx, name, info[2].strip())
+    result = await changeRegion(ctx, name, info[2])
     if result == 0:
         failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Failed to change location for {name}."))
         await message.add_reaction('❌')        
@@ -7122,6 +7136,11 @@ async def _loc_change_region(ctx, *, info):
 @_loc.command(name="deletelocation", aliases=["del"])
 @commands.has_permissions(manage_guild=True)
 async def _loc_deletelocation(ctx, *, info):
+    """Removes a location from the database
+
+    Requires type (stop/gym) and the name of the location.
+    Requires no confirmation, will delete as soon as the
+    correct stop or gym is identified."""
     channel = ctx.channel
     message = ctx.message
     author = message.author
@@ -7226,6 +7245,7 @@ async def toggleEX(ctx, name):
     return success
 
 async def changeRegion(ctx, name, region):
+    success = 0
     with KyogreDB._db.atomic() as txn:
         try:
             current = (LocationTable
@@ -7243,7 +7263,7 @@ async def changeRegion(ctx, name, region):
                        .where((LocationTable.guild == ctx.guild.id) &
                               (LocationTable.guild == RegionTable.guild) &
                               (LocationTable.id == loc_id)))
-            reg_id = current[0].reg_id 
+            reg_id = current[0].reg_id
             deleted = LocationRegionRelation.delete().where((LocationRegionRelation.location_id == loc_id) &
                                                             (LocationRegionRelation.region_id == reg_id)).execute()
             new = (RegionTable
