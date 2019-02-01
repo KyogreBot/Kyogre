@@ -195,7 +195,7 @@ class LocationMatching:
                                     LocationTable.longitude, 
                                     RegionTable.name.alias('region'),
                                     GymTable.ex_eligible,
-                                    LocationNoteTable.note))
+                                    LocationNoteTable.note)
                             .join(LocationTable)
                             .join(LocationRegionRelation)
                             .join(RegionTable)
