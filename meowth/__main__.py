@@ -7082,7 +7082,7 @@ async def _loc_change_region(ctx, *, info):
     channel = ctx.channel
     message = ctx.message
     author = message.author
-    info = info.split(',')
+    info = [x.strip() for x in info.split(',')]
     if len(info) != 3:
         failed = await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"Please provide (comma separated) the location type (stop or gym), name of the Pokestop or gym, and the new region it should be assigned to."))
         await message.add_reaction('❌')        
@@ -7226,6 +7226,7 @@ async def toggleEX(ctx, name):
     return success
 
 async def changeRegion(ctx, name, region):
+    success = 0
     with KyogreDB._db.atomic() as txn:
         try:
             current = (LocationTable
@@ -7243,7 +7244,7 @@ async def changeRegion(ctx, name, region):
                        .where((LocationTable.guild == ctx.guild.id) &
                               (LocationTable.guild == RegionTable.guild) &
                               (LocationTable.id == loc_id)))
-            reg_id = current[0].reg_id 
+            reg_id = current[0].reg_id
             deleted = LocationRegionRelation.delete().where((LocationRegionRelation.location_id == loc_id) &
                                                             (LocationRegionRelation.region_id == reg_id)).execute()
             new = (RegionTable

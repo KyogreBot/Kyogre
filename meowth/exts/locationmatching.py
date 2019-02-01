@@ -57,10 +57,12 @@ class LocationMatching:
                             LocationTable.latitude, 
                             LocationTable.longitude, 
                             RegionTable.name.alias('region'),
-                            GymTable.ex_eligible)
+                            GymTable.ex_eligible,
+                            LocationNoteTable.note)
                     .join(LocationTable)
                     .join(LocationRegionRelation)
                     .join(RegionTable)
+                    .join(LocationNoteTable, JOIN.LEFT_OUTER, on=(LocationNoteTable.location_id == LocationTable.id))
                     .where((LocationTable.guild == guild_id) &
                            (LocationTable.guild == RegionTable.guild)))
         if regions:
@@ -75,10 +77,12 @@ class LocationMatching:
                     .select(LocationTable.name, 
                             LocationTable.latitude, 
                             LocationTable.longitude, 
-                            RegionTable.name.alias('region'))
+                            RegionTable.name.alias('region'),
+                            LocationNoteTable.note)
                     .join(LocationTable)
                     .join(LocationRegionRelation)
                     .join(RegionTable)
+                    .join(LocationNoteTable, JOIN.LEFT_OUTER, on=(LocationNoteTable.location_id == LocationTable.id))
                     .where((LocationTable.guild == guild_id) &
                            (LocationTable.guild == RegionTable.guild)))
         if regions:
