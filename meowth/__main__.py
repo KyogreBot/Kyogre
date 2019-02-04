@@ -7009,7 +7009,7 @@ async def _loc_add(ctx, *, info):
             data["ex_eligible"] = bool(ex_eligible)
         else:
             data["ex_eligible"] = False
-    data["region"] = region
+    data["region"] = region.lower()
     data["guild"] = str(ctx.guild.id)
     error_msg = LocationTable.create_location(name, data)
     if error_msg is None:
