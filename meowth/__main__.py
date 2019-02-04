@@ -415,22 +415,46 @@ def get_category(channel, level, category_type="raid"):
     else:
         return None
 
-def get_raidtext(guild, type, pkmn, level, member, channel, gym, report):
+def get_raidtext(guild, raid_dict, gym, report_channel, raid_channel, report):
+    if 'type' in raid_dict:
+        type = raid_dict['type']
+    if 'pokemon' in raid_dict:
+        pkmn = raid_dict['pokemon']
+    if 'egglevel' in raid_dict:
+        level = raid_dict['egglevel']
+    if 'reporter' in raid_dict:
+        member = raid_dict['reporter']
+    if 'exp' in raid_dict:
+        raidexp = raid_dict['exp']
     member = guild.get_member(member)
     pkmn = Pokemon.get_pokemon(Meowth, pkmn)
     if report:
-        if type == "raid":
-            raidtext = _("{pokemon} raid reported by {member} in {citychannel} at {location_details} gym. Coordinate here!\n\nClick the question mark reaction to get help on the commands that work in here.\n\nThis channel will be deleted five minutes after the timer expires.").format(pokemon=pkmn.name, member=member.display_name, citychannel=channel.mention, location_details=gym.name)
-        elif type == "egg":
-            raidtext = _("Level {level} raid egg reported by {member} in {citychannel} at {location_details} gym. Coordinate here!\n\nClick the question mark reaction to get help on the commands that work in here.\n\nThis channel will be deleted five minutes after the timer expires.").format(level=level, member=member.display_name, citychannel=channel.mention, location_details=gym.name)
+        raidtext = build_raid_report_message(gym, type, pkmn, level, raidexp, report_channel)
     else:
         if type == "raid":
-            raidtext = _("{pkmn} raid reported by {member} in {channel}! Coordinate here!\n\nFor help, react to this message with the question mark and I will DM you a list of commands you can use!").format(pkmn=pkmn.title(), member=member.display_name, channel=channel.mention)
+            raidtext = _("{pkmn} raid reported by {member} in {channel}! Coordinate here!\n\nFor help, react to this message with the question mark and I will DM you a list of commands you can use!").format(pkmn=pkmn.title(), member=member.display_name, channel=raid_channel.mention)
         elif type == "egg":
-            raidtext = _("Level {level} raid egg reported by {member} in {channel}! Coordinate here!\n\nFor help, react to this message with the question mark and I will DM you a list of commands you can use!").format(level=level, member=member.display_name, channel=channel.mention)
+            raidtext = _("Level {level} raid egg reported by {member} in {channel}! Coordinate here!\n\nFor help, react to this message with the question mark and I will DM you a list of commands you can use!").format(level=level, member=member.display_name, channel=raid_channel.mention)
         elif type == "exraid":
-            raidtext = _("EX raid reported by {member} in {channel}! Coordinate here!\n\nFor help, react to this message with the question mark and I will DM you a list of commands you can use!").format(member=member.display_name, channel=channel.mention)
+            raidtext = _("EX raid reported by {member} in {channel}! Coordinate here!\n\nFor help, react to this message with the question mark and I will DM you a list of commands you can use!").format(member=member.display_name, channel=raid_channel.mention)
     return raidtext
+
+def build_raid_report_message(gym, type, pkmn, level, raidexp, channel):
+    guild = channel.guild
+    enabled = raid_channels_enabled(guild, channel)
+    if type == "raid":
+        msg = _('{boss} @ {location}{ex}').format(ex=" (EX) " if gym.ex_eligible else "", boss=pokemon, location=gym.name)
+        end_str = "Expires: "
+    elif type == "egg":
+        msg = _('T{level} egg @ {location}{ex}').format(ex=" (EX) " if gym.ex_eligible else "", level=level, location=gym.name)
+        end_str = "Hatches: "
+    if raidexp is not False:
+        now = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[guild.id]['configure_dict']['settings']['offset'])
+        end = now + datetime.timedelta(minutes=raidexp)
+        msg += _(' {type}{end}.').format(end=end.strftime(_('%I:%M %p')), type=end_str)
+    if enabled:
+        msg += _(" Coordinate in {channel}").format(channel=channel.mention)
+    return msg
 
 async def create_raid_channel(raid_type, pkmn, level, gym, report_channel):
     guild = report_channel.guild
@@ -5739,7 +5763,7 @@ async def _raid_internal(ctx, content):
     raid_embed.set_footer(text=_('Reported by {author} - {timestamp}').format(author=author.display_name, timestamp=timestamp), icon_url=author.avatar_url_as(format=None, static_format='jpg', size=32))
     raid_embed.set_thumbnail(url=raid_pokemon.img_url)
     report_embed = raid_embed
-    msg = build_raid_report_message(gym, raid_pokemon.name, raidexp, enabled, raid_channel)
+    msg = build_raid_report_message(gym, 'raid', raid_pokemon.name, '0', raidexp, raid_channel)
     embed_indices = await get_embed_field_indices(report_embed)
     report_embed = await filter_fields_for_report_embed(report_embed, embed_indices)
     raidreport = await channel.send(content=msg, embed=report_embed)
@@ -5920,7 +5944,7 @@ async def _raidegg(ctx, content):
             raid_embed.add_field(name=_('**Hatches:**'), value=_('Set with **!timerset**'), inline=True)
         raid_embed.set_footer(text=_('Reported by {author} - {timestamp}').format(author=author.display_name, timestamp=timestamp), icon_url=author.avatar_url_as(format=None, static_format='jpg', size=32))
         raid_embed.set_thumbnail(url=raid_img_url)
-        msg = build_raid_report_message(gym, egg_level, raidexp, enabled, raid_channel)
+        msg = build_raid_report_message(gym, 'egg', '', egg_level, raidexp, raid_channel)
         report_embed = raid_embed
         embed_indices = await get_embed_field_indices(report_embed)
         report_embed = await filter_fields_for_report_embed(report_embed, embed_indices)
@@ -5976,22 +6000,6 @@ async def _raidegg(ctx, content):
         await raidreport.add_reaction('🚫')
         await asyncio.sleep(0.25)
         return raid_channel
-
-def build_raid_report_message(gym, pokemon, raidexp, enabled, channel):
-    guild = channel.guild
-    if pokemon.isdigit():
-        msg = _('T{level} egg @ {location}{ex}').format(ex=" (EX) " if gym.ex_eligible else "", level=pokemon, location=gym.name)
-        type = "Hatches: "
-    else:
-        msg = _('{boss} @ {location}{ex}').format(ex=" (EX) " if gym.ex_eligible else "", boss=pokemon, location=gym.name)
-        type = "Expires: "
-    if raidexp is not False:
-        now = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[guild.id]['configure_dict']['settings']['offset'])
-        end = now + datetime.timedelta(minutes=raidexp)
-        msg += _(' {type}{end}.').format(end=end.strftime(_('%I:%M %p')), type=type)
-    if enabled:
-        msg += _(" Coordinate in {channel}").format(channel=channel.mention)
-    return msg
 
 async def _eggassume(args, raid_channel, author=None):
 
@@ -8086,28 +8094,19 @@ async def update_raid_location(message, report_channel, raid_channel, gym):
     channel_prefix = channel_name.split("_")[0]
     new_channel_name = sanitize_name(channel_prefix + "_"+ gym.name)
     await raid_channel.edit(name=new_channel_name)
-    type, pkmn, level, member, channel = '', '', '', '', ''
-    if 'type' in raid_dict:
-        type = raid_dict['type']
-    if 'pokemon' in raid_dict:
-        pkmn = raid_dict['pokemon']
-    if 'egglevel' in raid_dict:
-        level = raid_dict['egglevel']
-    if 'reporter' in raid_dict:
-        member = raid_dict['reporter']
-    try:
-        message_content = get_raidtext(guild, type, pkmn, level, member, raid_channel, gym, False)
-        await oldraidmsg.edit(new_content=message_content, embed=new_embed, content=message_content)
-    except:
-        pass
-    try:
-        embed_indices = await get_embed_field_indices(new_embed)
-        new_embed = await filter_fields_for_report_embed(new_embed, embed_indices)
-        message_content = get_raidtext(guild, type, pkmn, level, member, raid_channel, gym, True)
-        await oldreportmsg.edit(new_content=message_content, embed=new_embed, content=message_content)
-    except:
-        print("update report message failed")
-        pass
+    #try:
+    message_content = get_raidtext(guild, raid_dict, gym, report_channel, raid_channel, False)
+    await oldraidmsg.edit(new_content=message_content, embed=new_embed, content=message_content)
+    #except:
+        #pass
+    #try:
+    embed_indices = await get_embed_field_indices(new_embed)
+    new_embed = await filter_fields_for_report_embed(new_embed, embed_indices)
+    message_content = get_raidtext(guild, raid_dict, gym, report_channel, raid_channel, True)
+    await oldreportmsg.edit(new_content=message_content, embed=new_embed, content=message_content)
+    #except:
+        #print("update report message failed")
+        #pass
     temp = guild_dict[guild.id]['raidchannel_dict'][raid_channel.id]
     temp['raidmessage'] = oldraidmsg.id
     temp['raidreport'] = oldreportmsg.id
