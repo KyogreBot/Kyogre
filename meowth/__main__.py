@@ -432,7 +432,7 @@ def get_raidtext(guild, raid_dict, gym, report_channel, raid_channel, report):
         raidtext = build_raid_report_message(gym, type, pkmn, level, raidexp, report_channel)
     else:
         if type == "raid":
-            raidtext = _("{pkmn} raid reported by {member} in {channel}! Coordinate here!\n\nFor help, react to this message with the question mark and I will DM you a list of commands you can use!").format(pkmn=pkmn.title(), member=member.display_name, channel=raid_channel.mention)
+            raidtext = _("{pkmn} raid reported by {member} in {channel}! Coordinate here!\n\nFor help, react to this message with the question mark and I will DM you a list of commands you can use!").format(pkmn=pkmn.name(), member=member.display_name, channel=raid_channel.mention)
         elif type == "egg":
             raidtext = _("Level {level} raid egg reported by {member} in {channel}! Coordinate here!\n\nFor help, react to this message with the question mark and I will DM you a list of commands you can use!").format(level=level, member=member.display_name, channel=raid_channel.mention)
         elif type == "exraid":
