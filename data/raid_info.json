@@ -54,8 +54,7 @@
             "egg": "legendary",
             "egg_img": "5.png",
             "pokemon": [
-                "kyogre",
-                "groudon"
+                "palkia"
             ],
             "hatchtime": 60,
             "raidtime": 45
