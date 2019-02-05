@@ -39,7 +39,7 @@ from meowth.bot import MeowthBot
 from meowth.errors import custom_error_handling
 from meowth.logs import init_loggers
 from meowth.exts.pokemon import Pokemon
-from meowth.exts.bosscp import boss_cp_chart
+#from meowth.exts.bosscp import boss_cp_chart
 
 logger = init_loggers()
 _ = gettext.gettext
@@ -486,9 +486,8 @@ async def create_raid_channel(raid_type, pkmn, level, gym, report_channel):
                 raid_channel_overwrite_list.append(everyone_overwrite)
         cat = get_category(report_channel, "EX", category_type=raid_type)
     else:
-        for c in guild_dict[guild.id]['configure_dict']['raid']['report_channels']:
-            if guild_dict[guild.id]['configure_dict']['raid']['report_channels'][c] == gym.region:
-                report_channel = guild.get_channel(c)
+        reporting_channels = get_region_reporting_channels(guild, gym.region)
+        report_channel = guild.get_channel(reporting_channels[0])
         raid_channel_overwrite_list = report_channel.overwrites
         if raid_type == "raid":
             name = pkmn.name.lower() + "_"
@@ -509,6 +508,13 @@ async def create_raid_channel(raid_type, pkmn, level, gym, report_channel):
     name = sanitize_name(name+gym.name)
     ow = dict(raid_channel_overwrite_list)
     return await guild.create_text_channel(name, overwrites=ow, category=cat)
+
+def get_region_reporting_channels(guild, region):
+    report_channels = []
+    for c in guild_dict[guild.id]['configure_dict']['raid']['report_channels']:
+            if guild_dict[guild.id]['configure_dict']['raid']['report_channels'][c] == region:
+                report_channels.append(c)
+    return report_channels
 
 def raid_channels_enabled(guild, channel):
     enabled = True
@@ -5690,9 +5696,9 @@ async def _raid_internal(ctx, content):
     raid_details = raid_details.replace(str(weather), '', 1)
     if raid_details == '':
         return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('Give more details when reporting! Usage: **!raid <pokemon name> <location>**')))
-    regions = _get_channel_regions(channel, 'raid')
+    report_regions = _get_channel_regions(channel, 'raid')
     gym = None
-    gyms = get_gyms(guild.id, regions)
+    gyms = get_gyms(guild.id, report_regions)
     other_region = False
     if gyms:
         gym = await location_match_prompt(channel, author.id, raid_details, gyms)
@@ -5727,7 +5733,7 @@ async def _raid_internal(ctx, content):
 
         raid_details = gym.name
         raid_gmaps_link = gym.maps_url
-        regions = [gym.region]
+        gym_regions = [gym.region]
     else:
         raid_gmaps_link = create_gmaps_query(raid_details, channel, type="raid")
     raid_channel = await create_raid_channel("raid", raid_pokemon, None, gym, channel)
@@ -5740,7 +5746,7 @@ async def _raid_internal(ctx, content):
     raid = discord.utils.get(guild.roles, name=raid_pokemon.species)
     level = raid_pokemon.raid_level
     raid_dict = {
-        'regions': regions,
+        'regions': gym_regions,
         'reportcity': channel.id,
         'trainer_dict': {},
         'exp': time.time() + (60 * raid_info['raid_eggs'][str(level)]['raidtime']),
@@ -5775,6 +5781,11 @@ async def _raid_internal(ctx, content):
     msg = build_raid_report_message(gym, 'raid', raid_pokemon.name, '0', raidexp, raid_channel)
     embed_indices = await get_embed_field_indices(report_embed)
     report_embed = await filter_fields_for_report_embed(report_embed, embed_indices)
+    if other_region:
+        report_channels = get_region_reporting_channels(guild, gym_regions)
+        report_channel = report_channels[0]
+    else:
+        report_channel = channel
     raidreport = await channel.send(content=msg, embed=report_embed)
     await asyncio.sleep(1)
     raid_embed.add_field(name='**Tips:**', value='`!i` if interested\n`!c` if on the way\n`!h` when you arrive', inline=True)
@@ -5826,6 +5837,11 @@ async def _raid_internal(ctx, content):
     await asyncio.sleep(0.25)
     await raidreport.add_reaction('🚫')
     await asyncio.sleep(0.25)
+    if other_region:
+        msg = f'Hey {author.mention}, {gym.name} is in the {gym_regions[0]} region. Your report was successful, but please consider joining that region to report there in the future'
+        embed = discord.Embed(colour=discord.Colour.gold(), description=msg)
+        embed.set_footer(f"If you believe this region assignment is incorrect, please contact {guild.owner.display_name}")
+        await channel.send(embed=embed)
     return raid_channel
 
 async def retry_gym_match(channel, author_id, raid_details, gyms):
