@@ -5454,7 +5454,6 @@ async def _wild_internal(message, content):
         entered_wild, entered_wild, wild_details = content.split(' ', 2)
     else:
         wild_details = re.sub(pkmn.name.lower(), '', content, flags=re.I)
-    await channel.send(wild_details)
     wild_gmaps_link = ''
     locations = get_all_locations(guild.id, channel_regions)
     if locations and not ('http' in wild_details or '/maps' in wild_details):
