@@ -1560,6 +1560,7 @@ async def modify_raid_report(payload, raid_report):
     err_msg = None
     success_msg = None
     if match in choices_list:
+        # Updating location
         if match == choices_list[0]:
             query_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.gold(), description=_("What is the correct Location?")))
             try:
@@ -1584,12 +1585,13 @@ async def modify_raid_report(payload, raid_report):
                             raid_channel = Meowth.get_channel(raid_channel_ids[0])
                             if guild_dict[guild.id]['raidchannel_dict'][raid_channel.id]:
                                 err_msg =  await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"A raid has already been reported for {gym.name}"))
-                            else:
-                                await update_raid_location(message, report_channel, raid_channel, gym)
-                                await _refresh_listing_channels_internal(guild, "raid")
-                                success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid location updated")))
-                                await gymmsg.delete()
-                                await query_msg.delete()
+                        else:
+                            await update_raid_location(message, report_channel, raid_channel, gym)
+                            await _refresh_listing_channels_internal(guild, "raid")
+                            success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid location updated")))
+                            await gymmsg.delete()
+                            await query_msg.delete()
+        # Updating time
         elif match == choices_list[1]:
             timewait = await channel.send(embed=discord.Embed(colour=discord.Colour.gold(), description=_("What is the Hatch / Expire time?")))
             try:
@@ -1609,6 +1611,7 @@ async def modify_raid_report(payload, raid_report):
             success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid hatch / expire time updated")))
             await timewait.delete()
             await timemsg.delete()
+        # Updating boss
         elif match == choices_list[2]:
             bosswait = await channel.send(embed=discord.Embed(colour=discord.Colour.gold(), description=_("What is the Raid Tier / Boss?")))
             try:
