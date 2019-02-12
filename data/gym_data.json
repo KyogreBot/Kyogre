@@ -1,9 +1,1898 @@
 {
-
+    "Chelsea Park": {
+        "coordinates": "47.48104,-122.347015",
+        "ex_eligible": true,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Welcome to Burien Hut": {
+        "coordinates": "47.470687,-122.334138",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Burien Elks Lodge": {
+        "coordinates": "47.4773,-122.33345",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Fire Circle": {
+        "coordinates": "47.471779,-122.34037",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Hester Family Memorial": {
+        "coordinates": "47.467216,-122.340649",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Stone Pillars": {
+        "coordinates": "47.469625,-122.339051",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Environmental Science Center at Seahurst Park": {
+        "coordinates": "47.481249,-122.360767",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Spectrum Delta II": {
+        "coordinates": "47.442893,-122.302282",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Ms Hardy Memorial Bench": {
+        "coordinates": "47.450151,-122.336084",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Jay Powers!! Tribute Plaque": {
+        "coordinates": "47.477592,-122.362832",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Time Twisted": {
+        "coordinates": "47.466732,-122.34308",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Glendale Evangelical Lutheran Church": {
+        "coordinates": "47.481539,-122.336757",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Huckleberry Square": {
+        "coordinates": "47.473411,-122.347744",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Sword Fern": {
+        "coordinates": "47.444459,-122.35537",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Boulevard Park Presbyterian Church": {
+        "coordinates": "47.48883,-122.309035",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Fountain at SeaTac Highline Botanical Gardens": {
+        "coordinates": "47.479249,-122.303475",
+        "ex_eligible": true,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "New Playground At Lakeview Park": {
+        "coordinates": "47.460807,-122.340651",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Memorial Bench At Seatac Botanical Gardens": {
+        "coordinates": "47.478719,-122.304054",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Eagle Scout Project": {
+        "coordinates": "47.469908,-122.367575",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Burien Transit Center Mural": {
+        "coordinates": "47.469271,-122.337855",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Indiscrete": {
+        "coordinates": "47.445845,-122.303889",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Burien - Seahurst Survey Monument": {
+        "coordinates": "47.473006,-122.353271",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Little Free Library - Normandy Park": {
+        "coordinates": "47.447443,-122.351373",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Burien US Post Office": {
+        "coordinates": "47.466896,-122.361665",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Sunset Playfield": {
+        "coordinates": "47.479593,-122.312395",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Burien Eagles": {
+        "coordinates": "47.469,-122.347047",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Sun": {
+        "coordinates": "47.492,-122.329508",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Restoration Church Green Cross": {
+        "coordinates": "47.4888,-122.32984",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "UFO Mural": {
+        "coordinates": "47.46661,-122.34599",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Lake Burien Park Arch": {
+        "coordinates": "47.46947,-122.356262",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "North Seatac Park SW Entrance": {
+        "coordinates": "47.481609,-122.313794",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Jacob Ambaum Park": {
+        "coordinates": "47.489526,-122.350183",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Dottie Harper Park": {
+        "coordinates": "47.471241,-122.339123",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Wings of Transition": {
+        "coordinates": "47.441133,-122.303793",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Church of God": {
+        "coordinates": "47.453124,-122.333171",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Historic Transportation Mural": {
+        "coordinates": "47.460065,-122.331217",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Day of The Saints": {
+        "coordinates": "47.477549,-122.347609",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Boulevard Park": {
+        "coordinates": "47.488367,-122.30729",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Burien History Plaque": {
+        "coordinates": "47.467239,-122.344633",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "North SeaTac Disc Golf Course": {
+        "coordinates": "47.481798,-122.307949",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Time Square Clock": {
+        "coordinates": "47.463728,-122.334133",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Eagle Nest": {
+        "coordinates": "47.46987,-122.366047",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Steel Seaweed": {
+        "coordinates": "47.470253,-122.337471",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Herman Nickolas Peter Memorial Rock": {
+        "coordinates": "47.470427,-122.326774",
+        "ex_eligible": true,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "The Cove Stone": {
+        "coordinates": "47.44387,-122.354588",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Cambridge Square Clock": {
+        "coordinates": "47.463184,-122.327317",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "miller creek trail": {
+        "coordinates": "47.472557,-122.316434",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "church of christ": {
+        "coordinates": "47.477805,-122.323554",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "Burien Arch": {
+        "coordinates": "47.46947,-122.356262",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "apostolic bible church of jesus christ": {
+        "coordinates": "47.491806,-122.309826",
+        "ex_eligible": false,
+        "region": "burien",
+        "guild": "521087630885126187"
+    },
+    "White Center Neighborhood Pond": {
+        "coordinates": "47.517208,-122.350413",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Mr Rabbits Hangout": {
+        "coordinates": "47.52086,-122.375605",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Ying Yang Stage": {
+        "coordinates": "47.511169,-122.344024",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "True North": {
+        "coordinates": "47.516597,-122.34551",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Grace Church": {
+        "coordinates": "47.510681,-122.368551",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Peace Sign": {
+        "coordinates": "47.522863,-122.361351",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Retired Drawbridge": {
+        "coordinates": "47.533097,-122.332072",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Yellow Bird Kite": {
+        "coordinates": "47.505477,-122.341334",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "New Apostolic Church": {
+        "coordinates": "47.508331,-122.373646",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Tamara's Plaque": {
+        "coordinates": "47.532508,-122.398542",
+        "ex_eligible": true,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Westwood Post Office": {
+        "coordinates": "47.524188,-122.36677",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "White Center Market Mural": {
+        "coordinates": "47.515602,-122.354945",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "WC Heights Bridge": {
+        "coordinates": "47.510499,-122.343569",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Bigleaf Maple Forest": {
+        "coordinates": "47.525304,-122.341104",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Fauntleroy Park": {
+        "coordinates": "47.521471,-122.385038",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Kingdom Hall of Jehovah's Witness": {
+        "coordinates": "47.518884,-122.361588",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Hello Raindrop!": {
+        "coordinates": "47.514368,-122.343794",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Zippy's Giant Burgers": {
+        "coordinates": "47.516804,-122.352544",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Metal Birds": {
+        "coordinates": "47.517556,-122.371323",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Little Free Library - Curiosity Station": {
+        "coordinates": "47.515694,-122.386619",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Arbor Heights Swim and Tennis Club": {
+        "coordinates": "47.503872,-122.37304",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Little Free Library 18th": {
+        "coordinates": "47.527336,-122.358084",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Bird on a Wire Coffee": {
+        "coordinates": "47.522789,-122.377235",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Evergreen Community Aquatic Center": {
+        "coordinates": "47.499691,-122.342733",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Share the Shore": {
+        "coordinates": "47.531609,-122.399891",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Longfellow Creek Trail Bench": {
+        "coordinates": "47.528375,-122.364179",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Octopus Power Box": {
+        "coordinates": "47.533625,-122.360652",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Paradise of Praise": {
+        "coordinates": "47.534368,-122.352583",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Salvation Army 16th AVE SW": {
+        "coordinates": "47.521326,-122.354992",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Angie Memorial Bench": {
+        "coordinates": "47.524393,-122.340464",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Westcrest Park Map Kiosk": {
+        "coordinates": "47.521707,-122.343008",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Geo Shapes Mural": {
+        "coordinates": "47.517418,-122.346824",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Birds in the Clouds": {
+        "coordinates": "47.506344,-122.348576",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "John R. Sanders Memorial": {
+        "coordinates": "47.532773,-122.397217",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Westcrest Dihydrogen Monoxide Containment Units": {
+        "coordinates": "47.52414,-122.338348",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Lee's Produce Mural": {
+        "coordinates": "47.518333,-122.356111",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Cherish Yesterday Dream Tomorrow Live Today": {
+        "coordinates": "47.530322,-122.401445",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Hallows Church": {
+        "coordinates": "47.526635,-122.376242",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Southwest Complex": {
+        "coordinates": "47.528193,-122.368874",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "The Top Hat": {
+        "coordinates": "47.505914,-122.333405",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Directional sign at Westcrest scenic overlook": {
+        "coordinates": "47.523058,-122.343409",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Forgotten Street": {
+        "coordinates": "47.509525,-122.353947",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Little Free Library - Relaxation Station": {
+        "coordinates": "47.501444,-122.378304",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "John's Corner Deli Roof Cow": {
+        "coordinates": "47.535412,-122.376394",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Aaron Jacob Alter Memorial Bench": {
+        "coordinates": "47.52648,-122.394695",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Horses Waiting for the Bus": {
+        "coordinates": "47.530313,-122.34668",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Waterweeds!": {
+        "coordinates": "47.503333,-122.345992",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Roxhill Park": {
+        "coordinates": "47.5175,-122.368928",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Crescent": {
+        "coordinates": "47.501802,-122.340633",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Westcrest Park": {
+        "coordinates": "47.521185,-122.345284",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Fresh Water Safe Campsite": {
+        "coordinates": "47.522716,-122.392706",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "The Three Auroras": {
+        "coordinates": "47.513797,-122.353736",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Van Hoa Pagoda": {
+        "coordinates": "47.503803,-122.338907",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Salmon Creek Park": {
+        "coordinates": "47.497616,-122.343588",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Seattle Gospel Assembly Church": {
+        "coordinates": "47.513651,-122.386152",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "M Fresh Longfellow Creek Overlook": {
+        "coordinates": "47.535334,-122.362993",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Fauntleroy Ferry Terminal": {
+        "coordinates": "47.523164,-122.39605",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Big Al Brewing": {
+        "coordinates": "47.514305,-122.352676",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "North Shorewood Park": {
+        "coordinates": "47.512144,-122.363093",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "E.C. Hughes": {
+        "coordinates": "47.53364,-122.369434",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Westwood Christian Community Church": {
+        "coordinates": "47.519572,-122.354996",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "The Barrel": {
+        "coordinates": "47.503371,-122.333916",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Salmon Sockets Transformation": {
+        "coordinates": "47.531802,-122.360325",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Kenyon Hall": {
+        "coordinates": "47.531666,-122.3764",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Message Board at Roxhill Bog": {
+        "coordinates": "47.519358,-122.369617",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Highland Park United Methodist Church": {
+        "coordinates": "47.522582,-122.34705",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "coronado springs dedication plaque": {
+        "coordinates": "47.50993,-122.352294",
+        "ex_eligible": false,
+        "region": "whitecenter",
+        "guild": "521087630885126187"
+    },
+    "Saltwater State Park Recreational Area": {
+        "coordinates": "47.372489,-122.324265",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Starbucks 212th": {
+        "coordinates": "47.41283,-122.25013",
+        "ex_eligible": true,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Kent Post Office": {
+        "coordinates": "47.387326,-122.199053",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Redondo Beach Park": {
+        "coordinates": "47.34798,-122.325046",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Its all Connected": {
+        "coordinates": "47.344317,-122.330862",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "The Peace Pole": {
+        "coordinates": "47.433986,-122.287777",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Water Tower": {
+        "coordinates": "47.406224,-122.319593",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Salmon Matter": {
+        "coordinates": "47.372961,-122.323385",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Green River Trail": {
+        "coordinates": "47.422692,-122.264531",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Tree of Life": {
+        "coordinates": "47.408129,-122.306254",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Des Moines Waterland": {
+        "coordinates": "47.4081,-122.298515",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Saint Philomena Church": {
+        "coordinates": "47.403813,-122.310323",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Sea Tac Airport Coral Reef": {
+        "coordinates": "47.438848,-122.302034",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Angle Lake Spray Park": {
+        "coordinates": "47.428276,-122.294588",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Des Moines Creek Trail Bridge": {
+        "coordinates": "47.407841,-122.326487",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Kent North Wetlands": {
+        "coordinates": "47.411861,-122.277012",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Songbirds": {
+        "coordinates": "47.397966,-122.327736",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Seattle Pet Cemetery & Cremation Service": {
+        "coordinates": "47.389616,-122.286026",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Nature's Dynamic Processes Info Sign": {
+        "coordinates": "47.411942,-122.340138",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "West Fenwick Park": {
+        "coordinates": "47.370175,-122.28349",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Metal Art Sculpture": {
+        "coordinates": "47.408432,-122.307912",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Slip Stream": {
+        "coordinates": "47.406196,-122.272699",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Lake Fenwick Trailhead": {
+        "coordinates": "47.370227,-122.272649",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Russell Woods Park": {
+        "coordinates": "47.396204,-122.272741",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Dave's Diner": {
+        "coordinates": "47.434403,-122.296876",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Valley Ridge Community Center": {
+        "coordinates": "47.435195,-122.27448",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Stone Ring of Fate": {
+        "coordinates": "47.388706,-122.301278",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Valley Ridge Park": {
+        "coordinates": "47.434524,-122.276085",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Bizarre Metal Sculpture": {
+        "coordinates": "47.389769,-122.298321",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Prince of Peace Lutheran Church": {
+        "coordinates": "47.431731,-122.324589",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Midway Covenant Church": {
+        "coordinates": "47.399712,-122.3023",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "HCC Metal Statue": {
+        "coordinates": "47.387469,-122.299183",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Grace Lutheran Church": {
+        "coordinates": "47.395928,-122.3007",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Eagle Boy Scout Project Plaque": {
+        "coordinates": "47.397897,-122.286226",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Des Moines Trail": {
+        "coordinates": "47.403608,-122.329889",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Marvista Park": {
+        "coordinates": "47.424082,-122.340025",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Parkside Park": {
+        "coordinates": "47.382986,-122.301517",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Clock Tower": {
+        "coordinates": "47.400233,-122.324278",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Water Tower Park": {
+        "coordinates": "47.415814,-122.328328",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Green River Natural Resources Area": {
+        "coordinates": "47.410081,-122.265943",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Cornerstone Community Baptist Church": {
+        "coordinates": "47.377129,-122.286217",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Glenn Nelson Park": {
+        "coordinates": "47.36161,-122.291765",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Cedar And Salmon Totem": {
+        "coordinates": "47.377124,-122.269858",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Eagle Park Little Free Library": {
+        "coordinates": "47.390195,-122.267238",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Ridgeview Sign": {
+        "coordinates": "47.412855,-122.283823",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Fish Pole": {
+        "coordinates": "47.398094,-122.324543",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "To Beach Trail Markers": {
+        "coordinates": "47.414184,-122.339866",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Landmark on the Sound": {
+        "coordinates": "47.388146,-122.322049",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Green River Natural Resources Nursery": {
+        "coordinates": "47.401853,-122.273583",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Star Lake Rain Garden": {
+        "coordinates": "47.357495,-122.292568",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "East Entrance Dog Park Sign": {
+        "coordinates": "47.397303,-122.283316",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "O'Brien Bridge": {
+        "coordinates": "47.412447,-122.26426",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Highline Community College": {
+        "coordinates": "47.386617,-122.29923",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Underwood Memorial Plaza": {
+        "coordinates": "47.405884,-122.306989",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Resurrection Lutheran Church": {
+        "coordinates": "47.418996,-122.333644",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Past Present Future Memorial Fountain": {
+        "coordinates": "47.388152,-122.298939",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Southminister Presbyterian Church": {
+        "coordinates": "47.424617,-122.324384",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "St. Patricks Cemetery Arch": {
+        "coordinates": "47.419182,-122.279334",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Des Moines Marina Fishing Pier": {
+        "coordinates": "47.402031,-122.333991",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Metal Bird in Flight": {
+        "coordinates": "47.293842,-122.27716",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Olympic View Park": {
+        "coordinates": "47.30747,-122.373841",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Licorice Fern": {
+        "coordinates": "47.286953,-122.327215",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Browns Point Playfield": {
+        "coordinates": "47.302476,-122.440575",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "The Painted Boulder": {
+        "coordinates": "47.30266,-122.429102",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "LDS Church Federal Way Stake Center": {
+        "coordinates": "47.289114,-122.293385",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Its all Connected ": {
+        "coordinates": "47.344317,-122.330862",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Metal Fish": {
+        "coordinates": "47.328109,-122.376268",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Celebration Park Sign": {
+        "coordinates": "47.304567,-122.319612",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Capital Square Fountain ": {
+        "coordinates": "47.31558,-122.325557",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Music Stop": {
+        "coordinates": "47.300593,-122.359992",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Thwacker": {
+        "coordinates": "47.294084,-122.332198",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Christian Faith Center": {
+        "coordinates": "47.299441,-122.308345",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Wooton Park Gazebo": {
+        "coordinates": "47.348383,-122.322548",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Sunrise Gardens": {
+        "coordinates": "47.283753,-122.33282",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Lower Loop Trail Head": {
+        "coordinates": "47.315484,-122.409365",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "American Eagle": {
+        "coordinates": "47.336779,-122.270958",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Browns Point Lighthouse": {
+        "coordinates": "47.305903,-122.444237",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Creekside Gazebo": {
+        "coordinates": "47.280733,-122.305365",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Sub Zero Ice Cream": {
+        "coordinates": "47.317881,-122.315016",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Mirror Lake Park": {
+        "coordinates": "47.319279,-122.322606",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Wholesale Sports Buck": {
+        "coordinates": "47.288077,-122.316939",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "French Lake Park": {
+        "coordinates": "47.318718,-122.334819",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "The Green Monster Water Tower": {
+        "coordinates": "47.333137,-122.308374",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Bishop Center": {
+        "coordinates": "47.281994,-122.40984",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Baseball Bat and Ball": {
+        "coordinates": "47.308324,-122.318418",
+        "ex_eligible": "True",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Checkpoint": {
+        "coordinates": "47.325734,-122.385416",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "The Church of Jesus Christ of Latter Day Saints": {
+        "coordinates": "47.325842,-122.322011",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Northeast Tacoma Playground": {
+        "coordinates": "47.282591,-122.373443",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Alderwood Park Fire Station": {
+        "coordinates": "47.287499,-122.385342",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Resurrection Evangelical Lutheran church": {
+        "coordinates": "47.3019,-122.414381",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "River Rock Fountain": {
+        "coordinates": "47.305114,-122.322854",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Rainbow of Colors Bus Stop Mural": {
+        "coordinates": "47.300567,-122.317077",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Rain Garden Overlook": {
+        "coordinates": "47.299102,-122.40398",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Lake Grove Park": {
+        "coordinates": "47.325959,-122.347201",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Picnic Park": {
+        "coordinates": "47.304875,-122.33905",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "God Bless The USA": {
+        "coordinates": "47.288607,-122.318177",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Fish Fountain": {
+        "coordinates": "47.276236,-122.311004",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Lakota Park": {
+        "coordinates": "47.321219,-122.358993",
+        "ex_eligible": "True",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Stone Pillars (Federal Way)": {
+        "coordinates": "47.28834,-122.310725",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Maple Leaf 2": {
+        "coordinates": "47.317537,-122.305509",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Let the Children Come to Me": {
+        "coordinates": "47.327376,-122.325738",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Julia's Gulch": {
+        "coordinates": "47.272247,-122.370543",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Cascade Council Ring": {
+        "coordinates": "47.328297,-122.374939",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Saghalie Wooden People": {
+        "coordinates": "47.297233,-122.356572",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Fire Truck Play Structure": {
+        "coordinates": "47.303798,-122.304658",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Black Bear Diner": {
+        "coordinates": "47.313337,-122.314189",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Arkansas Dedication Flag": {
+        "coordinates": "47.294518,-122.34197",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Trail to Lake": {
+        "coordinates": "47.315101,-122.342642",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Federal Way Fountain Plaza": {
+        "coordinates": "47.299691,-122.328511",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "The Enlightened Dragon": {
+        "coordinates": "47.275619,-122.310289",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Federal Way Senior Center": {
+        "coordinates": "47.286283,-122.28427",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Washington State Centennial - Old Military Road": {
+        "coordinates": "47.272576,-122.282005",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "DeVry University": {
+        "coordinates": "47.294176,-122.288169",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Secoma Lanes": {
+        "coordinates": "47.292096,-122.315559",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Life Christian Church": {
+        "coordinates": "47.282948,-122.37536",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Leialoha Memorial Garden": {
+        "coordinates": "47.299958,-122.330719",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "West Hylebos Wetlands": {
+        "coordinates": "47.28805,-122.328424",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Browns Pt/Dash Pt Fire Departm": {
+        "coordinates": "47.301154,-122.436262",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Our Watershed": {
+        "coordinates": "47.328371,-122.376364",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Neon Church Sign": {
+        "coordinates": "47.343703,-122.295115",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Family Funland": {
+        "coordinates": "47.325102,-122.301276",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "KCLS Sign": {
+        "coordinates": "47.295079,-122.331648",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Karl Grosch Field": {
+        "coordinates": "47.321583,-122.298943",
+        "ex_eligible": "True",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Starbucks": {
+        "coordinates": "47.315456,-122.307045",
+        "ex_eligible": "True",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Northshore GCCE": {
+        "coordinates": "47.286701,-122.399631",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "MAST Center Aquarium": {
+        "coordinates": "47.34918,-122.325099",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Dash Point State Park": {
+        "coordinates": "47.319199,-122.413288",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Ventana Storage Pond": {
+        "coordinates": "47.329436,-122.365285",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Christian Faith Center Sign": {
+        "coordinates": "47.298762,-122.313115",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Trail Information": {
+        "coordinates": "47.318039,-122.407282",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Disk'o": {
+        "coordinates": "47.275054,-122.310133",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "St Francis Hospital Memorial Sculpture ": {
+        "coordinates": "47.292652,-122.327905",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Skookum Wildlife Restoration Project": {
+        "coordinates": "47.289286,-122.408968",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Celebration Park Dedication": {
+        "coordinates": "47.308327,-122.317714",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Light of Christ": {
+        "coordinates": "47.293691,-122.361206",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Hydrant Lamb": {
+        "coordinates": "47.317164,-122.299504",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Good Shepherd Episcopal Church": {
+        "coordinates": "47.322255,-122.330226",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Weyerhauser Garden Electrolith #2": {
+        "coordinates": "47.290952,-122.301528",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Saghalie Soccer Field Rules": {
+        "coordinates": "47.298894,-122.353878",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Timberaxe at Wild Waves Wave Pool Amusement Park": {
+        "coordinates": "47.277036,-122.310632",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Camp Kilworth": {
+        "coordinates": "47.324141,-122.395879",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "The Metallic Tree of Knowledge": {
+        "coordinates": "47.315268,-122.321318",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Federal Way Regional Storm Water Storage and Treatment Facility": {
+        "coordinates": "47.295566,-122.380711",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Copper Woman": {
+        "coordinates": "47.318194,-122.30599",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Celebration park soccer skills": {
+        "coordinates": "47.3064,-122.318381",
+        "ex_eligible": "True",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Friends Community Garden": {
+        "coordinates": "47.288244,-122.384173",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Federal Way Water Towers": {
+        "coordinates": "47.324283,-122.325554",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Metal and Glass Windmill Sculpture": {
+        "coordinates": "47.305614,-122.323496",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Marine View Presbyterian Church": {
+        "coordinates": "47.317174,-122.422546",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Bingaman Pond Natural Area": {
+        "coordinates": "47.346883,-122.28674",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Danville Station Gazebo": {
+        "coordinates": "47.291084,-122.36039",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Japanese Black Pine": {
+        "coordinates": "47.293831,-122.301846",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Burger Express": {
+        "coordinates": "47.307682,-122.313833",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Fish Gazebo": {
+        "coordinates": "47.32553,-122.300592",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Highland Park Trail Head": {
+        "coordinates": "47.311333,-122.402634",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Lewis & Clark Campfire Area": {
+        "coordinates": "47.326799,-122.394708",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Sacajawea Park": {
+        "coordinates": "47.335759,-122.316492",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Reforesting for the Future": {
+        "coordinates": "47.289165,-122.32829",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Tribute to the 12th Man" : {
+        "coordinates": "47.317469,-122.30318",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Rainbow Umbrellas" : {
+        "coordinates": "47.314932,-122.303917",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Federal Way Transit Center Clock": {
+        "coordinates": "47.317558,-122.304682",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Tacoma Seafarers Center": {
+        "coordinates": "47.272322,-122.396368",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "St. Theresa's Catholic Church": {
+        "coordinates": "47.30591,-122.385808",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Pyramid Masonic Center ": {
+        "coordinates": "47.297484,-122.312285",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Seventh Day Adventist Church (Federal Way)": {
+        "coordinates": "47.312374,-122.289558",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "BPA Trailhead": {
+        "coordinates": "47.282767,-122.355385",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Waterfall": {
+        "coordinates": "47.314893,-122.283755",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Light Church": {
+        "coordinates": "47.315222,-122.344081",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "A Park For Kids": {
+        "coordinates": "47.327158,-122.35629",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Sitka Spruce": {
+        "coordinates": "47.287164,-122.324855",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Norpoint Metro Park Tacoma": {
+        "coordinates": "47.300861,-122.403105",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Wildwood Park South Entrance": {
+        "coordinates": "47.332359,-122.303863",
+        "ex_eligible": "True",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Bpa Viewpoint Marker": {
+        "coordinates": "47.296929,-122.341603",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Dash Point Upper Loop Trailhead ": {
+        "coordinates": "47.314398,-122.403359",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "BPA Trail and Park": {
+        "coordinates": "47.293939,-122.342549",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Arizona Dedication Flag": {
+        "coordinates": "47.293729,-122.341759",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Mike Wentworth Bench": {
+        "coordinates": "47.320288,-122.426535",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Dumas Bay Sundial": {
+        "coordinates": "47.32892,-122.374857",
+        "ex_eligible": "False",
+        "region": "federalway",
+        "guild": "521087630885126187"
+    },
+    "Riverview Community Church": {
+        "coordinates": "47.408065,-122.281347",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Highline Community College Statue": {
+        "coordinates": "47.388071,-122.301296",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "SeaTac Art Walk Window Art": {
+        "coordinates": "47.438578,-122.297621",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Westwood park": {
+        "coordinates": "47.430259,-122.328032",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Octavia By George C Scott": {
+        "coordinates": "47.40746,-122.324869",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Woodmont Park": {
+        "coordinates": "47.364443,-122.318819",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "World Mission Church of God": {
+        "coordinates": "47.437029,-122.28215",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "The Blue Sail Wall": {
+        "coordinates": "47.408259,-122.324922",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Wetlands": {
+        "coordinates": "47.403852,-122.278079",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Grandview Dog Park Sign": {
+        "coordinates": "47.397353,-122.287778",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Eagle Project Bridge": {
+        "coordinates": "47.375645,-122.320888",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Church Of Love": {
+        "coordinates": "47.325415,-122.314383",
+        "ex_eligible": false,
+        "region": "desmoines",
+        "guild": "521087630885126187"
+    },
+    "Berkshire Glen East Park": {
+        "coordinates": "47.336835,-122.174593",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Island Park Gazebo #1": {
+        "coordinates": "47.388934,-122.260738",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Kent Yangzhou Park Pagoda": {
+        "coordinates": "47.382998,-122.232618",
+        "ex_eligible": true,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Summit Ridge Kiosk": {
+        "coordinates": "47.33603,-122.006509",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
     "Petrovitsky Park": {
         "coordinates": "47.441533,-122.120511",
         "ex_eligible": true,
         "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "Clark Lake Park North Entrance": {
+        "coordinates": "47.386792,-122.174182",
+        "ex_eligible": true,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Boeing sign at 204th ave": {
+        "coordinates": "47.41921,-122.249791",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Kent Scenic Hill Park": {
+        "coordinates": "47.36971,-122.211099",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Lexington Cannon": {
+        "coordinates": "47.391042,-122.237525",
+        "ex_eligible": false,
+        "region": "kent",
         "guild": "521087630885126187"
     },
     "Cedar River Trail": {
@@ -12,10 +1901,100 @@
         "region": "renton",
         "guild": "521087630885126187"
     },
+    "Wetlands at the Showare Center": {
+        "coordinates": "47.389821,-122.239775",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Giant Corn Stalk Sculptures": {
+        "coordinates": "47.377838,-122.242441",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "2008 Eagle Scout Hitching Post Project on Soos Creek Trail": {
+        "coordinates": "47.41278,-122.159624",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Shadowbrook Ridge Park": {
+        "coordinates": "47.401213,-122.166725",
+        "ex_eligible": true,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Garden Day, Garden Night": {
+        "coordinates": "47.369385,-122.2404",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
     "Black Bear": {
         "coordinates": "47.43087,-122.19647",
         "ex_eligible": false,
         "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "Playground1": {
+        "coordinates": "47.341765,-122.05475",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Kent Covenant Church": {
+        "coordinates": "47.387341,-122.180038",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Auburn Cowgirls Espresso": {
+        "coordinates": "47.363602,-122.229731",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Tukwila Bear Totem": {
+        "coordinates": "47.441352,-122.245235",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "New Community": {
+        "coordinates": "47.410007,-122.016122",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Fred Habenicht Maple Valley Rotary Park Monument": {
+        "coordinates": "47.405087,-122.039585",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Signature Point": {
+        "coordinates": "47.378859,-122.253979",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Fountain of Charity": {
+        "coordinates": "47.368708,-122.202897",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Meeker Street Emporium Wall Art": {
+        "coordinates": "47.382076,-122.236185",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "City of Kent Parks Dept.": {
+        "coordinates": "47.386624,-122.26193",
+        "ex_eligible": false,
+        "region": "kent",
         "guild": "521087630885126187"
     },
     "Echo Quarry Trail": {
@@ -24,10 +2003,232 @@
         "region": "renton",
         "guild": "521087630885126187"
     },
+    "Kent Valley Bird Sancuary 1": {
+        "coordinates": "47.402057,-122.263288",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Gary Grant Park Promenade": {
+        "coordinates": "47.417044,-122.158862",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "The Saar Pioneer Cemetery": {
+        "coordinates": "47.412366,-122.219417",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Clock Lamp Post": {
+        "coordinates": "47.370411,-122.20595",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "MUGS BUGS": {
+        "coordinates": "47.44076,-122.219469",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "Kent Chinese Alliance Church": {
+        "coordinates": "47.379971,-122.215675",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Kent Lutheran Church": {
+        "coordinates": "47.378995,-122.234726",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Shepherd of the Valley Church": {
+        "coordinates": "47.408206,-122.022166",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Welcome to Maple Valley": {
+        "coordinates": "47.409651,-122.039127",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Cedar River Trail Head": {
+        "coordinates": "47.375455,-121.972382",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "VMC Shrubbery": {
+        "coordinates": "47.440939,-122.215396",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "Untamed": {
+        "coordinates": "47.437831,-122.248077",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Stormwater Pond": {
+        "coordinates": "47.427204,-122.188504",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Taylor Mountain Forest": {
+        "coordinates": "47.432658,-121.972548",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Alicia Glen Park": {
+        "coordinates": "47.330127,-122.17546",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Meridian Architecture": {
+        "coordinates": "47.358726,-122.145309",
+        "ex_eligible": true,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "The Young Herons": {
+        "coordinates": "47.380396,-122.23723",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Kiwanis Tot Lot 1": {
+        "coordinates": "47.376682,-122.233393",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Clark Lake Dock": {
+        "coordinates": "47.384007,-122.173853",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Turnkey Park": {
+        "coordinates": "47.393004,-122.207246",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Road F & Road A Intersection Trail Marker": {
+        "coordinates": "47.428469,-121.935538",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "LDS Church Of Kent": {
+        "coordinates": "47.425267,-122.199365",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Mike's Autobody": {
+        "coordinates": "47.324866,-122.00764",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Morrill Meadow Park": {
+        "coordinates": "47.379824,-122.199534",
+        "ex_eligible": true,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Sculptured Polar Barrel": {
+        "coordinates": "47.398349,-122.249226",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "North Green River Community Garden": {
+        "coordinates": "47.361508,-122.216968",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Carpinito Brothers Farm": {
+        "coordinates": "47.353946,-122.249821",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Kent Brown Bear": {
+        "coordinates": "47.381222,-122.247704",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Rock Creek Sports Ball Fields": {
+        "coordinates": "47.355223,-121.979344",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Puget Sound Energy Service Complex": {
+        "coordinates": "47.397398,-122.247075",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
     "NW Life Church": {
         "coordinates": "47.430463,-122.165951",
         "ex_eligible": false,
         "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "Russell Road Park": {
+        "coordinates": "47.384042,-122.262137",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Sawyer Creek Spillway": {
+        "coordinates": "47.335735,-122.045358",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Flow HQ Waterfountain": {
+        "coordinates": "47.391028,-122.254094",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Kent Station Gazebo": {
+        "coordinates": "47.382269,-122.232605",
+        "ex_eligible": true,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Faith Baptist Church": {
+        "coordinates": "47.371416,-122.154717",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Lake Meridian Park": {
+        "coordinates": "47.360242,-122.142932",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Hats Off": {
+        "coordinates": "47.417261,-122.243763",
+        "ex_eligible": false,
+        "region": "kent",
         "guild": "521087630885126187"
     },
     "Fairwood Water Tower": {
@@ -36,9 +2237,429 @@
         "region": "renton",
         "guild": "521087630885126187"
     },
+    "Peter Saar's Sawmill Site": {
+        "coordinates": "47.388264,-122.229797",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Temporary Horse Trail": {
+        "coordinates": "47.394921,-122.154758",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
     "Cedar Grove Road Natural Area": {
         "coordinates": "47.438522,-122.066384",
         "ex_eligible": false,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "Rock Creek Fountains": {
+        "coordinates": "47.393301,-122.223171",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Southeast 225th Community Park": {
+        "coordinates": "47.400689,-122.191601",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Summit Ridge Entrance Trailhead": {
+        "coordinates": "47.329807,-122.010026",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Kent Seventh Day Adventist Church (Kent)": {
+        "coordinates": "47.375539,-122.186973",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Urban Timbers Waterfall": {
+        "coordinates": "47.422044,-122.248888",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Geometric Playground": {
+        "coordinates": "47.377229,-122.165877",
+        "ex_eligible": true,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Foster Park West Side": {
+        "coordinates": "47.370055,-122.242453",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Kent Family Center": {
+        "coordinates": "47.355532,-122.166179",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Polar Bears Mural": {
+        "coordinates": "47.386538,-122.232868",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Ravensdale Mine Memorial": {
+        "coordinates": "47.357656,-121.974514",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "River of Life Church": {
+        "coordinates": "47.407501,-122.19845",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Community Park Entrance": {
+        "coordinates": "47.434041,-122.110792",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "Green River Canoe": {
+        "coordinates": "47.373498,-122.254833",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Generational Hope Christian Center": {
+        "coordinates": "47.408234,-121.993125",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Canterbury Park": {
+        "coordinates": "47.383013,-122.207513",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "King County Parks Regional Trails Kiosk": {
+        "coordinates": "47.363889,-122.143264",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Kent Service Park Ball fields": {
+        "coordinates": "47.344292,-122.147925",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Tree Root Bridge": {
+        "coordinates": "47.38224,-122.233335",
+        "ex_eligible": true,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "City of Kent Mill Creek Historic Earthworks Park": {
+        "coordinates": "47.382636,-122.225555",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Covington Community Park Trail": {
+        "coordinates": "47.387026,-122.101534",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Raven Rock": {
+        "coordinates": "47.358794,-121.98475",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Earthworks Park Raised Earth Rings": {
+        "coordinates": "47.38248,-122.223451",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Playground2": {
+        "coordinates": "47.404611,-122.203896",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Coal Mining": {
+        "coordinates": "47.357433,-121.977503",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Rainier Christian Center": {
+        "coordinates": "47.437609,-122.11692",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "Kentbrook Playground": {
+        "coordinates": "47.378001,-122.209261",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Clark Lake Park West": {
+        "coordinates": "47.381256,-122.18064",
+        "ex_eligible": true,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Jerry's Rock and Gem": {
+        "coordinates": "47.38859,-122.248065",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Donkey Engine": {
+        "coordinates": "47.420272,-121.947081",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "East Hill Park": {
+        "coordinates": "47.379822,-122.194936",
+        "ex_eligible": true,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Mor Water Fountain": {
+        "coordinates": "47.440459,-122.229084",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "Flying Geese": {
+        "coordinates": "47.368584,-122.233126",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Island Park Gazebo #2": {
+        "coordinates": "47.390323,-122.26172",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Kent Centennial Sphere Fountain": {
+        "coordinates": "47.382309,-122.235153",
+        "ex_eligible": true,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Whiskey Still Trailhead": {
+        "coordinates": "47.426241,-121.9442",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Lake Youngs Trailhead Park": {
+        "coordinates": "47.439004,-122.119961",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "Stormwater Storage Pond": {
+        "coordinates": "47.386886,-122.217807",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Valley View Christian Church": {
+        "coordinates": "47.371705,-122.176217",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "School History": {
+        "coordinates": "47.355786,-121.978366",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "A Walking Labyrinth in Kent": {
+        "coordinates": "47.382053,-122.215702",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "golden steer steak 'n rib house": {
+        "coordinates": "47.387959,-122.201698",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "city of kent geese sign": {
+        "coordinates": "47.411733,-122.249814",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187"
+    },
+    "Tukwila Trail Head #1": {
+        "coordinates": "47.471017,-122.255504",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Black River Forest / Springbrook Trail": {
+        "coordinates": "47.473508,-122.239241",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "The Grotto, Floor Mosaic": {
+        "coordinates": "47.473715,-122.242369",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "Brick Sculpture": {
+        "coordinates": "47.456466,-122.246856",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Four Column": {
+        "coordinates": "47.455736,-122.25851",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Foster Golf 13th Hole": {
+        "coordinates": "47.477604,-122.254114",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Tukwila Train Station": {
+        "coordinates": "47.461085,-122.240227",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "International Brotherhood Of Teamsters Building": {
+        "coordinates": "47.471678,-122.255452",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Library Connection": {
+        "coordinates": "47.459178,-122.256148",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "I Fly Building": {
+        "coordinates": "47.461174,-122.252562",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "King County Regional Trails Reader Board": {
+        "coordinates": "47.465878,-122.248017",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Plaque Commemorating History of Southcenter": {
+        "coordinates": "47.454216,-122.259493",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Chalice for the Car Gods": {
+        "coordinates": "47.46531,-122.239957",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Southcenter Mural": {
+        "coordinates": "47.458695,-122.259294",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Dragon West": {
+        "coordinates": "47.464265,-122.260608",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Black River Junction Landing": {
+        "coordinates": "47.473023,-122.252572",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Statue of Burgers": {
+        "coordinates": "47.448353,-122.26198",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Fountain for Youth": {
+        "coordinates": "47.460131,-122.24396",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Tukwila Pond Park (West)": {
+        "coordinates": "47.452275,-122.262244",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "StarFire Park": {
+        "coordinates": "47.467667,-122.248191",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Sprint - Not in mall": {
+        "coordinates": "47.446335,-122.261561",
+        "ex_eligible": true,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Tukwila Fire Department": {
+        "coordinates": "47.451785,-122.250053",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Sprint - In the mall": {
+        "coordinates": "47.458863,-122.256617",
+        "ex_eligible": true,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Tukwila Cougar": {
+        "coordinates": "47.464594,-122.245875",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Starbucks Southcenter Mall": {
+        "coordinates": "47.458867,-122.257792",
+        "ex_eligible": true,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Starbucks Rainier Beach": {
+        "coordinates": "47.521027,-122.26802",
+        "ex_eligible": true,
         "region": "renton",
         "guild": "521087630885126187"
     },
@@ -64,7 +2685,7 @@
         "coordinates": "47.467857,-122.233971",
         "ex_eligible": false,
         "region": "renton",
-        "guild": "387717261487505411,471174283133976598"
+        "guild": "521087630885126187"
     },
     "Starbucks Benson Fred Meyer": {
         "coordinates": "47.442903,-122.199249",
@@ -72,8 +2693,8 @@
         "region": "renton",
         "guild": "521087630885126187"
     },
-    "Skyway Park Bowl": {
-        "coordinates": "47.496909,-122.246047",
+    "Skyway Water Tower east": {
+        "coordinates": "47.490119,-122.230399",
         "ex_eligible": false,
         "region": "renton",
         "guild": "521087630885126187"
@@ -84,34 +2705,424 @@
         "region": "renton",
         "guild": "521087630885126187"
     },
-    "Skyway Water Tower east": {
-        "coordinates": "47.490119,-122.230399",
+    "Wat Lao Mixayaram": {
+        "coordinates": "47.496994,-122.259967",
         "ex_eligible": false,
         "region": "renton",
         "guild": "521087630885126187"
     },
-    "Stained Glass Cross": {
-        "coordinates": "47.487415,-122.257871",
+    "Skyway Park Bowl": {
+        "coordinates": "47.496909,-122.246047",
         "ex_eligible": false,
         "region": "renton",
         "guild": "521087630885126187"
     },
-    "St. Luke's Lutheran Church": {
-        "coordinates": "47.503895,-122.265224",
+    "Cascade Community North Artistic Tower": {
+        "coordinates": "47.475476,-122.287645",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "McMicken Heights Church": {
+        "coordinates": "47.449642,-122.284249",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Seattle Seahawks 12 Club": {
+        "coordinates": "47.448491,-122.302178",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Clouds and Clunkers": {
+        "coordinates": "47.439887,-122.297817",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "St Thomas Parish Statue Garden": {
+        "coordinates": "47.476375,-122.277454",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Tukwila Community Center 1942 to 1945 Remembrance": {
+        "coordinates": "47.490928,-122.278263",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Tukwila Skate Park": {
+        "coordinates": "47.491966,-122.277834",
+        "ex_eligible": true,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Mauritania Sidewalk Totem": {
+        "coordinates": "47.492166,-122.2886",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Brick Eagle": {
+        "coordinates": "47.470709,-122.285907",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Tukwila Pool 1": {
+        "coordinates": "47.474265,-122.277658",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Tukwila Pool 2": {
+        "coordinates": "47.474726,-122.277964",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Foster Landing at Foster Homestead": {
+        "coordinates": "47.482126,-122.267457",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Port of Seattle Water Tower": {
+        "coordinates": "47.457786,-122.2974",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Faith Deliverance Assembly Church Of God": {
+        "coordinates": "47.479835,-122.298065",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Canoe": {
+        "coordinates": "47.446247,-122.299068",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Skyway Library": {
+        "coordinates": "47.490429,-122.238499",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Historic Site of Crestview School (1958-1976)": {
+        "coordinates": "47.458445,-122.279786",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "King County Fireman Statue": {
+        "coordinates": "47.491398,-122.238126",
         "ex_eligible": false,
         "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "Days Inn Fountain": {
+        "coordinates": "47.485865,-122.269721",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Tukwila Totem": {
+        "coordinates": "47.461055,-122.267583",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Guitar Statue": {
+        "coordinates": "47.464211,-122.288033",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Foster Tukwila Presbyterian Church": {
+        "coordinates": "47.473947,-122.264312",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Tukwila Spiral Tree": {
+        "coordinates": "47.464951,-122.267694",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Upper Foster": {
+        "coordinates": "47.474123,-122.270308",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Muckleshoot": {
+        "coordinates": "47.490932,-122.279519",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Bonney Watson Fountain": {
+        "coordinates": "47.454644,-122.294802",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "The Mystery Marker Joseph Foster Memorial Park": {
+        "coordinates": "47.478843,-122.269533",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Tukwila Station Helix": {
+        "coordinates": "47.465031,-122.287984",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Riverton Park Methodist Church": {
+        "coordinates": "47.478138,-122.29326",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Riverton Park": {
+        "coordinates": "47.486005,-122.282165",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Foster Golf 10th Hole": {
+        "coordinates": "47.481331,-122.264552",
+        "ex_eligible": true,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Light Eternal Memorial": {
+        "coordinates": "47.453643,-122.297958",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Alexander Eaglerock Combo - Wing": {
+        "coordinates": "47.441893,-122.30008",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Satellite Dish Sculpture": {
+        "coordinates": "47.445619,-122.295982",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Chess Bench": {
+        "coordinates": "47.489979,-122.269655",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Tukwila Wolf Pack": {
+        "coordinates": "47.442707,-122.264615",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Tall Light Poles": {
+        "coordinates": "47.444381,-122.295827",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "National Geodetic Survey Maker SY2420": {
+        "coordinates": "47.462948,-122.289792",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Sunset and Evening Star and One Clear Call for Me Mural": {
+        "coordinates": "47.451914,-122.297097",
+        "ex_eligible": false,
+        "region": "tukwila",
         "guild": "521087630885126187"
     },
     "Alajawan Brown Memorial": {
-        "coordinates": "47.502477,-122.238368",
+        "coordinates": "47.487415,-122.257871",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "The Glow Towers": {
+        "coordinates": "47.4602,-122.298238",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Color Column at SeaTac": {
+        "coordinates": "47.460197,-122.293143",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Foster Golf Hole 7": {
+        "coordinates": "47.479372,-122.256901",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Skyway Outdoor Cinema Mural": {
+        "coordinates": "47.490209,-122.237803",
         "ex_eligible": false,
         "region": "renton",
         "guild": "521087630885126187"
     },
-    "Wat Lao Mixayaram": {
-        "coordinates": "47.502477,-122.238368",
+    "Cascade Community Pavillion": {
+        "coordinates": "47.475439,-122.287172",
         "ex_eligible": false,
-        "region": "renton",
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Skull and Helmet Mural on the Duwamish": {
+        "coordinates": "47.535501,-122.32288",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Guitar Player Mural": {
+        "coordinates": "47.495476,-122.308653",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Duwamish Hill Top": {
+        "coordinates": "47.501638,-122.286029",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Flora And Fauna": {
+        "coordinates": "47.524466,-122.314836",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Tile Towers In The Ground 2": {
+        "coordinates": "47.524038,-122.314883",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "George Berg Sundial": {
+        "coordinates": "47.5045,-122.32021",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Welcome to Tukwila": {
+        "coordinates": "47.506587,-122.290999",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "North Wind Weir": {
+        "coordinates": "47.503415,-122.295126",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Flock Under The Bridge": {
+        "coordinates": "47.526389,-122.324731",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "pre 1900s": {
+        "coordinates": "47.501542,-122.284558",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "South Park Bridge Gear, South Side": {
+        "coordinates": "47.527555,-122.314985",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Kompan Unique Pay Area": {
+        "coordinates": "47.495107,-122.315694",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "South Park Anchor": {
+        "coordinates": "47.532037,-122.322689",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Cecil Moses Memorial Park": {
+        "coordinates": "47.503858,-122.298714",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Duwamish Park": {
+        "coordinates": "47.49867,-122.280339",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Boeing B-29 Superfortress": {
+        "coordinates": "47.519318,-122.296618",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Baptist Church South Park": {
+        "coordinates": "47.527012,-122.322727",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Randys 24 Hour Diner and Airplane Memorabilia Museum": {
+        "coordinates": "47.512954,-122.293962",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "South Park Neighborhood Center.": {
+        "coordinates": "47.52964,-122.320425",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "South Park Gears": {
+        "coordinates": "47.533464,-122.322749",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Welcome to South Park": {
+        "coordinates": "47.526553,-122.314577",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "Keep the Dream Alive": {
+        "coordinates": "47.518682,-122.297453",
+        "ex_eligible": false,
+        "region": "tukwila",
+        "guild": "521087630885126187"
+    },
+    "small basalt columns": {
+        "coordinates": "47.457724,-122.25826",
+        "ex_eligible": false,
+        "region": "tukwila",
         "guild": "521087630885126187"
     },
     "Renton Library Turtle": {
@@ -270,6 +3281,85 @@
         "region": "renton",
         "guild": "521087630885126187"
     },
+    "may creek pioneer homestead reader board": {
+        "coordinates": "47.529457,-122.20006",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "Olympus Cross Town Marker": {
+        "coordinates": "47.5327,-122.169468",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "Rainbow Town & China Creek Trail Junction": {
+        "coordinates": "47.533401,-122.130595",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "Newcastle performance stage": {
+        "coordinates": "47.5294,-122.165735",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "VMAC": {
+        "coordinates": "47.535309,-122.196733",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "Home Of The Seattle Seahawks": {
+        "coordinates": "47.531729,-122.199391",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "China Creek Trail": {
+        "coordinates": "47.52974,-122.150729",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "Calcutta Grill": {
+        "coordinates": "47.535278,-122.143386",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "Tralee Park": {
+        "coordinates": "47.531497,-122.132532",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "Olympus Neighborhood Trail Marker": {
+        "coordinates": "47.530243,-122.169361",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "May Creek Fountain": {
+        "coordinates": "47.527886,-122.20415",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "Lake Boren Park": {
+        "coordinates": "47.527679,-122.1658",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "newport hills community park": {
+        "coordinates": "47.549502,-122.185691",
+        "ex_eligible": false,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+
     "Highland Community Church": {
         "coordinates": "47.498497,-122.177836",
         "ex_eligible": false,
@@ -360,7 +3450,7 @@
         "region": "renton",
         "guild": "521087630885126187"
     },
-    "Sculptuer at Bristol Waterfront": {
+    "Sculpture at Bristol Waterfront": {
         "coordinates": "47.503719,-122.204819",
         "ex_eligible": false,
         "region": "renton",
@@ -481,7 +3571,7 @@
         "guild": "521087630885126187"
     },
     "Boeing": {
-        "coordinates": "47.41921,-122.249791",
+        "coordinates": "47.462893,-122.233054",
         "ex_eligible": false,
         "region": "renton",
         "guild": "521087630885126187"
@@ -519,6 +3609,12 @@
     "King County Park": {
         "coordinates": "47.481105,-122.145474",
         "ex_eligible": true,
+        "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "Highland Estates Community Park": {
+        "coordinates": "47.48044,-122.13699",
+        "ex_eligible": false,
         "region": "renton",
         "guild": "521087630885126187"
     },
@@ -590,7 +3686,7 @@
     },
     "Renton Community Center": {
         "coordinates": "47.481197,-122.197153",
-        "ex_eligible": true,
+        "ex_eligible": false,
         "region": "renton",
         "guild": "521087630885126187"
     },
@@ -724,6 +3820,596 @@
         "coordinates": "47.488558,-122.198303",
         "ex_eligible": false,
         "region": "renton",
+        "guild": "521087630885126187"
+    },
+    "279th Street Park": {
+        "coordinates": "47.351896,-122.008777",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Cedar River Trail Cov": {
+        "coordinates": "47.398708,-122.043297",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Climbing Apparatus": {
+        "coordinates": "47.369714,-122.131259",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Covington Post Office": {
+        "coordinates": "47.359774,-122.110653",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Covington Funeral Chapel": {
+        "coordinates": "47.357728,-122.134523",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Covington Library": {
+        "coordinates": "47.358898,-122.122009",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Crosspointe Community Church": {
+        "coordinates": "47.366521,-122.123114",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Elephant Touchless Covington": {
+        "coordinates": "47.357309,-122.116633",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Elk Run Golf Course": {
+        "coordinates": "47.354609,-122.037909",
+        "ex_eligible": true,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Pink Elephant": {
+        "coordinates": "47.359401,-122.019568",
+        "ex_eligible": true,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Foss Roundabout": {
+        "coordinates": "47.372722,-122.122535",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Foxwood": {
+        "coordinates": "47.372554,-122.108234",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Green Rocket Ship Water Tower": {
+        "coordinates": "47.390505,-122.013039",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Hope Fellowship": {
+        "coordinates": "47.357542,-122.059731",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Jenkins Creek Park": {
+        "coordinates": "47.362474,-122.095658",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Lake Wilderness Arboretum Kiosk": {
+        "coordinates": "47.380202,-122.037984",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Lower Floor Bus Stop": {
+        "coordinates": "47.365165,-122.019015",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Maple Valley Church of Jesus Christ of Latter Day Saints": {
+        "coordinates": "47.360889,-122.025943",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Maple Valley Creative Arts Center": {
+        "coordinates": "47.393497,-122.044485",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Maple Valley Lake Wilderness Arboretum": {
+        "coordinates": "47.379837,-122.042399",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Maple Valley Library": {
+        "coordinates": "47.380153,-122.048896",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Maple Valley Presbyterian Church": {
+        "coordinates": "47.396882,-122.047317",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Maple Woods Welcome Fountain": {
+        "coordinates": "47.353749,-122.016489",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Mountain Vineyard Christian Fellowship": {
+        "coordinates": "47.357467,-122.089428",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Playground at 231st Pl SE": {
+        "coordinates": "47.347605,-122.032817",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Red Bike Rack": {
+        "coordinates": "47.358221,-122.099892",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Rustic Metal Yard Art": {
+        "coordinates": "47.354067,-122.122739",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Sculpture At Lake Wilderness Park": {
+        "coordinates": "47.377351,-122.038839",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Secluded Picnic Spot On The Soos": {
+        "coordinates": "47.370136,-122.143189",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Lower Soos Creek Trail": {
+        "coordinates": "47.38343,-122.139073",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187",
+        "notes": ["Limited parking and somewhat dangerous getting in and out of traffic when driving there."]
+    },
+    "Upper Soos Creek Trail": {
+        "coordinates": "47.386188,-122.143279",
+        "ex_eligible": false,
+        "region": "kent",
+        "guild": "521087630885126187",
+        "notes": ["If you're driving there, forget about it. No parking and dangerous corner."]
+    },
+    "St George Episcopal Memorial Garden": {
+        "coordinates": "47.384204,-122.04893",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Starbucks Covington": {
+        "coordinates": "47.358418,-122.11726",
+        "ex_eligible": true,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Hobart Post Office Totem Pole": {
+        "coordinates": "47.419706,-121.973055",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Black Diamond Coal Cart": {
+        "coordinates": "47.343457,-122.05372",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Levdansky Park": {
+        "coordinates": "47.401267,-121.973305",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Hobart Cemetery": {
+        "coordinates": "47.415348,-122.005842",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Black Diamond Open Space": {
+        "coordinates": "47.336245,-122.013796",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Welcome to Lake Wilderness Park": {
+        "coordinates": "47.375901,-122.040312",
+        "ex_eligible": false,
+        "region": "covington",
+        "guild": "521087630885126187"
+    },
+    "Seventh Day Adventist Church (Auburn)": {
+        "coordinates": "47.28263700,-122.22344000",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "First United Methodist Church": {
+        "coordinates": "47.30783800,-122.21162500",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "The Game Farm Kid's Zone": {
+        "coordinates": "47.28098600,-122.20563200",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "The Long Look": {
+        "coordinates": "47.30446300,-122.25791700",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Game Farm Wilderness Park Dedication Plaque": {
+        "coordinates": "47.27867600,-122.19719700",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Evergreen Foursquare Church": {
+        "coordinates": "47.28710900,-122.21352000",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Emerald Downs": {
+        "coordinates": "47.32821600,-122.23752700",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Auburn Flowery Box": {
+        "coordinates": "47.30418500,-122.22169800",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Statue of Liberty": {
+        "coordinates": "47.29621700,-122.24190000",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Sundial": {
+        "coordinates": "47.29958400,-122.21718200",
+        "ex_eligible": "True",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Auburn Carousel": {
+        "coordinates": "47.29918100,-122.24362000",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Weeping Angel (Auburn)": {
+        "coordinates": "47.30641000,-122.26149300",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Skate Park Sculpture": {
+        "coordinates": "47.33194200,-122.21662100",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Meme and Hxara": {
+        "coordinates": "47.30774600,-122.22422800",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Iron Heron Sculpture": {
+        "coordinates": "47.30785800,-122.21498600",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Clark Plaza": {
+        "coordinates": "47.32066700,-122.22119900",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Auburn Environmental Park (North)": {
+        "coordinates": "47.30996700,-122.24342400",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Auburn Dragonflies #4": {
+        "coordinates": "47.30772300,-122.23597900",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Auburn Missionary Baptist Church": {
+        "coordinates": "47.30994500,-122.22316900",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Sun Circle": {
+        "coordinates": "47.28048700,-122.20346000",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Auburn Rotary Park": {
+        "coordinates": "47.28536200,-122.19708900",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Alpine Tower": {
+        "coordinates": "47.29340900,-122.23728300",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "School Bus Mailbox": {
+        "coordinates": "47.30785500,-122.24550300",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Algona City Hall": {
+        "coordinates": "47.27813500,-122.24775700",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Playground Space Needle": {
+        "coordinates": "47.29967200,-122.24694200",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Off Leash Dog Park": {
+        "coordinates": "47.27145400,-122.21945800",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Starbucks (Supermall SW 15th St)": {
+        "coordinates": "47.29610900,-122.24573400",
+        "ex_eligible": "True",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Eagle and Bear": {
+        "coordinates": "47.29920300,-122.21584000",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Pioneer Cemetery Entryway": {
+        "coordinates": "47.31540700,-122.22329900",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Truck on a Building": {
+        "coordinates": "47.35293200,-122.24235700",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Road Runner": {
+        "coordinates": "47.30732200,-122.23185800",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "White River Trail": {
+        "coordinates": "47.27434400,-122.20786200",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Gaines Park Memorial Plaque": {
+        "coordinates": "47.31729800,-122.25138700",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "New Day Christian Fellowship": {
+        "coordinates": "47.30660700,-122.21138200",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Spunky Monkey Mural": {
+        "coordinates": "47.30553000,-122.22759400",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Isaac Evans Park": {
+        "coordinates": "47.33407500,-122.21039300",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Victory Fellowship Church of God": {
+        "coordinates": "47.31489500,-122.22162000",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Auburn Train Station": {
+        "coordinates": "47.30652200,-122.23189700",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Giant Roller Skate": {
+        "coordinates": "47.29188900,-122.21133800",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Light as Feather": {
+        "coordinates": "47.30741200,-122.22644700",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Disk Golf Course Hole 10": {
+        "coordinates": "47.28276400,-122.19299700",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Interurban Salmon Rehab Project Sign": {
+        "coordinates": "47.35164800,-122.23917800",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Fire Circle Refurbishment": {
+        "coordinates": "47.27974800,-122.19410400",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Railroads, Our Beginnings": {
+        "coordinates": "47.30767200,-122.23378100",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Veterans Memorial": {
+        "coordinates": "47.31169500,-122.22402700",
+        "ex_eligible": "True",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Auburn Scootie Brown Park": {
+        "coordinates": "47.31528300,-122.20974800",
+        "ex_eligible": "True",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Muckleshoot Casino": {
+        "coordinates": "47.28926600,-122.19648000",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Water Efficient Landscaping": {
+        "coordinates": "47.30063300,-122.21663500",
+        "ex_eligible": "True",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Auburn City Established Sign": {
+        "coordinates": "47.30222400,-122.22520600",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Art Installation at Roegner Park": {
+        "coordinates": "47.27103200,-122.21990300",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Leonard C. Chapman Amphitheater": {
+        "coordinates": "47.28040600,-122.20007700",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Indian Tom Park": {
+        "coordinates": "47.31341700,-122.21141800",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Four Tiered Fountain": {
+        "coordinates": "47.32136900,-122.22133800",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Muckleshoot Cemetery Entrance": {
+        "coordinates": "47.29684900,-122.19238000",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Auburn Environmental Park (South)": {
+        "coordinates": "47.30823400,-122.24534800",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Airport Park": {
+        "coordinates": "47.32178100,-122.22620100",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Disc Golf 15th Orange Tee": {
+        "coordinates": "47.27974800,-122.19722500",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Messiah Lutheran Church": {
+        "coordinates": "47.31112900,-122.21937400",
+        "ex_eligible": "False",
+        "region": "auburn",
+        "guild": "521087630885126187"
+    },
+    "Auburn Joseph Mary And Baby Jesus Statue": {
+        "coordinates": "47.29431300,-122.22279900",
+        "ex_eligible": "False",
+        "region": "auburn",
         "guild": "521087630885126187"
     }
 }
