@@ -1597,6 +1597,7 @@ async def modify_raid_report(payload, raid_report):
     err_msg = None
     success_msg = None
     if match in choices_list:
+        # Updating location
         if match == choices_list[0]:
             query_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.gold(), description=_("What is the correct Location?")))
             try:
@@ -1627,6 +1628,8 @@ async def modify_raid_report(payload, raid_report):
                             success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid location updated")))
                             await gymmsg.delete()
                             await query_msg.delete()
+
+        # Updating time
         elif match == choices_list[1]:
             timewait = await channel.send(embed=discord.Embed(colour=discord.Colour.gold(), description=_("What is the Hatch / Expire time?")))
             try:
@@ -1646,6 +1649,7 @@ async def modify_raid_report(payload, raid_report):
             success_msg = await channel.send(embed=discord.Embed(colour=discord.Colour.green(), description=_("Raid hatch / expire time updated")))
             await timewait.delete()
             await timemsg.delete()
+        # Updating boss
         elif match == choices_list[2]:
             bosswait = await channel.send(embed=discord.Embed(colour=discord.Colour.gold(), description=_("What is the Raid Tier / Boss?")))
             try:
@@ -5487,7 +5491,10 @@ async def _wild_internal(message, content):
     wild_number = pkmn.id
     wild_img_url = pkmn.img_url
     expiremsg = _('**This {pokemon} has despawned!**').format(pokemon=pkmn.full_name)
-    wild_details = re.sub(pkmn.name.lower(), '', wild_details, flags=re.I)
+    if len(pkmn.name.split(' ')) > 1:
+        entered_wild, entered_wild, wild_details = content.split(' ', 2)
+    else:
+        wild_details = re.sub(pkmn.name.lower(), '', content, flags=re.I)
     wild_gmaps_link = ''
     locations = get_all_locations(guild.id, channel_regions)
     if locations and not ('http' in wild_details or '/maps' in wild_details):
@@ -7108,7 +7115,7 @@ async def _loc_add(ctx, *, info):
             data["ex_eligible"] = bool(ex_eligible)
         else:
             data["ex_eligible"] = False
-    data["region"] = region
+    data["region"] = region.lower()
     data["guild"] = str(ctx.guild.id)
     error_msg = LocationTable.create_location(name, data)
     if error_msg is None:
