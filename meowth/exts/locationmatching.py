@@ -165,7 +165,14 @@ class LocationMatching:
                 s = {}
                 for stop in stops:
                     if stop.name in s:
-                        s[stop.name]["notes"].append(stop.note)
+                        try:
+                            s[stop.name]["notes"].append(stop.note)
+                        except:
+                            pass
+                        try:
+                            s[stop.name]["notes"] = [stop.note]
+                        except:
+                            pass
                     else:
                         s[stop.name] = {}
                         s[stop.name]["coordinates"] = f"{stop.latitude},{stop.longitude}"
