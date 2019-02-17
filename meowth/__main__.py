@@ -4429,10 +4429,12 @@ async def changeraid_internal(guild, channel, newraid):
         if embed_indices["possible"] is not None:
             index = embed_indices["possible"]
             raid_embed.set_field_at(index, name=_("**Possible Bosses:**"), value=_('{bosslist1}').format(bosslist1='\n'.join(boss_list[::2])), inline=True)
-            raid_embed.set_field_at(index+1, name='\u200b', value=_('{bosslist2}').format(bosslist2='\n'.join(boss_list[1::2])), inline=True)
+            if len(boss_list) > 2:
+                raid_embed.set_field_at(index+1, name='\u200b', value=_('{bosslist2}').format(bosslist2='\n'.join(boss_list[1::2])), inline=True)
         else:
             raid_embed.add_field(name=_('**Possible Bosses:**'), value=_('{bosslist1}').format(bosslist1='\n'.join(boss_list[::2])), inline=True)
-            raid_embed.add_field(name='\u200b', value=_('{bosslist2}').format(bosslist2='\n'.join(boss_list[1::2])), inline=True)
+            if len(boss_list) > 2:
+                raid_embed.add_field(name='\u200b', value=_('{bosslist2}').format(bosslist2='\n'.join(boss_list[1::2])), inline=True)
         raid_embed.set_thumbnail(url=raid_img_url)
         if changefrom == "egg":
             raid_message.content = re.sub(_(r'level\s\d'), _('Level {}').format(newraid), raid_message.content, flags=re.IGNORECASE)
