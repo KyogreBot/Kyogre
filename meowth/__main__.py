@@ -6027,14 +6027,21 @@ async def _eggassume(args, raid_channel, author=None):
     elif raid_pokemon.name.lower() not in raid_info['raid_eggs'][egglevel]['pokemon']:
         return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f'The Pokemon {raid_pokemon.name} does not hatch from level {egglevel} raid eggs!'))
     guild_dict[guild.id]['raidchannel_dict'][raid_channel.id]['pokemon'] = raid_pokemon.name
-    oldembed = raid_message.embeds[0]
     raid_gmaps_link = oldembed.url
     raidrole = discord.utils.get(guild.roles, name=raid_pokemon.species)
-    raid_embed = discord.Embed(title=_('Click here for directions to the coming raid!'), url=raid_gmaps_link, colour=guild.me.colour)
-    gym = eggdetails.get('gym', None)
-    if gym:
-        gym_info = _("**Name:** {0}\n**Notes:** {1}").format(gym.name, "_EX Eligible Gym_" if gym.ex_eligible else "N/A")
-        raid_embed.add_field(name=_('**Gym:**'), value=gym_info, inline=False)
+    embed = raid_message.embeds[0]
+    embed_indices = await get_embed_field_indices(embed)
+    embed.set_field_at(embed_indices['next'], name=embed.fields[embed_indices['next']].name, value=nextgroup, inline=True)
+    try:
+        await raid_message.edit(content=raid_message.content,embed=embed)
+    except discord.errors.NotFound:
+        pass
+    try:
+        embed = await filter_fields_for_report_embed(embed, embed_indices)
+        await egg_report.edit(content=egg_report.content,embed=embed)
+    except discord.errors.NotFound:
+        pass
+    return
     raid_embed.add_field(name=_('**Details:**'), value=_('{pokemon} ({pokemonnumber}) {type}').format(pokemon=raid_pokemon.name, pokemonnumber=str(raid_pokemon.id), type=types_to_str(guild, raid_pokemon.types), inline=True))
     raid_embed.add_field(name=_('**Weaknesses:**'), value=_('{weakness_list}').format(weakness_list=types_to_str(guild, raid_pokemon.weak_against)), inline=True)
     for field in oldembed.fields:
