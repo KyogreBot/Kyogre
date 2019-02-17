@@ -5564,6 +5564,8 @@ async def _raid(ctx,pokemon,*,location:commands.clean_content(fix_channel_mentio
     content = f"{pokemon} {location}".lower()
     if pokemon.isdigit():
         new_channel = await _raidegg(ctx, content)
+    elif len(pokemon) == 2 and pokemon[0] == "t":
+        new_channel = await _raidegg(ctx, content[1:])
     else:
         new_channel = await _raid_internal(ctx, content)
     ctx.raid_channel = new_channel
@@ -5791,13 +5793,14 @@ async def finish_raid_report(ctx, raid_details, raid_pokemon, level, weather, ra
     if gyms:
         gym = await location_match_prompt(channel, author.id, raid_details, gyms)
         if not gym:
-            gym = await retry_gym_match(channel, author.id, raid_details, gyms)
-            if gym is None:
-                all_regions = list(guild_dict[guild.id]['configure_dict']['regions']['info'].keys())
-                gyms = get_gyms(guild.id, all_regions)
-                gym = await location_match_prompt(channel, author.id, raid_details, gyms)
-                if gym is None:
+            all_regions = list(guild_dict[guild.id]['configure_dict']['regions']['info'].keys())
+            gyms = get_gyms(guild.id, all_regions)
+            gym = await location_match_prompt(channel, author.id, raid_details, gyms)
+            if not gym:
+                gym = await retry_gym_match(channel, author.id, raid_details, gyms)
+                if not gym:
                     return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=f"I couldn't find a gym named '{raid_details}'. Try again using the exact gym name!"))
+            if report_regions[0] != gym.region:
                 other_region = True
         raid_channel_ids = get_existing_raid(guild, gym)
         if raid_channel_ids:
@@ -7714,10 +7717,12 @@ async def print_raid_timer(channel):
     return timerstr
 
 async def raid_time_check(channel,time, error = None):
-    if time.isdigit():
+    if time.isdigit() and len(time) < 3:
         raidexp = int(time)
         return raidexp
-    elif ':' in time:
+    elif ':' in time or len(time) > 2:
+        if time.isdigit():
+            time = time[:-2] + ':' + time[-2:]
         now = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[channel.guild.id]['configure_dict']['settings']['offset'])
         start = dateparser.parse(time, settings={'PREFER_DATES_FROM': 'future'})
         start = start.replace(month = now.month, day=now.day, year=now.year)
