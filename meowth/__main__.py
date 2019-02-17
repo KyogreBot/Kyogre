@@ -5631,7 +5631,7 @@ async def _raid_internal(ctx, content):
             del new_content[pkmn_index]
             new_content = ' '.join(new_content)
         except ValueError:
-            new_content = content.split()
+            new_content = ' '.join(content.split())
     elif raid_pokemon.is_exraid:
         pkmn_error = 'ex'
         new_content = ' '.join(content.split()[1:])
