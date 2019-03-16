@@ -217,10 +217,11 @@ class LocationMatching(commands.Cog):
                 g = {}
                 for gym in gyms:
                     if gym.name in g:
-                        try:
-                            g[gym.name]["notes"].append(gym.note)
-                        except:
-                            pass
+
+                        g[gym.name]["notes"].append(gym.note)
+
+
+
                     else:
                         g[gym.name] = {}
                         g[gym.name]["coordinates"] = f"{gym.latitude},{gym.longitude}"
