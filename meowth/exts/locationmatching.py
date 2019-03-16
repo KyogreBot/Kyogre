@@ -219,8 +219,9 @@ class LocationMatching:
                     if gym.name in g:
                         try:
                             g[gym.name]["notes"].append(gym.note)
-                        except:
-                            pass
+
+
+
                     else:
                         g[gym.name] = {}
                         g[gym.name]["coordinates"] = f"{gym.latitude},{gym.longitude}"
