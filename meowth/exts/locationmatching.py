@@ -217,8 +217,8 @@ class LocationMatching:
                 g = {}
                 for gym in gyms:
                     if gym.name in g:
-                        try:
-                            g[gym.name]["notes"].append(gym.note)
+
+                        g[gym.name]["notes"].append(gym.note)
 
 
 
