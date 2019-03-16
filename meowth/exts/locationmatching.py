@@ -44,7 +44,7 @@ class Pokestop(Location):
     def __init__(self, name, latitude, longitude, region, note):
         super().__init__(name, latitude, longitude, region, note)
 
-class LocationMatching:
+class LocationMatching(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
