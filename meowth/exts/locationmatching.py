@@ -44,7 +44,7 @@ class Pokestop(Location):
     def __init__(self, name, latitude, longitude, region, note):
         super().__init__(name, latitude, longitude, region, note)
 
-class LocationMatching:
+class LocationMatching(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -217,7 +217,14 @@ class LocationMatching:
                 g = {}
                 for gym in gyms:
                     if gym.name in g:
-                        g[gym.name]["notes"].append(gym.note)
+                        try:
+                            g[gym.name]["notes"].append(gym.note)
+                        except:
+                            pass
+                        try:
+                            g[gym.name]["notes"] = [gym.note]
+                        except:
+                            pass
                     else:
                         g[gym.name] = {}
                         g[gym.name]["coordinates"] = f"{gym.latitude},{gym.longitude}"

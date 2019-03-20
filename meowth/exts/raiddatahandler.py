@@ -5,7 +5,7 @@ from meowth import utils
 from meowth import checks
 from meowth.exts.pokemon import Pokemon
 
-class RaidDataHandler:
+class RaidDataHandler(commands.Cog):
     """Raid Data Loading and Saving Test Cog."""
 
     def __init__(self, bot):
