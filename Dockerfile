@@ -9,6 +9,7 @@ RUN wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/
 RUN chmod +x /usr/local/bin/dumb-init
 
 # Install requirements
+RUN install apsw
 COPY ./requirements.txt /src/
 RUN pip install -r /src/requirements.txt
 
