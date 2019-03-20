@@ -1,4 +1,4 @@
-#FROM python:3.7
+FROM python:3.7
 
 # Set working directory
 RUN mkdir /src
@@ -9,9 +9,9 @@ RUN wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/
 RUN chmod +x /usr/local/bin/dumb-init
 
 # Install requirements
-RUN pip install --user https://github.com/rogerbinns/apsw/releases/download/3.27.2-r1/apsw-3.27.2-r1.zip \
---global-option=fetch --global-option=--version --global-option=3.27.2 --global-option=--all \
---global-option=build --global-option=--enable-all-extensions
+#RUN pip install --user https://github.com/rogerbinns/apsw/releases/download/3.27.2-r1/apsw-3.27.2-r1.zip \
+#--global-option=fetch --global-option=--version --global-option=3.27.2 --global-option=--all \
+#--global-option=build --global-option=--enable-all-extensions
 COPY ./requirements.txt /src/
 RUN pip install -r /src/requirements.txt
 
