@@ -7866,7 +7866,7 @@ async def _timerset(raidchannel, exptime):
                 await message.edit(content=message.content,embed=embed)
             except discord.errors.NotFound:
                 pass
-            if raid_dict['raidcityreport'] is not None:
+            if raid_dict.get('raidcityreport',None) is not None:
                 report_city_channel = Meowth.get_channel(raid_dict['reportcity'])
                 city_report = await get_message(report_city_channel, raid_dict['raidcityreport'])
                 try:
