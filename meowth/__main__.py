@@ -47,7 +47,7 @@ _ = gettext.gettext
 def _get_prefix(bot, message):
     guild = message.guild
     try:
-        prefix = bot.guild_dict[guild.id]["configure_dict"]["settings"]["prefix"]
+        prefix = bot.guild_dict[guild.id]['configure_dict']['settings']['prefix']
     except (KeyError, AttributeError):
         prefix = None
     if not prefix:
