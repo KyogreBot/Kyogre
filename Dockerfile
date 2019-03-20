@@ -1,4 +1,4 @@
-FROM python:3.7
+FROM python:3.7.2-stretch
 
 # Set working directory
 RUN mkdir /src
@@ -11,7 +11,7 @@ RUN chmod +x /usr/local/bin/dumb-init
 # Install requirements
 COPY ./requirements.txt /src/
 RUN pip install -r /src/requirements.txt
-pip install --user https://github.com/rogerbinns/apsw/releases/download/3.27.2-r1/apsw-3.27.2-r1.zip \
+RUN pip install --user https://github.com/rogerbinns/apsw/releases/download/3.27.2-r1/apsw-3.27.2-r1.zip \
 --global-option=fetch --global-option=--version --global-option=3.27.2 --global-option=--all \
 --global-option=build --global-option=--enable-all-extensions
 
