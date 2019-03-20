@@ -13,7 +13,6 @@ RUN pip install --user https://github.com/rogerbinns/apsw/releases/download/3.27
 --global-option=fetch --global-option=--version --global-option=3.27.2 --global-option=--all \
 --global-option=build --global-option=--enable-all-extensions
 COPY ./requirements.txt /src/
-COPY ./requirements.txt /src/
 RUN pip install -r /src/requirements.txt
 
 # Install discord module
