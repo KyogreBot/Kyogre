@@ -556,7 +556,7 @@ async def pvp_expiry_check(message):
     channel = message.channel
     guild = channel.guild
     global active_pvp
-    message = await channel.fetch_message(, message.id)
+    message = await channel.fetch_message(message.id)
     if message not in active_pvp:
         active_pvp.append(message)
         logger.info(
