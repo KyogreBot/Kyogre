@@ -34,6 +34,7 @@ from discord.ext import commands
 from meowth.exts.db.kyogredb import *
 KyogreDB.start('data/kyogre.db')
 
+
 from meowth import checks, utils, constants
 from meowth.bot import MeowthBot
 from meowth.errors import custom_error_handling
