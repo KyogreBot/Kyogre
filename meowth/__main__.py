@@ -668,7 +668,7 @@ async def expire_wild(message):
     except discord.errors.NotFound:
         pass
     try:
-        user_message = await .get_message(channel, wild_dict[message.id]['reportmessage'])
+        user_message = await get_message(channel, wild_dict[message.id]['reportmessage'])
         await user_message.delete()
     except (discord.errors.NotFound, discord.errors.Forbidden, discord.errors.HTTPException):
         pass
