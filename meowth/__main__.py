@@ -6160,7 +6160,8 @@ async def _eggtoraid(entered_raid, raid_channel, author=None):
         cp_range = boss_cp_chart[pkmn.name.lower()]
     raid_embed.add_field(name=_('**Details:**'), value=_('**{pokemon}** ({pokemonnumber}) {type}{cprange}').format(pokemon=pkmn.name, pokemonnumber=str(pkmn.id), type=types_to_str(raid_channel.guild, pkmn.types), cprange='\n'+cp_range, inline=True))
     raid_embed.add_field(name=_('**Weaknesses:**'), value=_('{weakness_list}').format(weakness_list=types_to_str(raid_channel.guild, pkmn.weak_against)), inline=True)
-    raid_embed.add_field(name=(oldembed.fields[embed_indices["next"]].name), value=oldembed.fields[embed_indices["next"]].value, inline=True)
+    if embed_indices["next"] is not None:
+        raid_embed.add_field(name=(oldembed.fields[embed_indices["next"]].name), value=oldembed.fields[embed_indices["next"]].value, inline=True)
     if meetup:
         raid_embed.add_field(name=oldembed.fields[3].name, value=end.strftime(_('%B %d at %I:%M %p (%H:%M)')), inline=True)
     else:
