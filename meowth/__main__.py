@@ -364,7 +364,7 @@ async def location_match_prompt(channel, author_id, name, locations):
 async def prompt_match_result(channel, author_id, target, result_list):
     if not isinstance(result_list, list):
         result_list = [result_list]
-    if not result_list or result_list[0] is None:
+    if not result_list or result_list[0] is None or result_list[0][0] is None:
         return None
     # quick check if a full match exists
     exact_match = [match for match, score in result_list if match.lower() == target.lower()]
@@ -5108,7 +5108,22 @@ async def _parse_subscription_content(content, message = None):
                 return await channel.send(_("No gym found with name '{0}'. Try again using the exact gym name!").format(target))
             sub_list.append((sub_type, gym.name, gym.name))
             return sub_list, error_list
-
+    if sub_type == 'item':
+        channel = message.channel
+        author = message.author.id 
+        result = RewardTable.select(RewardTable.name,RewardTable.quantity)
+        result = result.objects(Reward)
+        results = [o for o in result]
+        item_names = [r.name.lower() for r in results]
+        targets = target.split(',')
+        for t in targets:
+            candidates = utils.get_match(item_names, t, score_cutoff=60, isPartial=True, limit=20)
+            name = await prompt_match_result(channel, author, t, candidates)
+            if name is not None:
+                sub_list.append((sub_type, name, name))
+            else:
+                error_list.append(t)
+        return sub_list, error_list
     if sub_type == 'wild':
         perfect_pattern = r'((100(\s*%)?|perfect)(\s*ivs?\b)?)'
         target, count = re.subn(perfect_pattern, '', target, flags=re.I)
@@ -5162,11 +5177,12 @@ async def _sub_add(ctx, *, content):
     
     Valid types are: pokemon, raid, research, wild, and gym
     Note: 'Pokemon' includes raid, research, and wild reports"""
-    subscription_types = ['pokemon','raid','research','wild','nest','gym','shiny']
+    subscription_types = ['pokemon','raid','research','wild','nest','gym','shiny','item']
     message = ctx.message
     channel = message.channel
     guild = message.guild
     trainer = message.author.id
+    error_list = []
 
     content = content.strip().lower()
     if content == 'shiny':
@@ -5182,7 +5198,6 @@ async def _sub_add(ctx, *, content):
 
         candidate_list, error_list = await _parse_subscription_content(content, message)
     
-    error_list = []
     existing_list = []
     sub_list = []    
     guild_obj, __ = GuildTable.get_or_create(snowflake=guild.id)
@@ -5226,7 +5241,7 @@ async def _sub_remove(ctx,*,content):
 
     Or remove all subscriptions:
     !sub remove all all"""
-    subscription_types = ['all','pokemon','raid','research','wild','nest','gym','shiny']
+    subscription_types = ['all','pokemon','raid','research','wild','nest','gym','shiny','item']
     message = ctx.message
     channel = message.channel
     guild = message.guild
@@ -5338,7 +5353,7 @@ async def _sub_list(ctx, *, content=None):
     message = ctx.message
     channel = message.channel
     author = message.author
-    subscription_types = ['pokemon','raid','research','wild','nest', 'gym']
+    subscription_types = ['pokemon','raid','research','wild','nest','gym','item']
     response_msg = ''
     invalid_types = []
     valid_types = []

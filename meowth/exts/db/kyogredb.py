@@ -24,7 +24,7 @@ class KyogreDB:
             GymTable, TrainerReportRelation, QuestTable, 
             ResearchTable, SightingTable, RaidBossRelation, 
             RaidTable, SubscriptionTable, TradeTable,
-            LocationNoteTable
+            LocationNoteTable, RewardTable
         ])
         cls.init()
         cls._migrator = SqliteMigrator(cls._db)
@@ -241,6 +241,7 @@ class QuestTable(BaseModel):
                     name = quest['name']
                     pool = quest['reward_pool']
                     QuestTable.create(name=name, reward_pool=pool)
+                    parseRewardPool(pool)
                 except Exception as e:
                     import pdb; pdb.set_trace()
                     print(e)
@@ -248,6 +249,22 @@ class QuestTable(BaseModel):
 class ResearchTable(BaseModel):
     trainer_report = ForeignKeyField(TrainerReportRelation, backref='research')
     quest = ForeignKeyField(QuestTable, backref='reports', index=True)
+
+def parseRewardPool(pool):
+    for key,val in pool["items"].items():
+        try:
+            RewardTable.create(name=key)
+        except Exception as e:
+            pass
+
+class Reward():
+    def __init__(self, name, quantity):
+        self.name = name
+        self.quantity = quantity
+
+class RewardTable(BaseModel):
+    name = TextField(index=True, unique=True)
+    quantity = IntegerField(null=True)
 
 class SightingTable(BaseModel):
     trainer_report = ForeignKeyField(TrainerReportRelation, backref='sightings')
