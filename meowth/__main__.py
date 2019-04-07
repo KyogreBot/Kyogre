@@ -6819,6 +6819,10 @@ async def research(ctx, *, details = None):
             pokemon = reward.rsplit(maxsplit=1)[0]
             research_details = {'pokemon': [Pokemon.get_pokemon(Meowth, p) for p in re.split(r'\s*,\s*', pokemon)], 'location': location, 'regions': regions}
             await _send_notifications_async('research', research_details, channel, [message.author.id])
+        elif reward.split(' ')[0].isdigit() and 'stardust' not in reward.lower():
+            item = ' '.join(reward.split(' ')[1:])
+            research_details = {'item': item, 'location': location, 'regions': regions}
+            await _send_notifications_async('item', research_details, channel, [message.author.id])
     else:
         research_embed.clear_fields()
         research_embed.add_field(name=_('**Research Report Cancelled**'), value=_("Your report has been cancelled because you {error}! Retry when you're ready.").format(error=error), inline=False)
@@ -6971,7 +6975,7 @@ async def _meetup(ctx, location):
     event_loop.create_task(expiry_check(raid_channel))
 
 async def _send_notifications_async(type, details, new_channel, exclusions=[]):
-    valid_types = ['raid', 'research', 'wild', 'nest', 'gym', 'shiny']
+    valid_types = ['raid', 'research', 'wild', 'nest', 'gym', 'shiny', 'item']
     if type not in valid_types:
         return
     guild = new_channel.guild
@@ -6995,6 +6999,7 @@ async def _send_notifications_async(type, details, new_channel, exclusions=[]):
     perfect = details.get('perfect', None)
     pokemon_list = details.get('pokemon', [])
     gym = details.get('location', None)
+    item = details.get('item', None)
     if not isinstance(pokemon_list, list):
         pokemon_list = [pokemon_list]
     location = details.get('location', None)
@@ -7029,16 +7034,25 @@ async def _send_notifications_async(type, details, new_channel, exclusions=[]):
             descriptors.append(full_name)
         if gym in targets:
             target_matched = True
+        if item and item.lower() in targets:
+            target_matched = True
         if 'shiny' in targets:
             target_matched = True
         if not target_matched:
             continue
         description = ', '.join(descriptors)
         start = 'An' if re.match(r'^[aeiou]', description, re.I) else 'A'
-        message = '**New {title_type}**! {start} {description} {type} at {location} has been reported! For more details, go to the {mention} channel!'.format(title_type=type.title(), start=start, description=description, type=type, location=location, mention=new_channel.mention)
+        if type == 'item':
+            start = 'An' if re.match(r'^[aeiou]', item, re.I) else 'A'
+            message = f'{start} **{item}** task has been reported at {location}! For more details, go to the {new_channel.mention} channel.'
+        else:
+            message = f'**New {type.title()}**! {start} {description} {type} at {location} has been reported! For more details, go to the {new_channel.mention} channel!'
         outbound_dict[trainer] = {'discord_obj': user, 'message': message}
     pokemon_names = ' '.join([p.name for p in pokemon_list])
-    role_name = sanitize_name(f"{type} {pokemon_names} {location}".title())
+    if type == 'item':
+        role_name = sanitize_name(f"{item} {location}".title())
+    else:
+        role_name = sanitize_name(f"{type} {pokemon_names} {location}".title())
     return await _generate_role_notification_async(role_name, new_channel, outbound_dict)
 
 async def _generate_role_notification_async(role_name, channel, outbound_dict):

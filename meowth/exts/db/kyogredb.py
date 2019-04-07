@@ -253,7 +253,7 @@ class ResearchTable(BaseModel):
 def parseRewardPool(pool):
     for key,val in pool["items"].items():
         try:
-            RewardTable.create(name=key)
+            RewardTable.create(name=key.lower())
         except Exception as e:
             pass
 
