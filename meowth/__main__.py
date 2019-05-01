@@ -7556,13 +7556,15 @@ async def _rewards_remove(ctx, *, info):
         return await channel.send(f"Unable to get quest with id {id}")
     pool = quest.reward_pool
     if type.startswith("encounter"):
+        encounters = [x.lower() for x in pool["encounters"]]
         pokemon = Pokemon.get_pokemon(Meowth, value)
         name = pokemon.name.lower()
         if pokemon:
             try:
-                pool["encounters"].remove(name)
+                encounters.remove(name)
             except:
                 return await channel.send(f"Unable to remove {value}")
+        pool["encounters"] = encounters
     else:
         if not value.isnumeric():
             return await channel.send("Value must be a numeric quantity")
