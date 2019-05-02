@@ -482,10 +482,10 @@ async def create_raid_channel(raid_type, pkmn, level, gym, report_channel):
         #     for role in guild.role_hierarchy:
         #         if role.permissions.manage_guild or role.permissions.manage_channels or role.permissions.manage_messages:
         #             raid_channel_overwrite_dict.update({role: discord.PermissionOverwrite(send_messages=True)})
-        else:
-            if guild_dict[guild.id]['configure_dict']['exraid']['permissions'] == "everyone":
-                everyone_overwrite = {guild.default_role: discord.PermissionOverwrite(send_messages=True)}
-                raid_channel_overwrite_dict.update(everyone_overwrite)
+        #else:
+        if guild_dict[guild.id]['configure_dict']['exraid']['permissions'] == "everyone":
+            everyone_overwrite = {guild.default_role: discord.PermissionOverwrite(send_messages=True)}
+            raid_channel_overwrite_dict.update(everyone_overwrite)
         cat = get_category(report_channel, "EX", category_type=raid_type)
     else:
         reporting_channels = await get_region_reporting_channels(guild, gym.region, report_channel)
