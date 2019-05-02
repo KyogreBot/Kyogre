@@ -462,53 +462,53 @@ async def create_raid_channel(raid_type, pkmn, level, gym, report_channel):
     cat = None
     if raid_type == "exraid":
         name = _("ex-raid-egg-")
-        raid_channel_overwrite_list = report_channel.overwrites
-        if guild_dict[guild.id]['configure_dict']['invite']['enabled']:
-            if guild_dict[guild.id]['configure_dict']['exraid']['permissions'] == "everyone":
-                everyone_overwrite = (guild.default_role, discord.PermissionOverwrite(send_messages=False))
-                raid_channel_overwrite_list.append(everyone_overwrite)
-            for overwrite in raid_channel_overwrite_list:
-                if isinstance(overwrite[0], discord.Role):
-                    if overwrite[0].permissions.manage_guild or overwrite[0].permissions.manage_channels or overwrite[0].permissions.manage_messages:
-                        continue
-                    overwrite[1].send_messages = False
-                elif isinstance(overwrite[0], discord.Member):
-                    if report_channel.permissions_for(overwrite[0]).manage_guild or report_channel.permissions_for(overwrite[0]).manage_channels or report_channel.permissions_for(overwrite[0]).manage_messages:
-                        continue
-                    overwrite[1].send_messages = False
-                if (overwrite[0].name not in guild.me.top_role.name) and (overwrite[0].name not in guild.me.name):
-                    overwrite[1].send_messages = False
-            for role in guild.role_hierarchy:
-                if role.permissions.manage_guild or role.permissions.manage_channels or role.permissions.manage_messages:
-                    raid_channel_overwrite_list.append((role, discord.PermissionOverwrite(send_messages=True)))
+        raid_channel_overwrite_dict = report_channel.overwrites
+        # If and when ex reporting is revisited this will need a complete rewrite. Overwrites went from Tuple -> Dict
+        # if guild_dict[guild.id]['configure_dict']['invite']['enabled']:
+        #     if guild_dict[guild.id]['configure_dict']['exraid']['permissions'] == "everyone":
+        #         everyone_overwrite = (guild.default_role, discord.PermissionOverwrite(send_messages=False))
+        #         raid_channel_overwrite_list.append(everyone_overwrite)
+        #     for overwrite in raid_channel_overwrite_dict:
+        #         if isinstance(overwrite[0], discord.Role):
+        #             if overwrite[0].permissions.manage_guild or overwrite[0].permissions.manage_channels or overwrite[0].permissions.manage_messages:
+        #                 continue
+        #             overwrite[1].send_messages = False
+        #         elif isinstance(overwrite[0], discord.Member):
+        #             if report_channel.permissions_for(overwrite[0]).manage_guild or report_channel.permissions_for(overwrite[0]).manage_channels or report_channel.permissions_for(overwrite[0]).manage_messages:
+        #                 continue
+        #             overwrite[1].send_messages = False
+        #         if (overwrite[0].name not in guild.me.top_role.name) and (overwrite[0].name not in guild.me.name):
+        #             overwrite[1].send_messages = False
+        #     for role in guild.role_hierarchy:
+        #         if role.permissions.manage_guild or role.permissions.manage_channels or role.permissions.manage_messages:
+        #             raid_channel_overwrite_dict.update({role: discord.PermissionOverwrite(send_messages=True)})
         else:
             if guild_dict[guild.id]['configure_dict']['exraid']['permissions'] == "everyone":
-                everyone_overwrite = (guild.default_role, discord.PermissionOverwrite(send_messages=True))
-                raid_channel_overwrite_list.append(everyone_overwrite)
+                everyone_overwrite = {guild.default_role: discord.PermissionOverwrite(send_messages=True)}
+                raid_channel_overwrite_dict.update(everyone_overwrite)
         cat = get_category(report_channel, "EX", category_type=raid_type)
     else:
         reporting_channels = await get_region_reporting_channels(guild, gym.region, report_channel)
         report_channel = guild.get_channel(reporting_channels[0])
-        raid_channel_overwrite_list = report_channel.overwrites
+        raid_channel_overwrite_dict = report_channel.overwrites
         if raid_type == "raid":
             name = pkmn.name.lower() + "_"
             cat = get_category(report_channel, str(pkmn.raid_level), category_type=raid_type)
         elif raid_type == "egg":
             name = _("{level}-egg_").format(level=str(level))
             cat = get_category(report_channel, str(level), category_type=raid_type)
-    meowth_overwrite = (Meowth.user, discord.PermissionOverwrite(send_messages=True, read_messages=True, manage_roles=True, manage_channels=True, manage_messages=True, add_reactions=True, external_emojis=True, read_message_history=True, embed_links=True, mention_everyone=True, attach_files=True))
-    raid_channel_overwrite_list.append(meowth_overwrite)
+    meowth_overwrite = {Meowth.user: discord.PermissionOverwrite(send_messages=True, read_messages=True, manage_roles=True, manage_channels=True, manage_messages=True, add_reactions=True, external_emojis=True, read_message_history=True, embed_links=True, mention_everyone=True, attach_files=True)}
+    raid_channel_overwrite_dict.update(meowth_overwrite)
     enabled = raid_channels_enabled(guild, report_channel)
     if not enabled:
-        user_overwrite = (guild.default_role, discord.PermissionOverwrite(send_messages=False, read_messages=False, read_message_history=False))
-        raid_channel_overwrite_list.append(user_overwrite)
+        user_overwrite = {guild.default_role: discord.PermissionOverwrite(send_messages=False, read_messages=False, read_message_history=False)}
+        raid_channel_overwrite_dict.update(user_overwrite)
         role = discord.utils.get(guild.roles, name=gym.region)
         if role is not None:
-            role_overwrite = (role, discord.PermissionOverwrite(send_messages=False, read_messages=False, read_message_history=False))
-            raid_channel_overwrite_list.append(role_overwrite)
+            role_overwrite = {role: discord.PermissionOverwrite(send_messages=False, read_messages=False, read_message_history=False)}
+            raid_channel_overwrite_dict.update(role_overwrite)
     name = sanitize_name(name+gym.name)
-    ow = dict(raid_channel_overwrite_list)
-    return await guild.create_text_channel(name, overwrites=ow, category=cat)
+    return await guild.create_text_channel(name, overwrites=raid_channel_overwrite_dict, category=cat)
 
 async def get_region_reporting_channels(guild, region, rchan):
     report_channels = []
@@ -841,25 +841,27 @@ async def expire_channel(channel):
                     logger.info(
                         'Expire_Channel - Channel Deleted - ' + channel.name)
                 elif archive or logs:
-                    try:
-                        for overwrite in channel.overwrites:
-                            if isinstance(overwrite[0], discord.Role):
-                                if overwrite[0].permissions.manage_guild or overwrite[0].permissions.manage_channels:
-                                    await channel.set_permissions(overwrite[0], read_messages=True)
-                                    continue
-                            elif isinstance(overwrite[0], discord.Member):
-                                if channel.permissions_for(overwrite[0]).manage_guild or channel.permissions_for(overwrite[0]).manage_channels:
-                                    await channel.set_permissions(overwrite[0], read_messages=True)
-                                    continue
-                            if (overwrite[0].name not in guild.me.top_role.name) and (overwrite[0].name not in guild.me.name):
-                                await channel.set_permissions(overwrite[0], read_messages=False)
-                        for role in guild.role_hierarchy:
-                            if role.permissions.manage_guild or role.permissions.manage_channels:
-                                await channel.set_permissions(role, read_messages=True)
-                            continue
-                        await channel.set_permissions(guild.default_role, read_messages=False)
-                    except (discord.errors.Forbidden, discord.errors.HTTPException, discord.errors.InvalidArgument):
-                        pass
+                    # Todo: Fix this
+                    # Overwrites were changed from Tuple -> Dict
+                    # try:
+                    #     for overwrite in channel.overwrites:
+                    #         if isinstance(overwrite[0], discord.Role):
+                    #             if overwrite[0].permissions.manage_guild or overwrite[0].permissions.manage_channels:
+                    #                 await channel.set_permissions(overwrite[0], read_messages=True)
+                    #                 continue
+                    #         elif isinstance(overwrite[0], discord.Member):
+                    #             if channel.permissions_for(overwrite[0]).manage_guild or channel.permissions_for(overwrite[0]).manage_channels:
+                    #                 await channel.set_permissions(overwrite[0], read_messages=True)
+                    #                 continue
+                    #         if (overwrite[0].name not in guild.me.top_role.name) and (overwrite[0].name not in guild.me.name):
+                    #             await channel.set_permissions(overwrite[0], read_messages=False)
+                    #     for role in guild.role_hierarchy:
+                    #         if role.permissions.manage_guild or role.permissions.manage_channels:
+                    #             await channel.set_permissions(role, read_messages=True)
+                    #         continue
+                    #     await channel.set_permissions(guild.default_role, read_messages=False)
+                    # except (discord.errors.Forbidden, discord.errors.HTTPException, discord.errors.InvalidArgument):
+                    #     pass
                     new_name = _('archived-')
                     if new_name not in channel.name:
                         new_name += channel.name
@@ -6935,7 +6937,7 @@ async def _meetup(ctx, location):
     raid_channel_name = _('meetup-')
     raid_channel_name += sanitize_name(raid_details)
     raid_channel_category = get_category(message.channel,"EX", category_type="meetup")
-    raid_channel = await message.guild.create_text_channel(raid_channel_name, overwrites=dict(message.channel.overwrites), category=raid_channel_category)
+    raid_channel = await message.guild.create_text_channel(raid_channel_name, overwrites=message.channel.overwrites, category=raid_channel_category)
     ow = raid_channel.overwrites_for(raid_channel.guild.default_role)
     ow.send_messages = True
     try:
