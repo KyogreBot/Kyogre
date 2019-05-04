@@ -488,7 +488,7 @@ async def create_raid_channel(raid_type, pkmn, level, gym, report_channel):
             raid_channel_overwrite_dict.update(everyone_overwrite)
         cat = get_category(report_channel, "EX", category_type=raid_type)
     else:
-        reporting_channels = await get_region_reporting_channels(guild, gym.region, report_channel)
+        reporting_channels = await get_region_reporting_channels(guild, gym.region)
         report_channel = guild.get_channel(reporting_channels[0])
         raid_channel_overwrite_dict = report_channel.overwrites
         if raid_type == "raid":
@@ -510,7 +510,7 @@ async def create_raid_channel(raid_type, pkmn, level, gym, report_channel):
     name = sanitize_name(name+gym.name)
     return await guild.create_text_channel(name, overwrites=raid_channel_overwrite_dict, category=cat)
 
-async def get_region_reporting_channels(guild, region, rchan):
+async def get_region_reporting_channels(guild, region):
     report_channels = []
     for c in guild_dict[guild.id]['configure_dict']['raid']['report_channels']:
         if guild_dict[guild.id]['configure_dict']['raid']['report_channels'][c] == region:
@@ -5848,7 +5848,7 @@ async def finish_raid_report(ctx, raid_details, raid_pokemon, level, weather, ra
     else:
         raid_gmaps_link = create_gmaps_query(raid_details, channel, type="raid")
     if other_region:
-        report_channels = await get_region_reporting_channels(guild, gym_regions[0], channel)
+        report_channels = await get_region_reporting_channels(guild, gym_regions[0])
         report_channel = Meowth.get_channel(report_channels[0])
     else:
         report_channel = channel
@@ -9609,7 +9609,12 @@ async def _get_raid_listing_messages(channel, region=None):
     if not listing_enabled:
         activeraidnum += len(exraid_list) + len(event_list)
     if activeraidnum:
-        listmsg += _("**Current eggs and raids reported in {0}**\n\n").format(cty.capitalize())
+        listmsg += _(f"**Current eggs and raids reported in {cty.capitalize()}**\n")
+        if region:
+            reporting_channels = await get_region_reporting_channels(guild, region)
+            report_channel = guild.get_channel(reporting_channels[0])
+            listmsg += f"Report a new raid in {report_channel.mention}\n"
+        listmsg += "\n"
         if raid_dict:
             listmsg += process_category(listmsg_list, "Active Raids", [r for (r, __) in sorted(raid_dict.items(), key=itemgetter(1))])
         if egg_dict:
@@ -10093,4 +10098,7 @@ except Exception as e:
     event_loop.run_until_complete(Meowth.logout())
 finally:
     pass
-sys.exit(Meowth._shutdown_mode)
+try:
+    sys.exit(Meowth._shutdown_mode)
+except AttributeError:
+    sys.exit(0)
