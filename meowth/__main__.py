@@ -5920,7 +5920,7 @@ async def finish_raid_report(ctx, raid_details, raid_pokemon, level, weather, ra
     report_embed = await filter_fields_for_report_embed(report_embed, embed_indices)
     raidreport = await channel.send(content=msg, embed=report_embed)
     await asyncio.sleep(1)
-    raid_embed.add_field(name='**Tips:**', value='`!i` if interested\n`!c` if on the way\n`!h` when you arrive', inline=True)
+    raid_embed.add_field(name='**Tips:**', value='`!i` if interested\n`!c` if on the way\n`!h` when you arrive\n`!list` to view all interested\n`!s` to signal lobby start', inline=True)
     ctrsmessage_id = None
     if raid_report:
         raidmsg = _("{pokemon} raid reported by {member} in {citychannel} at {location_details} gym. Coordinate here!\n\nClick the question mark reaction to get help on the commands that work in here.\n\nThis channel will be deleted five minutes after the timer expires.").format(pokemon=str(raid_pokemon), member=author.display_name, citychannel=channel.mention, location_details=raid_details)
@@ -6022,23 +6022,21 @@ async def _eggassume(args, raid_channel, author=None):
     eggdetails['pokemon'] = raid_pokemon.name
     oldembed = raid_message.embeds[0]
     raid_gmaps_link = oldembed.url
-    raidrole = discord.utils.get(guild.roles, name=raid_pokemon.species)
-    raid_embed = discord.Embed(title=_('Click here for directions to the coming raid!'), url=raid_gmaps_link, colour=guild.me.colour)
-    gym = eggdetails.get('gym', None)
-    if gym:
-        gym_info = _("**Name:** {0}\n**Notes:** {1}").format(gym.name, "_EX Eligible Gym_" if gym.ex_eligible else "N/A")
-        raid_embed.add_field(name=_('**Gym:**'), value=gym_info, inline=False)
-    raid_embed.add_field(name=_('**Details:**'), value=_('{pokemon} ({pokemonnumber}) {type}').format(pokemon=raid_pokemon.name, pokemonnumber=str(raid_pokemon.id), type=types_to_str(guild, raid_pokemon.types), inline=True))
-    raid_embed.add_field(name=_('**Weaknesses:**'), value=_('{weakness_list}').format(weakness_list=types_to_str(guild, raid_pokemon.weak_against)), inline=True)
-    for field in oldembed.fields:
-        if "hatches" in field.name.lower():
-            raid_embed.add_field(name=_('**Hatches:**'), value=field.value, inline=True)
-        if "next group" in field.name.lower():
-            raid_embed.add_field(name=_('**Next Group:**'), value=field.value, inline=True)
-        if "team" in field.name.lower():
-            raid_embed.add_field(name=field.name, value=field.value, inline=field.inline)
-        if "status" in field.name.lower():
-            raid_embed.add_field(name=field.name, value=field.value, inline=field.inline)
+    embed_indices = await get_embed_field_indices(oldembed)
+    raid_embed = discord.Embed(title=_('Click here for directions to the raid!'), url=raid_gmaps_link, colour=raid_channel.guild.me.colour)
+    raid_embed.add_field(name=(oldembed.fields[embed_indices["gym"]].name), value=oldembed.fields[embed_indices["gym"]].value, inline=True)
+    cp_range = ''
+    if raid_pokemon.name.lower() in boss_cp_chart:
+        cp_range = boss_cp_chart[raid_pokemon.name.lower()]
+    raid_embed.add_field(name=_('**Details:**'), value=_('**{pokemon}** ({pokemonnumber}) {type}{cprange}').format(pokemon=raid_pokemon.name, pokemonnumber=str(raid_pokemon.id), type=types_to_str(raid_channel.guild, raid_pokemon.types), cprange='\n'+cp_range, inline=True))
+    raid_embed.add_field(name=_('**Weaknesses:**'), value=_('{weakness_list}').format(weakness_list=types_to_str(raid_channel.guild, raid_pokemon.weak_against)), inline=True)
+    if embed_indices["next"] is not None:
+        raid_embed.add_field(name=(oldembed.fields[embed_indices["next"]].name), value=oldembed.fields[embed_indices["next"]].value, inline=True)
+    if embed_indices["hatch"] is not None:
+        raid_embed.add_field(name=(oldembed.fields[embed_indices["hatch"]].name), value=oldembed.fields[embed_indices["hatch"]].value, inline=True)
+    if embed_indices["tips"] is not None:
+        raid_embed.add_field(name=(oldembed.fields[embed_indices["tips"]].name), value=oldembed.fields[embed_indices["tips"]].value, inline=True)
+
     raid_embed.set_footer(text=oldembed.footer.text, icon_url=oldembed.footer.icon_url)
     raid_embed.set_thumbnail(url=raid_pokemon.img_url)
     try:
@@ -6183,6 +6181,8 @@ async def _eggtoraid(entered_raid, raid_channel, author=None):
         raid_embed.add_field(name=oldembed.fields[3].name, value=end.strftime(_('%B %d at %I:%M %p (%H:%M)')), inline=True)
     else:
         raid_embed.add_field(name=_('**Expires:**'), value=end.strftime(_('%B %d at %I:%M %p (%H:%M)')), inline=True)
+    if embed_indices["tips"] is not None:
+        raid_embed.add_field(name=(oldembed.fields[embed_indices["tips"]].name), value=oldembed.fields[embed_indices["tips"]].value, inline=True)
     raid_embed.set_footer(text=oldembed.footer.text, icon_url=oldembed.footer.icon_url)
     raid_embed.set_thumbnail(url=pkmn.img_url)
     await raid_channel.edit(name=raid_channel_name, topic=end.strftime(_('Ends on %B %d at %I:%M %p (%H:%M)')))
@@ -9608,12 +9608,15 @@ async def _get_raid_listing_messages(channel, region=None):
     activeraidnum = len(raid_dict) + len(egg_dict)
     if not listing_enabled:
         activeraidnum += len(exraid_list) + len(event_list)
+    report_str = ""
+    if region:
+        reporting_channels = await get_region_reporting_channels(guild, region)
+        report_channel = guild.get_channel(reporting_channels[0])
+        report_str = f"Report a new raid in {report_channel.mention}\n"
     if activeraidnum:
         listmsg += _(f"**Current eggs and raids reported in {cty.capitalize()}**\n")
         if region:
-            reporting_channels = await get_region_reporting_channels(guild, region)
-            report_channel = guild.get_channel(reporting_channels[0])
-            listmsg += f"Report a new raid in {report_channel.mention}\n"
+            listmsg += report_str
         listmsg += "\n"
         if raid_dict:
             listmsg += process_category(listmsg_list, "Active Raids", [r for (r, __) in sorted(raid_dict.items(), key=itemgetter(1))])
@@ -9625,6 +9628,8 @@ async def _get_raid_listing_messages(channel, region=None):
             listmsg += process_category(listmsg_list, "Meetups", event_list)
     else:
         listmsg = _('No active raids! Report one with **!raid <name> <location> [weather] [timer]**.')
+        if region:
+            listmsg += "\n" + report_str
     listmsg_list.append(listmsg)
     return listmsg_list
 
