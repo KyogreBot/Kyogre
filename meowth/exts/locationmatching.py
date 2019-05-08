@@ -9,7 +9,8 @@ from meowth import utils, checks
 from meowth.exts.db.kyogredb import *
 
 class Location:
-    def __init__(self, name, latitude, longitude, region, note):
+    def __init__(self, id, name, latitude, longitude, region, note):
+        self.id = id,
         self.name = name
         self.latitude = latitude
         self.longitude = longitude
@@ -35,8 +36,8 @@ class Location:
 
 class Gym(Location):
     __name__ = "Gym"
-    def __init__(self, name, latitude, longitude, region, ex_eligible, note):
-        super().__init__(name, latitude, longitude, region, note)
+    def __init__(self, id, name, latitude, longitude, region, ex_eligible, note):
+        super().__init__(id, name, latitude, longitude, region, note)
         self.ex_eligible = ex_eligible
 
 class Pokestop(Location):
@@ -53,7 +54,8 @@ class LocationMatching(commands.Cog):
     
     def get_gyms(self, guild_id, regions=None):
         result = (GymTable
-                    .select(LocationTable.name, 
+                    .select(LocationTable.id,
+                            LocationTable.name, 
                             LocationTable.latitude, 
                             LocationTable.longitude, 
                             RegionTable.name.alias('region'),
@@ -201,7 +203,8 @@ class LocationMatching(commands.Cog):
         try:
             with tempfile.NamedTemporaryFile('w', dir=os.path.dirname(os.path.join('data', 'gym_data_backup1')), delete=False) as f:
                 gyms = (GymTable
-                            .select(LocationTable.name, 
+                            .select(LocationTable.id,
+                                    LocationTable.name, 
                                     LocationTable.latitude, 
                                     LocationTable.longitude, 
                                     RegionTable.name.alias('region'),

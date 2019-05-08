@@ -5999,6 +5999,17 @@ async def finish_raid_report(ctx, raid_details, raid_pokemon, level, weather, ra
             await _eggassume('assume ' + raid_info['raid_eggs'][str(level)]['pokemon'][0], raid_channel)
         elif level == "5" and guild_dict[raid_channel.guild.id]['configure_dict']['settings'].get('regional',None) in raid_info['raid_eggs']["5"]['pokemon']:
             await _eggassume('assume ' + guild_dict[raid_channel.guild.id]['configure_dict']['settings']['regional'], raid_channel)
+    trainer = TrainerTable.get_or_create(snowflake=author.id, guild=guild.id)
+    location = LocationTable.get(id=gym.id)
+    raid_dict = guild_dict[guild.id]['raidchannel_dict'][raid_channel.id]
+    await channel.send(message.created_at)
+    await channel.send(trainer[0])
+    await channel.send(location)
+    report = TrainerReportRelation.create(created=message.created_at, trainer=trainer[0], location=location)
+
+    RaidTable.create(trainer_report=report, level=raid_dict['level'], type=raid_dict['type'],
+    next_event_time=datetime.datetime.fromtimestamp(raid_dict['exp']), channel=raid_channel.id, trainer_dict={})
+
     return raid_channel
 
 async def _eggassume(args, raid_channel, author=None):
