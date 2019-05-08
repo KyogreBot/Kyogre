@@ -99,7 +99,7 @@ class LocationMatching(commands.Cog):
         return [(l, score) for l in locations for match_name, score in match if l.name == match_name]
     
     @commands.command(hidden=True, aliases=["lmt"])
-    @checks.is_dev_or_owner()
+    @commands.has_permissions(manage_guild=True)
     async def location_match_test(self, ctx, *, content=None):
         add_prefix = False
         if ',' not in content:
