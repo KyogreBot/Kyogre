@@ -91,6 +91,7 @@ raid_info = {}
 active_raids = []
 active_wilds = []
 active_pvp = []
+active_lures = []
 
 """
 Helper functions
@@ -638,6 +639,33 @@ async def expire_raid_notice(message):
     except (discord.errors.NotFound, discord.errors.Forbidden, discord.errors.HTTPException):
         pass
     del guild_dict[guild.id]['raid_notice_dict'][message.id]
+
+async def lure_expiry_check(message, lure_id):
+    logger.info('Expiry_Check - ' + message.channel.name)
+    channel = message.channel
+    global active_lures
+    message = await message.channel.fetch_message(message.id)
+    expire_time = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[channel.guild.id]['configure_dict']['settings']['offset']) + datetime.timedelta(minutes=30)
+    if message not in active_lures:
+        active_lures.append(message)
+        logger.info(
+        'lure_expiry_check - Message added to watchlist - ' + message.channel.name
+        )
+        await asyncio.sleep(0.5)
+        while True:
+            if expire_time.timestamp() <= time.time():
+                await expire_lure(message)
+            await asyncio.sleep(30)
+            continue
+
+async def expire_lure(message):
+    channel = message.channel
+    guild = channel.guild
+    try:
+        await message.edit(content="", embed=discord.Embed(description="This lure has expired"))
+        await message.clear_reactions();
+    except discord.errors.NotFound:
+        pass
 
 async def wild_expiry_check(message):
     logger.info('Expiry_Check - ' + message.channel.name)
@@ -5093,6 +5121,8 @@ def _get_subscription_command_error(content, subscription_types):
     return error_message
 
 async def _parse_subscription_content(content, message = None):
+    channel = message.channel
+    author = message.author.id 
     sub_list = []
     error_list = []
     raid_level_list = [str(n) for n in list(range(1, 6))]
@@ -5111,8 +5141,6 @@ async def _parse_subscription_content(content, message = None):
             sub_list.append((sub_type, gym.name, gym.name))
             return sub_list, error_list
     if sub_type == 'item':
-        channel = message.channel
-        author = message.author.id 
         result = RewardTable.select(RewardTable.name,RewardTable.quantity)
         result = result.objects(Reward)
         results = [o for o in result]
@@ -5131,6 +5159,21 @@ async def _parse_subscription_content(content, message = None):
         target, count = re.subn(perfect_pattern, '', target, flags=re.I)
         if count:
             sub_list.append((sub_type, 'perfect', 'Perfect IVs'))
+
+    if sub_type == 'lure':
+        result = LureTypeTable.select(LureTypeTable.name)
+        result = result.objects(Lure)
+        results = [o for o in result]
+        lure_names = [r.name.lower() for r in results]
+        targets = target.split(',')
+        for t in targets:
+            candidates = utils.get_match(lure_names, t, score_cutoff=60, isPartial=True, limit=20)
+            name = await prompt_match_result(channel, author, t, candidates)
+            if name is not None:
+                sub_list.append((sub_type, name, name))
+            else:
+                error_list.append(t)
+        return sub_list, error_list
             
     if ',' in target:
         target = set([t.strip() for t in target.split(',')])
@@ -5179,7 +5222,7 @@ async def _sub_add(ctx, *, content):
     
     Valid types are: pokemon, raid, research, wild, and gym
     Note: 'Pokemon' includes raid, research, and wild reports"""
-    subscription_types = ['pokemon','raid','research','wild','nest','gym','shiny','item']
+    subscription_types = ['pokemon','raid','research','wild','nest','gym','shiny','item','lure']
     message = ctx.message
     channel = message.channel
     guild = message.guild
@@ -5231,7 +5274,7 @@ async def _sub_add(ctx, *, content):
 
     await channel.send(content=confirmation_msg)
 
-@_sub.command(name="remove", aliases=["rm"])
+@_sub.command(name="remove", aliases=["rm", "rem"])
 async def _sub_remove(ctx,*,content):
     """Remove a subscription
 
@@ -5243,7 +5286,7 @@ async def _sub_remove(ctx,*,content):
 
     Or remove all subscriptions:
     !sub remove all all"""
-    subscription_types = ['all','pokemon','raid','research','wild','nest','gym','shiny','item']
+    subscription_types = ['all','pokemon','raid','research','wild','nest','gym','shiny','item','lure']
     message = ctx.message
     channel = message.channel
     guild = message.guild
@@ -5493,6 +5536,52 @@ def get_existing_research(guild, location):
         return report['location'].lower() == location.name.lower()
     return [confirmation_id for confirmation_id, report in report_dict.items() if matches_existing(report)]
 
+@Meowth.command(name='lure')
+#@checks.allowwildreport()
+async def _lure(ctx, type, *, location):
+    """Report that you're luring a pokestop.
+
+    Usage: !lure <type> <location>
+    Location should be the name of a Pokestop."""
+    content = f"{type} {location}"
+    await _lure_internal(ctx.message, content)
+
+async def _lure_internal(message, content):
+    guild = message.guild
+    channel = message.channel
+    author = message.author
+    if len(content.split()) <= 1:
+        return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description='Give more details when reporting! Usage: **!lure <type> <location>**'))
+    timestamp = (message.created_at + datetime.timedelta(hours=guild_dict[guild.id]['configure_dict']['settings']['offset'])).strftime(_('%I:%M %p (%H:%M)'))
+    luretype = content.split()[0]
+    pokestop =  ' '.join(content.split()[1:])
+    query = LureTypeTable.select()
+    if id is not None:
+        query = query.where(LureTypeTable.name == luretype)
+    query = query.execute()
+    result = [d for d in query]
+    if len(result) != 1:
+        return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description='Unable to find the lure type provided, please try again.'))
+    luretype = result[0]
+    lure_regions = _get_channel_regions(channel, 'raid')
+    stops = None
+    stops = get_stops(guild.id, lure_regions)
+    if stops:
+        stop = await location_match_prompt(channel, author.id, pokestop, stops)
+        if not stop:
+            return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description="Unable to find that Pokestop. Please check the name and try again!"))
+    report = TrainerReportRelation.create(created=timestamp, trainer=author.id, location=stop.id)
+    lure = LureTable.create(trainer_report=report)
+    LureTypeRelation.create(lure=lure, type=luretype)
+    lure_embed = discord.Embed(title=f'Click here for my directions to the {luretype.name.capitalize()} lure!', description=f"Ask {author.display_name} if my directions aren't perfect!", url=stop.maps_url, colour=discord.Colour.purple())
+    lure_embed.set_footer(text=_('Reported by {author} - {timestamp}').format(author=author.display_name, timestamp=timestamp), icon_url=author.avatar_url_as(format=None, static_format='jpg', size=32))
+    lurereportmsg = await channel.send(f'**{luretype.name.capitalize()}** lure reported by {author.display_name} at {stop.name}', embed=lure_embed)
+    #await _update_listing_channels(message.guild, 'lure', edit=False, regions=channel_regions)
+    details = {'regions': lure_regions, 'type': 'lure', 'lure_type': luretype.name, 'location': stop.name}
+    await _send_notifications_async('lure', details, message.channel, [message.author.id])
+    event_loop.create_task(lure_expiry_check(lurereportmsg, report.id))
+
+        
 @Meowth.command(name="wild", aliases=['w'])
 @checks.allowwildreport()
 async def _wild(ctx,pokemon,*,location):
@@ -6977,7 +7066,7 @@ async def _meetup(ctx, location):
     event_loop.create_task(expiry_check(raid_channel))
 
 async def _send_notifications_async(type, details, new_channel, exclusions=[]):
-    valid_types = ['raid', 'research', 'wild', 'nest', 'gym', 'shiny', 'item']
+    valid_types = ['raid', 'research', 'wild', 'nest', 'gym', 'shiny', 'item', 'lure']
     if type not in valid_types:
         return
     guild = new_channel.guild
@@ -7002,6 +7091,7 @@ async def _send_notifications_async(type, details, new_channel, exclusions=[]):
     pokemon_list = details.get('pokemon', [])
     gym = details.get('location', None)
     item = details.get('item', None)
+    lure_type = details.get('lure_type', None)
     if not isinstance(pokemon_list, list):
         pokemon_list = [pokemon_list]
     location = details.get('location', None)
@@ -7040,6 +7130,8 @@ async def _send_notifications_async(type, details, new_channel, exclusions=[]):
             target_matched = True
         if 'shiny' in targets:
             target_matched = True
+        if lure_type and lure_type in targets:
+            target_matched = True
         if not target_matched:
             continue
         description = ', '.join(descriptors)
@@ -7047,12 +7139,16 @@ async def _send_notifications_async(type, details, new_channel, exclusions=[]):
         if type == 'item':
             start = 'An' if re.match(r'^[aeiou]', item, re.I) else 'A'
             message = f'{start} **{item}** task has been reported at {location}! For more details, go to the {new_channel.mention} channel.'
+        elif type == 'lure':
+            message = f'A **{lure_type.capitalize()}** lure has been dropped at {location}!'
         else:
             message = f'**New {type.title()}**! {start} {description} {type} at {location} has been reported! For more details, go to the {new_channel.mention} channel!'
         outbound_dict[trainer] = {'discord_obj': user, 'message': message}
     pokemon_names = ' '.join([p.name for p in pokemon_list])
     if type == 'item':
         role_name = sanitize_name(f"{item} {location}".title())
+    elif type == 'lure':
+        role_name = sanitize_name(f'{lure_type} {location}'.title())
     else:
         role_name = sanitize_name(f"{type} {pokemon_names} {location}".title())
     return await _generate_role_notification_async(role_name, new_channel, outbound_dict)
@@ -7600,7 +7696,7 @@ async def _refresh_listing_channels_internal(guild, type, *, regions=None):
     await _update_listing_channels(guild, type, edit=True, regions=regions)
 
 async def _update_listing_channels(guild, type, edit=False, regions=None):
-    valid_types = ['raid', 'research', 'wild', 'nest']
+    valid_types = ['raid', 'research', 'wild', 'nest', 'lure']
     if type not in valid_types:
         return
     listing_dict = guild_dict[guild.id]['configure_dict'].get(type, {}).get('listings', None)

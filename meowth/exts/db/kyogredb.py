@@ -24,7 +24,8 @@ class KyogreDB:
             GymTable, TrainerReportRelation, QuestTable, 
             ResearchTable, SightingTable, RaidBossRelation, 
             RaidTable, SubscriptionTable, TradeTable,
-            LocationNoteTable, RewardTable
+            LocationNoteTable, RewardTable, LureTable,
+            LureTypeTable, LureTypeRelation
         ])
         cls.init()
         cls._migrator = SqliteMigrator(cls._db)
@@ -60,6 +61,10 @@ class KyogreDB:
             QuestTable.get()
         except:
             QuestTable.reload_default()
+        try:
+            LureTypeTable.get()
+        except:
+            LureTypeTable.reload_default()
 
 class BaseModel(Model):
     class Meta:
@@ -153,6 +158,7 @@ class RegionTable(BaseModel):
         constraints = [SQL('UNIQUE(name, guild_id)')]
 
 class LocationTable(BaseModel):
+    id = AutoField()
     name = TextField(index=True)
     latitude = TextField()
     longitude = TextField()
@@ -217,9 +223,10 @@ class GymTable(BaseModel):
     ex_eligible = BooleanField(index=True)
 
 class TrainerReportRelation(BaseModel):
+    id = AutoField()
     created = DateTimeField(index=True)
     trainer = BigIntegerField(index=True)
-    location = ForeignKeyField(LocationTable, backref='reports', index=True)
+    location = ForeignKeyField(LocationTable, index=True)
 
 class QuestTable(BaseModel):
     name = TextField(unique=True)
@@ -249,6 +256,25 @@ class QuestTable(BaseModel):
 class ResearchTable(BaseModel):
     trainer_report = ForeignKeyField(TrainerReportRelation, backref='research')
     quest = ForeignKeyField(QuestTable, backref='reports', index=True)
+
+class Lure():
+    def __init__(self, name):
+        self.name = name
+
+class LureTypeTable(BaseModel):
+    name = TextField()
+
+    @classmethod
+    def reload_default(cls):
+        for type in ['normal', 'glacial', 'mossy', 'magnetic']:
+            LureTypeTable.create(name=type)
+
+class LureTable(BaseModel):
+    trainer_report = ForeignKeyField(TrainerReportRelation, backref='lure')
+
+class LureTypeRelation(BaseModel):
+    lure = ForeignKeyField(LureTable, backref='lure')
+    type = ForeignKeyField(LureTypeTable, backref='lure')
 
 def parseRewardPool(pool):
     for key,val in pool["items"].items():
