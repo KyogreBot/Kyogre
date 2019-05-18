@@ -10290,7 +10290,7 @@ async def _get_lure_listing_messages(channel, region=None):
                 newmsg += f"\n\n**{current_category.capitalize()}**"
             newmsg += ('\n\t🔹')
             stop_url = simple_gmaps_query(lure.latitude, lure.longitude)
-            newmsg += f"**Pokestop**: [{lure.location_name}]({stop_url}) - Expires: {exp.strftime('%I:%M:%S')} (approximately)."
+            newmsg += f"**Pokestop**: [{lure.location_name}]({stop_url}) - Expires: {exp.strftime('%I:%M:%S')} (approx.)."
             if len(listmsg) + len(newmsg) < constants.MAX_MESSAGE_LENGTH:
                 listmsg += newmsg
             else:
