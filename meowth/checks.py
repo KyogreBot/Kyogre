@@ -239,6 +239,20 @@ def check_wildreport(ctx):
     channel_list = [x for x in ctx.bot.guild_dict[guild.id]['configure_dict']['wild'].get('report_channels',{}).keys()]
     return channel.id in channel_list
 
+def check_lureset(ctx):
+    if ctx.guild is None:
+        return False
+    guild = ctx.guild
+    return ctx.bot.guild_dict[guild.id]['configure_dict']['lure'].get('enabled',False)
+
+def check_lurereport(ctx):
+    if ctx.guild is None:
+        return False
+    channel = ctx.channel
+    guild = ctx.guild
+    channel_list = [x for x in ctx.bot.guild_dict[guild.id]['configure_dict']['lure'].get('report_channels',{}).keys()]
+    return channel.id in channel_list
+
 def check_teamset(ctx):
     if ctx.guild is None:
         return False
@@ -339,6 +353,18 @@ def allowwildreport():
                 raise errors.WildReportChannelCheckFail()
         else:
             raise errors.WildSetCheckFail()
+    return commands.check(predicate)
+
+
+def allowlurereport():
+    def predicate(ctx):
+        if check_lureset(ctx):
+            if check_lurereport(ctx):
+                return True
+            else:
+                raise errors.LureReportChannelCheckFail()
+        else:
+            raise errors.LureSetCheckFail()
     return commands.check(predicate)
 
 def allowresearchreport():

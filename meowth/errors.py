@@ -25,6 +25,10 @@ class WildSetCheckFail(CommandError):
     'Exception raised checks.wildset fails'
     pass
 
+class LureSetCheckFail(CommandError):
+    'Exception raised checks.lureset fails'
+    pass
+
 class ReportCheckFail(CommandError):
     'Exception raised checks.allowreport fails'
     pass
@@ -121,6 +125,10 @@ class WildReportChannelCheckFail(CommandError):
     'Exception raised checks.researchreport fails'
     pass
 
+class LureReportChannelCheckFail(CommandError):
+    'Exception raised checks.researchreport fails'
+    pass
+
 class TradeChannelCheckFail(CommandError):
     'Exception raised checks.tradereport fails'
     pass
@@ -205,6 +213,11 @@ def custom_error_handling(bot, logger):
             await delete_error(ctx.message, error)
         elif isinstance(error, WildSetCheckFail):
             msg = _('Wild Reporting is not enabled on this server. **{prefix}{cmd_name}** is unable to be used.').format(cmd_name=ctx.invoked_with, prefix=prefix)
+            error = await ctx.channel.send(msg)
+            await asyncio.sleep(10)
+            await delete_error(ctx.message, error)
+        elif isinstance(error, LureSetCheckFail):
+            msg = _('Lure Reporting is not enabled on this server. **{prefix}{cmd_name}** is unable to be used.').format(cmd_name=ctx.invoked_with, prefix=prefix)
             error = await ctx.channel.send(msg)
             await asyncio.sleep(10)
             await delete_error(ctx.message, error)
@@ -507,6 +520,23 @@ def custom_error_handling(bot, logger):
             guild = ctx.guild
             msg = _('Please use **{prefix}{cmd_name}** in ').format(cmd_name=ctx.invoked_with, prefix=prefix)
             city_channels = bot.guild_dict[guild.id]['configure_dict']['wild']['report_channels']
+            if len(city_channels) > 10:
+                msg += _('a Region report channel.')
+            else:
+                msg += _('one of the following region channels:')
+                for c in city_channels:
+                    channel = discord.utils.get(guild.channels, id=c)
+                    if channel:
+                        msg += '\n' + channel.mention
+                    else:
+                        msg += '\n#deleted-channel'
+            error = await ctx.channel.send(embed=discord.Embed(colour=discord.Colour.red(), description=msg))
+            await asyncio.sleep(10)
+            await delete_error(ctx.message, error)
+        elif isinstance(error, LureReportChannelCheckFail):
+            guild = ctx.guild
+            msg = _('Please use **{prefix}{cmd_name}** in ').format(cmd_name=ctx.invoked_with, prefix=prefix)
+            city_channels = bot.guild_dict[guild.id]['configure_dict']['lure']['report_channels']
             if len(city_channels) > 10:
                 msg += _('a Region report channel.')
             else:
