@@ -5536,6 +5536,7 @@ def get_existing_research(guild, location):
         return report['location'].lower() == location.name.lower()
     return [confirmation_id for confirmation_id, report in report_dict.items() if matches_existing(report)]
 
+
 @Meowth.command(name='lure')
 #@checks.allowwildreport()
 async def _lure(ctx, type, *, location):
