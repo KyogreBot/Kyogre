@@ -5537,7 +5537,7 @@ def get_existing_research(guild, location):
     return [confirmation_id for confirmation_id, report in report_dict.items() if matches_existing(report)]
 
 
-@Meowth.command(name='lure')
+@Meowth.command(name='lure', aliases=['lu'])
 #@checks.allowwildreport()
 async def _lure(ctx, type, *, location):
     """Report that you're luring a pokestop.
