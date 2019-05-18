@@ -250,6 +250,9 @@ def create_gmaps_query(details, channel, type="raid"):
     loc_list = guild_dict[channel.guild.id]['configure_dict'][report]['report_channels'][channel.id].split()
     return 'https://www.google.com/maps/search/?api=1&query={0}+{1}'.format('+'.join(details_list), '+'.join(loc_list))
 
+def simple_gmaps_query(lat,lng):
+    return f'https://www.google.com/maps/search/?api=1&query={lat},{lng}'
+
 def do_template(message, author, guild):
     not_found = []
 
@@ -1161,6 +1164,7 @@ async def on_ready():
                         'raid': {'enabled':False, 'report_channels': {}, 'categories':'same','category_dict':{}},
                         'exraid': {'enabled':False, 'report_channels': {}, 'categories':'same','category_dict':{}, 'permissions':'everyone'},
                         'wild': {'enabled':False, 'report_channels': {}},
+                        'lure': {'enabled':False, 'report_channels': {}},
                         'counters': {'enabled':False, 'auto_levels': []},
                         'research': {'enabled':False, 'report_channels': {}},
                         'archive': {'enabled':False, 'category':'same','list':None},
@@ -1184,6 +1188,7 @@ async def on_ready():
                     'exraid': {'enabled':False, 'report_channels': {}, 'categories':'same','category_dict':{}, 'permissions':'everyone'},
                     'counters': {'enabled':False, 'auto_levels': []},
                     'wild': {'enabled':False, 'report_channels': {}},
+                    'lure': {'enabled':False, 'report_channels': {}},
                     'research': {'enabled':False, 'report_channels': {}},
                     'archive': {'enabled':False, 'category':'same','list':None},
                     'invite': {'enabled':False},
@@ -1210,6 +1215,7 @@ async def on_guild_join(guild):
             'exraid': {'enabled':False, 'report_channels': {}, 'categories':'same','category_dict':{}, 'permissions':'everyone'},
             'counters': {'enabled':False, 'auto_levels': []},
             'wild': {'enabled':False, 'report_channels': {}},
+            'lure': {'enabled':False, 'report_channels': {}},
             'research': {'enabled':False, 'report_channels': {}},
             'archive': {'enabled':False, 'category':'same','list':None},
             'invite': {'enabled':False},
@@ -2379,7 +2385,7 @@ async def _configure(ctx, configlist):
             del guild_dict[guild.id]['configure_dict']['settings']['config_sessions'][session]
     config_dict_temp = getattr(ctx, 'config_dict_temp',copy.deepcopy(guild_dict[guild.id]['configure_dict']))
     firstconfig = False
-    all_commands = ['team', 'welcome', 'regions', 'raid', 'exraid', 'exinvite', 'counters', 'wild', 'research', 'meetup', 'subscriptions', 'archive', 'trade', 'timezone', 'pvp', 'join']
+    all_commands = ['team', 'welcome', 'regions', 'raid', 'exraid', 'exinvite', 'counters', 'wild', 'research', 'meetup', 'subscriptions', 'archive', 'trade', 'timezone', 'pvp', 'join', 'lure']
     enabled_commands = []
     configreplylist = []
     config_error = False
@@ -2507,6 +2513,10 @@ async def _configure(ctx, configlist):
                 return None
         if "join" in configreplylist:
             ctx = await _configure_join(ctx)
+            if not ctx:
+                return None
+        if "lure" in configreplylist:
+            ctx = await _configure_lure(ctx)
             if not ctx:
                 return None
     finally:
@@ -4050,6 +4060,113 @@ If you would like to disable this feature, reply with **N**. To cancel this conf
     return ctx
 
 @configure.command()
+async def lure(ctx):
+    """!lure settings"""
+    return await _check_sessions_and_invoke(ctx, _configure_lure)
+
+async def _configure_lure(ctx):
+    guild = ctx.message.guild
+    owner = ctx.message.author
+    config_dict_temp = getattr(ctx, 'config_dict_temp',copy.deepcopy(guild_dict[guild.id]['configure_dict']))
+    if 'lure' not in config_dict_temp:
+        config_dict_temp['lure'] = {'enabled':False, 'report_channels': {}}
+    await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), 
+        description=_("Lure Reporting allows users to report lures they've applied with **!lure**. **lure** are contained within one or more channels. Each channel will be able to represent different areas/communities. I'll need you to provide a list of channels in your server you will allow reports from in this format: `channel-name, channel-name, channel-name`\n\nExample: `kansas-city-lures, hull-lures, sydney-lures`\n\nIf you do not require **lure** reporting, you may want to disable this function.\n\nRespond with: **N** to disable, or the **channel-name** list to enable, each seperated with a comma and space:")).set_author(name=_('Lure Reporting Channels'), icon_url=Meowth.user.avatar_url))
+    citychannel_dict = {}
+    while True:
+        citychannels = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+        if citychannels.content.lower() == 'n':
+            config_dict_temp['lure']['enabled'] = False
+            await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('Lure Reporting disabled')))
+            break
+        elif citychannels.content.lower() == 'cancel':
+            await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
+            return None
+        else:
+            config_dict_temp['lure']['enabled'] = True
+            citychannel_list = citychannels.content.lower().split(',')
+            citychannel_list = [x.strip() for x in citychannel_list]
+            guild_channel_list = []
+            for channel in guild.text_channels:
+                guild_channel_list.append(channel.id)
+            citychannel_objs = []
+            citychannel_names = []
+            citychannel_errors = []
+            for item in citychannel_list:
+                channel = None
+                if item.isdigit():
+                    channel = discord.utils.get(guild.text_channels, id=int(item))
+                if not channel:
+                    item = re.sub('[^a-zA-Z0-9 _\\-]+', '', item)
+                    item = item.replace(" ","-")
+                    name = await letter_case(guild.text_channels, item.lower())
+                    channel = discord.utils.get(guild.text_channels, name=name)
+                if channel:
+                    citychannel_objs.append(channel)
+                    citychannel_names.append(channel.name)
+                else:
+                    citychannel_errors.append(item)
+            citychannel_list = [x.id for x in citychannel_objs]
+            diff = set(citychannel_list) - set(guild_channel_list)
+            if (not diff) and (not citychannel_errors):
+                await owner.send(embed=discord.Embed(colour=discord.Colour.green(), description=_('Lure Reporting Channels enabled')))
+                for channel in citychannel_objs:
+                    ow = channel.overwrites_for(Meowth.user)
+                    ow.send_messages = True
+                    ow.read_messages = True
+                    ow.manage_roles = True
+                    try:
+                        await channel.set_permissions(Meowth.user, overwrite = ow)
+                    except (discord.errors.Forbidden, discord.errors.HTTPException, discord.errors.InvalidArgument):
+                        await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_('I couldn\'t set my own permissions in this channel. Please ensure I have the correct permissions in {channel} using **{prefix}get perms**.').format(prefix=ctx.prefix, channel=channel.mention)))
+                break
+            else:
+                await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The channel list you provided doesn't match with your servers channels.\n\nThe following aren't in your server: **{invalid_channels}**\n\nPlease double check your channel list and resend your reponse.").format(invalid_channels=', '.join(citychannel_errors))))
+                continue
+    if config_dict_temp['lure']['enabled']:
+        if config_dict_temp.get('regions', {}).get('enabled', None):
+            region_names = [name for name in config_dict_temp['regions']['info'].keys()]
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('For each report, I generate Google Maps links to give people directions to lures! To do this, I need to know which region each report channel represents using the region names as previously configured (see below), to ensure we get the right location in the map. For each report channel you provided, I will need its corresponding region using only letters and spaces, with each region seperated by a comma and space.\n\nExample: `kanto, johto, sinnoh`\n\nEach location will have to be in the same order as you provided the channels in the previous question.\n\nRespond with: **region name, region name, region name** each matching the order of the previous channel list below.')).set_author(name=_('Lure Reporting Regions'), icon_url=Meowth.user.avatar_url))
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{citychannel_list}').format(citychannel_list=citychannels.content.lower()[:2000])).set_author(name=_('Entered Channels'), icon_url=Meowth.user.avatar_url))
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{region_names}').format(region_names=region_names[:2000])).set_author(name=_('Entered Regions'), icon_url=Meowth.user.avatar_url))
+            while True:
+                regions = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+                regions = regions.content.lower().strip()
+                if regions == 'cancel':
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
+                    return None
+                region_list = [x.strip() for x in regions.split(',')]
+                if len(region_list) == len(citychannel_list):
+                    for i in range(len(citychannel_list)):
+                        citychannel_dict[citychannel_list[i]] = region_list[i]
+                    break
+                else:
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The number of regions doesn't match the number of channels you gave me earlier!\n\nI'll show you the two lists to compare:\n\n{channellist}\n{regionlist}\n\nPlease double check that your regions match up with your provided channels and resend your response.").format(channellist=', '.join(citychannel_names), regionlist=', '.join(region_list))))
+                    continue
+        else:
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('For each report, I generate Google Maps links to give people directions to lures! To do this, I need to know which suburb/town/region each report channel represents, to ensure we get the right location in the map. For each report channel you provided, I will need its corresponding general location using only letters and spaces, with each location seperated by a comma and space.\n\nExample: `kansas city mo, hull uk, sydney nsw australia`\n\nEach location will have to be in the same order as you provided the channels in the previous question.\n\nRespond with: **location info, location info, location info** each matching the order of the previous channel list below.')).set_author(name=_('Lure Reporting Locations'), icon_url=Meowth.user.avatar_url))
+            await owner.send(embed=discord.Embed(colour=discord.Colour.lighter_grey(), description=_('{citychannel_list}').format(citychannel_list=citychannels.content.lower()[:2000])).set_author(name=_('Entered Channels'), icon_url=Meowth.user.avatar_url))
+            while True:
+                cities = await Meowth.wait_for('message', check=(lambda message: (message.guild == None) and message.author == owner))
+                if cities.content.lower() == 'cancel':
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.red(), description=_('**CONFIG CANCELLED!**\n\nNo changes have been made.')))
+                    return None
+                city_list = cities.content.split(',')
+                city_list = [x.strip() for x in city_list]
+                if len(city_list) == len(citychannel_list):
+                    for i in range(len(citychannel_list)):
+                        citychannel_dict[citychannel_list[i]] = city_list[i]
+                    break
+                else:
+                    await owner.send(embed=discord.Embed(colour=discord.Colour.orange(), description=_("The number of cities doesn't match the number of channels you gave me earlier!\n\nI'll show you the two lists to compare:\n\n{channellist}\n{citylist}\n\nPlease double check that your locations match up with your provided channels and resend your response.").format(channellist=', '.join(citychannel_names), citylist=', '.join(city_list))))
+                    continue
+        config_dict_temp['lure']['report_channels'] = citychannel_dict
+        config_dict_temp['lure']['listings'] = await _get_listings(guild, owner, config_dict_temp)
+        await owner.send(embed=discord.Embed(colour=discord.Colour.green(), description=_('Lure Reporting Locations are set')))
+    ctx.config_dict_temp = config_dict_temp
+    return ctx
+
+@configure.command()
 async def archive(ctx):
     """Configure !archive command settings"""
     return await _check_sessions_and_invoke(ctx, _configure_archive)
@@ -5553,7 +5670,7 @@ async def _lure_internal(message, content):
     author = message.author
     if len(content.split()) <= 1:
         return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description='Give more details when reporting! Usage: **!lure <type> <location>**'))
-    timestamp = (message.created_at + datetime.timedelta(hours=guild_dict[guild.id]['configure_dict']['settings']['offset'])).strftime(_('%I:%M %p (%H:%M)'))
+    timestamp = (message.created_at + datetime.timedelta(hours=guild_dict[guild.id]['configure_dict']['settings']['offset'])).strftime(_('%Y-%m-%d %H:%M:%S'))
     luretype = content.split()[0]
     pokestop =  ' '.join(content.split()[1:])
     query = LureTypeTable.select()
@@ -5577,7 +5694,7 @@ async def _lure_internal(message, content):
     lure_embed = discord.Embed(title=f'Click here for my directions to the {luretype.name.capitalize()} lure!', description=f"Ask {author.display_name} if my directions aren't perfect!", url=stop.maps_url, colour=discord.Colour.purple())
     lure_embed.set_footer(text=_('Reported by {author} - {timestamp}').format(author=author.display_name, timestamp=timestamp), icon_url=author.avatar_url_as(format=None, static_format='jpg', size=32))
     lurereportmsg = await channel.send(f'**{luretype.name.capitalize()}** lure reported by {author.display_name} at {stop.name}', embed=lure_embed)
-    #await _update_listing_channels(message.guild, 'lure', edit=False, regions=channel_regions)
+    await _update_listing_channels(guild, 'lure', edit=False, regions=lure_regions)
     details = {'regions': lure_regions, 'type': 'lure', 'lure_type': luretype.name, 'location': stop.name}
     await _send_notifications_async('lure', details, message.channel, [message.author.id])
     event_loop.create_task(lure_expiry_check(lurereportmsg, report.id))
@@ -7787,6 +7904,8 @@ async def _get_listing_messages(type, channel, region=None):
         return await _get_wild_listing_messages(channel, region)
     elif type == 'research':
         return await _get_research_listing_messages(channel, region)
+    elif type == 'lure':
+        return await _get_lure_listing_messages(channel, region)
     else:
         return None
 
@@ -10127,6 +10246,63 @@ async def _get_research_listing_messages(channel, region=None):
                 continue    
     if questctr == 0:
         listmsg = "There are no active research reports. Report one with **!research**"
+    listmsg_list.append(listmsg)
+    return listmsg_list
+
+async def _get_lure_listing_messages(channel, region=None):
+    guild = channel.guild
+    if region:
+        loc = region
+    else:
+        loc = channel.name
+    lurectr = 0
+    listmsg_list = []
+    listmsg = f"**Here are the active lures in {loc.capitalize()}**\n"
+    current_category = ""
+    current = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[channel.guild.id]['configure_dict']['settings']['offset'])
+    result = (TrainerReportRelation.select(
+                    TrainerReportRelation.created,
+                    LocationTable.name.alias('location_name'),
+                    LureTypeTable.name.alias('lure_type'),
+                    LocationTable.latitude,
+                    LocationTable.longitude)
+            .join(LocationTable, on=(TrainerReportRelation.location_id == LocationTable.id))
+            .join(LocationRegionRelation, on=(LocationTable.id==LocationRegionRelation.location_id))
+            .join(RegionTable, on=(RegionTable.id==LocationRegionRelation.region_id))
+            .join(LureTable, on=(TrainerReportRelation.id == LureTable.trainer_report_id))
+            .join(LureTypeRelation, on=(LureTable.id == LureTypeRelation.lure_id))
+            .join(LureTypeTable, on=(LureTypeTable.id == LureTypeRelation.type_id))
+            .where((RegionTable.name == region) &
+                   (TrainerReportRelation.created.day == current.day)))
+
+    result = result.objects(LureInstance)
+    results = [o for o in result]
+    for lure in results:
+        lure_create = datetime.datetime.strptime(lure.created, '%Y-%m-%d %H:%M:%S')
+        exp = lure_create+datetime.timedelta(minutes=30)
+        if exp < current:
+            continue
+        newmsg = ""
+        try:
+            type = lure.lure_type
+            if current_category != type:
+                current_category = type
+                newmsg += f"\n\n**{current_category.capitalize()}**"
+            newmsg += ('\n\t🔹')
+            stop_url = simple_gmaps_query(lure.latitude, lure.longitude)
+            newmsg += f"**Pokestop**: [{lure.location_name}]({stop_url}) - Expires: {exp.strftime('%I:%M:%S')} (approximately)."
+            if len(listmsg) + len(newmsg) < constants.MAX_MESSAGE_LENGTH:
+                listmsg += newmsg
+            else:
+                listmsg_list.append(listmsg)
+                if current_category not in newmsg:
+                    newmsg = f"**({current_category} continued)**"
+                listmsg = newmsg
+            lurectr += 1
+        except discord.errors.NotFound:
+            continue    
+    if lurectr == 0:
+        listmsg = "There are no active lures. Report one with **!lure**"
     listmsg_list.append(listmsg)
     return listmsg_list
 

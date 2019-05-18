@@ -224,7 +224,7 @@ class GymTable(BaseModel):
 
 class TrainerReportRelation(BaseModel):
     id = AutoField()
-    created = DateTimeField(index=True)
+    created = DateTimeField(index=True,formats=["%Y-%m-%d %H:%M:%s"])
     trainer = BigIntegerField(index=True)
     location = ForeignKeyField(LocationTable, index=True)
 
@@ -256,6 +256,14 @@ class QuestTable(BaseModel):
 class ResearchTable(BaseModel):
     trainer_report = ForeignKeyField(TrainerReportRelation, backref='research')
     quest = ForeignKeyField(QuestTable, backref='reports', index=True)
+
+class LureInstance():
+    def __init__(self, created, location_name, lure_type, latitude, longitude):
+        self.created=created
+        self.location_name=location_name
+        self.lure_type=lure_type
+        self.latitude=latitude
+        self.longitude=longitude
 
 class Lure():
     def __init__(self, name):
