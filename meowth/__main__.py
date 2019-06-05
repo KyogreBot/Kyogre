@@ -7591,6 +7591,7 @@ async def toggleEX(ctx, name):
     return success
 
 async def changeRegion(ctx, name, region):
+    region = region.lower()
     success = 0
     with KyogreDB._db.atomic() as txn:
         try:
