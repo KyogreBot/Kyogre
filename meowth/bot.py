@@ -12,6 +12,10 @@ class MeowthBot(commands.AutoShardedBot):
         """
         if message.author.bot:
             return
+        if message.content.startswith('!'):
+            message.content = message.content.lower()
+            if message.content[1] == " ":
+                message.content = message.content[0] + message.content[2:]
         ctx = await self.get_context(message, cls=Context)
         if not ctx.command:
             return
