@@ -5722,7 +5722,7 @@ async def _wild_internal(message, content):
     rgx = r'\s*((100(\s*%)?|perfect)(\s*ivs?\b)?)\s*'
     content, count = re.subn(rgx, '', content.strip(), flags=re.I)
     is_perfect = count > 0
-    entered_wild, wild_details = content.split(' ', 1)
+    entered_wild, wild_details = content.split(',', 1)
     pkmn = Pokemon.get_pokemon(Meowth, entered_wild if entered_wild.isdigit() else content)
     if not pkmn:
         return await channel.send(embed=discord.Embed(colour=discord.Colour.red(), description="Unable to find that pokemon. Please check the name and try again!"))
@@ -5779,7 +5779,7 @@ async def _wild_internal(message, content):
     await _update_listing_channels(message.guild, 'wild', edit=False, regions=channel_regions)
     await _send_notifications_async('wild', wild_details, message.channel, [message.author.id])
 
-@Meowth.group(name="raid", aliases=['r', 're', 'egg', 'regg', 'raidegg'])
+@Meowth.group(name="raid", aliases=['r', 're', 'egg', 'regg', 'raidegg','r1','r2','r3','r4','r5','raid1','raid2','raid3','raid4','raid5'])
 @checks.allowraidreport()
 async def _raid(ctx,pokemon,*,location:commands.clean_content(fix_channel_mentions=True)="", weather=None, timer=None):
     """Report an ongoing raid or a raid egg.
@@ -7592,6 +7592,7 @@ async def toggleEX(ctx, name):
     return success
 
 async def changeRegion(ctx, name, region):
+    region = region.lower()
     success = 0
     with KyogreDB._db.atomic() as txn:
         try:
