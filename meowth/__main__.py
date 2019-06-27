@@ -648,7 +648,8 @@ async def lure_expiry_check(message, lure_id):
     channel = message.channel
     global active_lures
     message = await message.channel.fetch_message(message.id)
-    expire_time = datetime.datetime.utcnow() + datetime.timedelta(hours=guild_dict[channel.guild.id]['configure_dict']['settings']['offset']) + datetime.timedelta(minutes=30)
+    offset = guild_dict[channel.guild.id]['configure_dict']['settings']['offset']
+    expire_time = datetime.datetime.utcnow() + datetime.timedelta(hours=offset) + datetime.timedelta(minutes=30)
     if message not in active_lures:
         active_lures.append(message)
         logger.info(
@@ -656,7 +657,7 @@ async def lure_expiry_check(message, lure_id):
         )
         await asyncio.sleep(0.5)
         while True:
-            if expire_time.timestamp() <= time.time():
+            if expire_time.timestamp() <= (datetime.datetime.utcnow() + datetime.timedelta(hours=offset)).timestamp():
                 await expire_lure(message)
             await asyncio.sleep(30)
             continue
